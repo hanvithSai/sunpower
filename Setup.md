@@ -180,7 +180,7 @@ Production: **https://www.sunpowersolutions.me** (Namecheap domain; the apex red
 4. Make sure Atlas **Network Access** includes `0.0.0.0/0`.
    - Paste env values without quotes or spaces, and never leave Atlas's `<db_password>` placeholder in the string.
    - Env changes only reach **new** deployments: after editing, go to **Deployments → ⋯ → Redeploy**.
-   - Verify: `https://www.sunpowersolutions.me/api/v1/health` must show `"db":"up"` and the expected `version` (Git commit).
+   - Verify: `https://www.sunpowersolutions.me/api/v1/health` must show `"db":"up"`, the expected `version` (Git commit) and `region` `bom1`. If `db` is down, the `reason` field says why.
 5. **Custom domain:** Vercel → Project → Settings → **Domains** → add `yourdomain.tld` and `www.yourdomain.tld`. Then in Namecheap → Domain List → **Manage → Advanced DNS** add:
    - `A` record, host `@`, value `76.76.21.21`
    - `CNAME` record, host `www`, value `cname.vercel-dns.com`
@@ -220,5 +220,5 @@ git push -u origin feat/<area>-<short-name> # open a PR, the other developer rev
 | `db:local` is slow the first time | It is downloading MongoDB (~780 MB) once. Atlas avoids this |
 | Type errors about `PageProps`/`LayoutProps` | Run `npx next typegen` (or `npm run dev` once) to generate route types |
 | Live site shows Vercel `NOT_FOUND` | Vercel has no build of the app: connect the Git repo, set Framework Preset to Next.js, add the env vars and redeploy (Human_Tasks #6) |
-| Sign-in shows "We couldn't sign you in right now" | The app can't reach MongoDB in that environment. Open `/api/v1/health` (it will say `"db":"down"`), then Vercel → **Logs** → search `login failed`: `bad auth` means wrong credentials in `MONGODB_URI`; a 30 s timeout means Atlas Network Access. Fix the variable, then redeploy |
-| Pages feel slow from India | Vercel functions default to Washington DC (`iad1`). Set Project → Settings → Functions → Region to Mumbai (`bom1`), near the Atlas cluster |
+| Sign-in shows "We couldn't sign you in right now" | The app can't reach MongoDB in that environment. Open `/api/v1/health`: its `reason` names the problem (`auth_failed` = wrong credentials in `MONGODB_URI`, `uri_invalid` = quotes or placeholders, `uri_missing`, `dns` = mistyped host, `timeout` = Atlas Network Access). Fix the variable, then redeploy |
+| Pages feel slow from India | Functions are pinned to Mumbai (`bom1`) in `vercel.json`; `/api/v1/health` shows the live `region`. If it isn't `bom1`, check that `vercel.json` is on the deployed commit and that no dashboard override is set (Project → Settings → Functions) |

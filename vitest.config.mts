@@ -1,13 +1,13 @@
 /**
  * Vitest configuration. Unit tests cover the pure business rules in src/lib
- * (GST, subsidy, warranty, state machines); integration tests spin up an
- * in-memory MongoDB replica set. Path aliases (@/...) come from tsconfig.
+ * and server helpers (GST, subsidy, warranty, state machines, error
+ * classification); integration flows run via scripts/check-*.ts. Path aliases
+ * (@/...) are resolved natively from tsconfig by Vite.
  */
 import { defineConfig } from "vitest/config";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  resolve: { tsconfigPaths: true },
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],

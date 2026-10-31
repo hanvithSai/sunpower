@@ -20,4 +20,4 @@ Agents add rows here when they are blocked. Humans tick them off and note the ou
 | 11 | Review the backend foundation before the demo | Vamshi | ⬜ | Walk through `src/server/**` (models, auth, services) and `engineering/DB.md`, so you can answer judges' questions on the parts you own. |
 | 12 | Record and submit the demo video | Hanvith | ⬜ | Due **01 Nov, 10:30 AM**. Follow the demo script in `Plan.md §9`. |
 | 13 | Plan for the slow venue network during demos | Both | ⬜ | Venue Wi-Fi takes 2–7 s per DNS lookup and 10–60 s for a cold Atlas connection. Demo from the deployed Vercel URL (Vercel ↔ Atlas is fast), or keep a phone hotspot ready for local runs. |
-| 14 | Decide the Vercel function region | Hanvith | ⏳ | Functions run in Washington DC (`iad1`) while users and the Atlas cluster are in Asia. Proposed: Mumbai (`bom1`), via `vercel.json` or Project → Settings → Functions → Region. |
+| 14 | Decide the Vercel function region | Hanvith | ✅ | Approved 31 Oct: functions pinned to Mumbai (`bom1`) via `vercel.json`; confirm with `region` in `/api/v1/health`. |

@@ -162,7 +162,7 @@ Vercel caps request bodies at 4.5 MB, so large files are split into 16 × 255 Ki
 
 Production runs at **https://www.sunpowersolutions.me** (Namecheap DNS → Vercel; the apex redirects to `www`), with **https://sunpowersolutions.vercel.app** as the Vercel URL.
 
-**Region:** Vercel functions currently run in Washington DC (`iad1`) while users are in India and the Atlas cluster is in Asia, so each request crosses India → US → Atlas (production health reports about 1.8 s of cold database latency). Pinning functions to Mumbai (`bom1`) is proposed (Human_Tasks #14).
+**Region:** Vercel functions run in **Mumbai (`bom1`)**, pinned in `vercel.json`, next to users in India and the Atlas cluster in Asia. They were in Washington DC (`iad1`, the default) until 31 Oct, when every request crossed India → US → Atlas (about 1.8 s of cold database latency). `/api/v1/health` reports the live `region`.
 
 ```mermaid
 flowchart LR
