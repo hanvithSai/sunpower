@@ -1,0 +1,6 @@
+/** Instant skeleton while the survey streams in. */
+import { DetailSkeleton } from "@/components/shared/skeletons";
+
+export default function Loading() {
+  return <DetailSkeleton />;
+}
