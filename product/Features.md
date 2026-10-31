@@ -28,20 +28,23 @@ Live at https://www.sunpowersolutions.me. Where this spec and the code differ, `
 | F04 Lead pipeline | ✅ Shipped | Board and table, SLA badges, auto-assignment, timeline |
 | F05 Qualification checklist | ✅ Shipped | Live "fits about N kW" hint (≈100 sq ft per kW) |
 | F06 Site survey | ✅ Shipped | Mobile form, compass picker, camera uploads to GridFS; approve / re-survey / not feasible |
-| F07 Catalog and packages | 🟨 Partly | Seeded catalog (30 products, 10 packages) shown read-only; create/edit UI pending |
+| F07 Catalog and packages | ✅ Shipped (editing P2) | All four packages from the brief: 1–5 kW On-Grid, Off-Grid and hardware-only **Panel Set** (panels, MC4 connectors, DC cable; no subsidy, no crew unless installation is added), and Installation as the service line on every system. Missing-parts warning before a quote is sent (R-24). Catalog shown read-only; create/edit stays P2 |
 | F08 Quote builder | ✅ Shipped | Package → full BOM, live GST/subsidy/margin, server re-pricing, print + WhatsApp |
 | F09 Orders and payments | ✅ Shipped | First payment confirms the order → pick list + installation job with a crew free that day; job costing and subsidy stepper on the order page |
-| F19 Activity timeline | 🟨 Partly | Timelines on leads, quotes, orders, jobs and tickets; a customer-wide timeline comes with the `/customers` page |
-| F10 Inventory, serials and purchases | ✅ Shipped | Stock (on hand, reserved, available, value at GRN cost), serial register, GRN with serials by camera, typing or paste; stock adjustment UI pending |
+| F19 Activity timeline | ✅ Shipped | Timelines on leads, quotes, orders, jobs and tickets, and a customer-wide timeline on `/customers/[id]` |
+| F10 Inventory, serials and purchases | ✅ Shipped | Stock (on hand, reserved, available, value at GRN cost), serial register with each unit's history, GRN with serials by camera, typing or paste; director-only stock correction after a count and write-off of a damaged unit, both with a reason on the ledger |
 | F11 Dispatch and serial scanning | ✅ Shipped | Packing bench (camera + manual), wrong-product / already-packed / not-in-stock refusals, auto "Packed", dispatch gate (BR-02), sale invoice at dispatch (BR-18), delivery starts warranties (BR-03) |
 | F12 Installation jobs | ✅ Shipped | Auto-crew free that day (BR-07), My work, crew calendar, Start gate, completion with times, kW, generation test, kit check, extras, photos, signature (BR-14), time logs, certificate |
 | F13 Service desk, search and warranty | ✅ Shipped | Warranty per serial + 5-year workmanship warranty for no-serial faults (BR-04); visit on the technician's calendar; ₹0 in warranty with the cost charged to the order; auto service invoice out of warranty; same-product replacements inherit cover (BR-15); billing override with reason; close only after the customer confirms (BR-06) |
 | F14 Invoices and job costing | ✅ Shipped | Sale invoice at dispatch (BR-18), service invoices from tickets, printable GST invoice with amount in words; costing from actuals (GRN cost per serial, crew hours × rate, site extras, warranty repairs) on every order |
 | F15 Director dashboard | ✅ Shipped | Today / week / month KPIs incl. advances held, stock purchased and hours; validated 12-month chart; profit per job worst first with cost drivers; unfinished steps per customer; open repairs by age; subsidy pipeline |
-| F16 Subsidy tracker | ✅ P0-lite | Stage stepper on the order and `/subsidy` board (application number and amount required at the right stages); document uploads still P1 |
-| F17 Share link and CSV | ✅ P0-lite + revoke | Expiring read-only `/share/[token]` with names masked, revoke, view count; profit CSV (also via the token) and payroll CSV |
+| F16 Subsidy tracker | ✅ Shipped | Stage stepper on the order and `/subsidy` board (application number and amount required at the right stages); photographed papers on the file (application, feasibility letter, net-meter photo, inspection report, disbursement proof); warning on the job, the order and when rescheduling while DISCOM feasibility is pending. PDF upload not supported (staff photograph the paper) |
+| F17 Share link and CSV | ✅ Shipped | Expiring read-only `/share/[token]` with names masked, revoke, view count; profit CSV (also via the token), payroll, invoice and ticket CSVs; formula-safe cells |
 | F18 Technician hours and payouts | ✅ P0-lite | `/team` monthly hours (installation and service) × rate with CSV; editing logs and closing a month still P1 |
-| F20, F22, F23 | 🗓️ Planned | Public warranty lookup and the customer certificate link are Phase 3b; offline drafts P2. F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
+| F20 Public warranty lookup | ✅ Shipped | `/warranty` + `POST /api/v1/warranty`: by serial, or mobile + last 4 of any serial; masked name, every unit and the workmanship warranty, call / WhatsApp buttons; 10 per IP per hour; one "No match found" for every miss |
+| F22 Certificate link (lite) | ✅ Shipped | Completing an installation creates a 90-day read-only certificate link; "Send on WhatsApp" and copy on the job page; revocable; photos load through the token, no phone shown. Full project tracking stays P2 |
+| Customer 360 | ✅ Shipped | `/customers` (search by name, city or phone digits) and `/customers/[id]`: orders with dues and workmanship cover, every serial with its warranty, tickets, invoices and payments, enquiries and quotes, timeline (R-01) |
+| F23 | 🗓️ P2 | Offline drafts. F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
 
 ## Route access
 

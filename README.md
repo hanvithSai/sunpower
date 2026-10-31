@@ -22,15 +22,16 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
 | Phase 1: leads → surveys → quotes → orders & payments | ✅ Done, verified end to end on Atlas |
 | Phase 2: goods receipts & serials, dispatch scanning, invoice at dispatch, warranties on delivery, crew booking, technician My work, installation proof & certificate | ✅ Done |
 | Phase 3: ⌘K search, service desk, job costing, director dashboard & share link, invoices, subsidy board, payroll, full demo seed | ✅ Done; production seeded and verified |
-| Next: certificate link for customers, public warranty lookup, Panel Set packages, customer page; analytics, polish, demo video | 🗓️ See [Plan.md](Plan.md) |
+| Phase 3b + verification (31 Oct, 20:30): public warranty check, customer certificate link on WhatsApp, subsidy papers, invoice/ticket CSVs, Customer 360, Panel Sets, missing-parts gate on quotes, business GSTIN, stock corrections | ✅ Done locally; push + Atlas re-seed pending ([Human_Tasks](Human_Tasks.md) #18) |
+| Next: analytics key in Vercel, polish, demo video | 🗓️ See [Plan.md](Plan.md) |
 
 ## Highlights
 
 - **Enquiries never vanish:** web, WhatsApp, call and walk-in leads land in one pipeline with a 2-hour response SLA.
 - **Process gates:** no quote before survey approval, no dispatch until every serial is scanned and every bulk line ticked, no installation start before delivery, no ticket closed until the customer confirms.
-- **Kit that's always right:** 1–5 kW On-Grid/Off-Grid templates expand into the full bill of materials, with GST (CGST/SGST) and the PM Surya Ghar subsidy calculated automatically.
-- **Automations:** a payment creates the pick list and books a crew that's free that day; dispatch issues the GST invoice; delivery starts every serial's warranty clock; completion writes the crew's hours and the certificate.
-- **Support in seconds:** ⌘K by phone, name or the last digits of a serial, with live warranty status. Faults with no serial (wiring, earthing) are covered by a 5-year workmanship warranty. Free repairs cost the customer ₹0 and are charged to that installation's profit; out-of-warranty repairs are invoiced automatically.
+- **Kit that's always right:** the brief's four packages (1–5 kW On-Grid, Off-Grid, hardware-only Panel Set, and Installation as a service line) expand into the full bill of materials, with GST (CGST/SGST) and the PM Surya Ghar subsidy calculated automatically. A quote missing a part its package needs (say, the earthing kit) can't be sent without an explicit OK.
+- **Automations:** a payment creates the pick list and books a crew that's free that day; dispatch issues the GST invoice; delivery starts every serial's warranty clock; completion writes the crew's hours and the certificate, and the customer gets that certificate as a link on WhatsApp.
+- **Support in seconds:** ⌘K by phone, name or the last digits of a serial, with live warranty status. Faults with no serial (wiring, earthing) are covered by a 5-year workmanship warranty. Free repairs cost the customer ₹0 and are charged to that installation's profit; out-of-warranty repairs are invoiced automatically. Customers can check their own cover at `/warranty`, and staff see each customer's whole history on one page.
 - **Director's view:** today/week/month KPIs, profit per job from actual costs (losers first, with the cause), every customer still waiting on a step, advances held, open repairs, subsidy pipeline, payroll, and an expiring read-only share link with CSV.
 
 ## Tech stack
@@ -59,10 +60,13 @@ The full Windows and macOS guide is in [Setup.md](Setup.md). No Atlas yet? Run `
 | Rainy-season breakdown, 18 months later | `support@` → ⌘K `GRW3K-H2504` → Venkata Ramana Rao's inverter, "In warranty · 6 mo left" → raise a ₹0 ticket |
 | Out of warranty | ⌘K `Padmavathi` → her inverter expired 4 months ago → a repair is invoiced automatically |
 | The director's month-end | `director@` → Dashboard: profit per job (three loss-makers with causes), unfinished steps, subsidy, Share & export |
+| A homeowner checks their warranty | Signed out → [/warranty](https://www.sunpowersolutions.me/warranty) → serial `GRW3K-H2504-0001` |
+| One customer, everything | ⌘K `Venkata Ramana` → the customer → orders, every serial with its warranty, tickets, invoices, timeline |
+| Proof sent to the customer | Any completed installation → "Send on WhatsApp" opens the certificate link (no login needed) |
 
 Demo logins (password `SunPower@2026`): `director@`, `sales@`, `tech@`, `warehouse@`, `support@` with the domain `sunpower.demo`.
 
-Flow smoke checks against a development database: `check-lead-flow`, `check-sale-flow`, `check-ops-flow` (46 checks), `check-service-flow` (29) and `check-finance-flow` (21) in `scripts/`, plus 33 unit tests (`npm test`). See [Setup.md](Setup.md#flow-smoke-checks-real-database).
+Flow smoke checks against a development database: `check-lead-flow`, `check-sale-flow`, `check-ops-flow` (55 checks), `check-service-flow` (29) and `check-finance-flow` (36) in `scripts/` (148 in all), plus 55 unit tests (`npm test`). See [Setup.md](Setup.md#flow-smoke-checks-real-database).
 
 ## Documentation
 

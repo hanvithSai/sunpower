@@ -64,9 +64,10 @@ erDiagram
 | address | `{ line1, line2?, city, district?, state=Telangana, pincode ^[1-9]\d{5}$ }` | required |
 | discom | enum `TSSPDCL, TSNPDCL` | optional |
 | consumerNumber | string | electricity service number (net metering, subsidy) |
+| gstin | string, upper-case | businesses only, given on the enquiry form (15-character format); printed on their tax invoice |
 
 ### leads
-`number` (**unique**), `customerId` → customers (indexed), denormalised `name / phone (indexed) / email / city`, `source` enum (`website, whatsapp, phone, walk_in, referral, other`), `requirement { capacityKw 1–10, systemType on_grid|off_grid|unsure, wantsSubsidy, monthlyBillRs?, message? }`, `qualification { roofAreaSqft, shadowFreeAreaSqft, monthlyBillRs, sanctionedLoadKw?, gridSuitable, roofType, notes?, qualifiedAt, qualifiedBy }`, `status` (LEAD_FLOW, indexed), `lostReason`, `assignedTo` → users, `firstContactedAt` (response-time SLA), `lastActivityAt`, `surveyId`, `quoteId`, `orderId`.
+`number` (**unique**), `customerId` → customers (indexed), denormalised `name / phone (indexed) / email / city`, `source` enum (`website, whatsapp, phone, walk_in, referral, other`), `requirement { capacityKw 1–10, systemType on_grid|off_grid|panel_set|unsure, wantsSubsidy, monthlyBillRs?, message? }`, `qualification { roofAreaSqft, shadowFreeAreaSqft, monthlyBillRs, sanctionedLoadKw?, gridSuitable, roofType, notes?, qualifiedAt, qualifiedBy }`, `status` (LEAD_FLOW, indexed), `lostReason`, `assignedTo` → users, `firstContactedAt` (response-time SLA), `lastActivityAt`, `surveyId`, `quoteId`, `orderId`.
 Index: `{ status: 1, createdAt: -1 }`.
 
 ### surveys
@@ -77,7 +78,7 @@ Index: `{ technicianId: 1, scheduledFor: 1 }`.
 `sku` (**unique**, uppercase), `name`, `brand`, `category` (panel, inverter, battery, charge_controller, structure, acdb, dcdb, cable, connector, earthing, lightning_arrestor, meter, accessory, service), `unit` (nos, m, set, kit, job, kw), `isSerialized` (panels, inverters, batteries and charge controllers are scanned at dispatch), `specs` (free-form), `costPaise`, `pricePaise`, `gstRate` 0–28, `hsn` (HSN/SAC), `warrantyMonths`, `stockQty`, `reorderLevel`, `active`.
 
 ### packages
-`code` (**unique**, e.g. `ONG-3`, `OFG-5`), `name`, `systemType`, `capacityKw` 1–10, `description`, `lines [{ productId, qty }]` (the bill-of-materials template), `active`.
+`code` (**unique**, e.g. `ONG-3`, `OFG-5`, `PNS-2`), `name`, `systemType` (`on_grid`, `off_grid`, `panel_set`: the brief's hardware-only Panel Set of panels, MC4 connectors and DC cable, with no installation line and no subsidy), `capacityKw` 1–10, `description`, `lines [{ productId, qty }]` (the bill-of-materials template), `active`.
 
 ### quotes
 `number` (unique), `version`, `leadId`, `customerId`, `packageId`, `packageCode`, `title`, `systemType`, `capacityKw`, `lines` (LineItem snapshots), `taxablePaise`, `gstPaise`, `totalPaise`, `subsidyPaise` (PM Surya Ghar estimate), `netCostPaise`, `status` (`draft → sent → accepted | rejected | expired`), `validUntil`, `sentAt`, `acceptedAt`, `createdBy`.
@@ -88,11 +89,12 @@ Index: `{ technicianId: 1, scheduledFor: 1 }`.
 | `number` unique, `quoteId` **unique** (one order per accepted quote), `leadId`, `customerId` | |
 | `title`, `systemType`, `capacityKw`, `siteAddress`, `lines` | snapshot of the accepted quote |
 | `taxablePaise`, `gstPaise`, `totalPaise`, `paidPaise`, `paymentStatus` (unpaid/partial/paid) | |
-| `status` | ORDER_FLOW: pending_payment → confirmed → ready_to_dispatch → dispatched → delivered → installing → commissioned → closed (or cancelled) |
+| `status` | ORDER_FLOW: pending_payment → confirmed → ready_to_dispatch → dispatched → delivered → installing → commissioned → closed (or cancelled). A hardware-only order (no installation line, e.g. a bare Panel Set) goes delivered → closed in the same step |
 | `pickList [{ productId, sku, name, qty, isSerialized, serials[], picked }]` | built automatically at confirmation |
 | `dispatch { vehicleNo, driverName, driverPhone, dispatchedAt/By, deliveredAt/By, deliveryNote }` | |
-| `installationJobId`, `invoiceId` | created automatically |
-| `subsidy { applicable, status, applicationNo, expectedPaise, disbursedPaise, history[] }` | PM Surya Ghar tracker |
+| `installationJobId`, `invoiceId` | created automatically (no job when the order sells no installation line) |
+| `closedAt` | set when a hardware-only order is delivered |
+| `subsidy { applicable, status, applicationNo, expectedPaise, disbursedPaise, history[], documents[] }` | PM Surya Ghar tracker. `documents [{ kind: application | feasibility_letter | net_meter_photo | inspection_report | disbursement_proof | other, fileId (GridFS photo), note, at, by }]`; orders saved before 31 Oct 20:00 have no `documents` field, so readers default it to `[]` |
 | `extraCosts [{ label, kind, amountPaise, at }]` | costs that reduce the job's profit: `kind: site` (extra material or work on the roof, from job completion) or `warranty` (a free repair absorbed later, from a resolved ticket) |
 Indexes: `{ status: 1, createdAt: -1 }`, `{ "subsidy.status": 1 }`.
 
@@ -120,7 +122,7 @@ Invariant: `products.stockQty` = sum of the ledger. For serialized products it a
 `number` (unique, `INV/<FY>/<seq>`), `type` (sale | service), `customerId`, `orderId?`, `ticketId?`, `billTo { name, phone, address, gstin? }`, `lines [{ description, hsn, qty, unitPricePaise, gstRate, taxablePaise, gstPaise, totalPaise }]`, `taxablePaise`, `gstPaise`, `cgstPaise`, `sgstPaise`, `igstPaise` (intra-state Telangana → CGST + SGST), `totalPaise`, `paidPaise`, `status` (issued, partially_paid, paid, void), `issuedAt` (indexed), `dueAt`.
 
 ### sharelinks
-`token` (**unique**, 24 random bytes, base64url), `scope` (dashboard), `label`, `createdBy`, `expiresAt` (1–30 days), `revokedAt`, `viewCount`, `lastViewedAt`. Checked on every view, so revocation is immediate.
+`token` (**unique**, 24 random bytes, base64url), `scope` (`dashboard`: the director's numbers, 1–30 days | `certificate`: one installation's certificate for its customer, 90 days), `jobId` (certificate scope, indexed), `label`, `createdBy`, `expiresAt`, `revokedAt`, `viewCount`, `lastViewedAt`. Checked on every view, so revocation is immediate. A job has at most one active certificate link (reused, never duplicated).
 
 ### counters
 `_id` = counter key (`SP-L`, `INV/26-27`, …), `seq`.
@@ -146,13 +148,18 @@ Photos, short videos and survey media. Files are stored in 255 KiB chunks. Brows
 - **Packing:** a scan allocates the unit to the order (wrong product, a unit packed for another order, or one not in stock is refused with a message naming the problem). When every serial is scanned and every bulk line ticked the order moves to `ready_to_dispatch`; an un-scan moves it back.
 - **Dispatch:** re-checks the pick list inside the transaction (`DISPATCH_INCOMPLETE`), posts `dispatch` stock moves, and **issues the GST sale invoice** with payments so far applied (BR-18). Later order payments also update that invoice.
 - **Delivery:** every serial's `warrantyStartAt` = delivery, `warrantyEndAt` = + the warranty months sold on the order line.
-- **Installation:** starts only after delivery; completion (BR-14) marks serials `installed`, commissions the order, writes one time log per crew member from the recorded start/finish, and posts extra material as stock moves and `extraCosts` (`site`).
+- **Hardware-only orders:** the first payment builds the pick list but books **no crew** unless the order sells the installation line; delivery starts the warranties and closes the order.
+- **Installation:** starts only after delivery; completion (BR-14) marks serials `installed`, commissions the order, writes one time log per crew member from the recorded start/finish, and posts extra material as stock moves and `extraCosts` (`site`). The completion action then creates the customer's certificate link.
+- **Quote completeness (R-24):** sending a quote that lacks a category its type needs (`REQUIRED_COMPONENTS` in `src/lib/quote-calc.ts`) needs an explicit OK, and the gap is written on the quote's timeline.
+- **Stock corrections:** the director adjusts bulk items after a count (an `adjustment` stock move with the reason as its note; never below zero) or writes off one in-stock serial unit (status `faulty`, `adjustment` move of −1, reason in its `history`). Serialized stock never changes in bulk.
+- **Subsidy feasibility:** while an eligible order is `not_applied`, `applied` or `rejected`, rescheduling its installation returns a warning and the job and order pages show one (installing before DISCOM feasibility approval can cost the customer the subsidy).
+- **Public warranty lookup:** reads only units in `dispatched`, `installed` or `replaced` with a customer; by phone, the last 4 characters of one of that customer's serials must match.
 - **Tickets:** in warranty → ₹0, and parts at cost + labour at the technician's rate go to the order's `extraCosts` (`warranty`); out of warranty → a `service` invoice for parts (sell price) + labour (₹600/h) + GST. A replacement unit must be the same product and in stock; it inherits the remaining cover when free, or gets a fresh term when paid (BR-15). Close only from `customer_confirmed`.
 - **Costing (`services/costing.ts`):** revenue excl. GST − material (serial GRN costs, excluding replacement units; bulk at the order's cost snapshot; quote estimate before dispatch) − labour (installation time logs × rate) − site extras − warranty repairs.
 
 ## Demo data in Atlas (seeded 31 Oct)
 
-`npm run seed -- --yes` writes, idempotently: 20 staff accounts · 30 products · 10 packages · 5 goods receipts (181 serials + consumables) · **121 finished installations over 14 months** plus three older ones from the brief's scenes (18, 25 and 28 months: Venkata Ramana Rao, Lakshmi Prasanna, Padmavathi Devi) with 1,103 serials, 17 monthly GRNs, sale invoices, 225 payments, crew time logs, subsidy files at every stage, 3 loss-making jobs with their causes and 2 warranty replacements · **today's pipeline** through the services: 11 leads at every stage (two past the call-back SLA), 8 orders from awaiting payment to installing, 6 service tickets. History and pipeline run once each (`seed:history` / `seed:pipeline` counters).
+`npm run seed -- --yes` writes, idempotently: 20 staff accounts · 30 products · 15 packages (10 systems + 5 Panel Sets, upserted by code) · 5 goods receipts (181 serials + consumables) · **121 finished installations over 14 months** plus three older ones from the brief's scenes (18, 25 and 28 months: Venkata Ramana Rao, Lakshmi Prasanna, Padmavathi Devi) with 1,103 serials, 17 monthly GRNs, sale invoices, 225 payments, crew time logs, subsidy files at every stage, 3 loss-making jobs with their causes and 2 warranty replacements · **today's pipeline** through the services: 11 leads at every stage (two past the call-back SLA), 8 orders from awaiting payment to installing, 6 service tickets, plus two Panel Set customers (one quoted, one delivered and closed). History and pipeline run once each (`seed:history` / `seed:pipeline` counters); the Panel Set customers are keyed by phone, so re-running the seed on an already seeded database adds just them.
 
 ## Capacity notes
 - Expected volume: about 40 orders/month → about 500 orders, 6,000 serial units and 1,000 tickets per year. That is a small fraction of Atlas M0's 512 MB, except for media. Images are compressed before upload and videos are capped to protect storage.

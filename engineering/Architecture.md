@@ -109,6 +109,8 @@ sequenceDiagram
   Sys-->>Sys: Warranty clock starts for every serial
   Tech->>Sys: Start (only after delivery) → completion form + photos + customer signature
   Sys-->>Sales: Order commissioned → certificate, crew hours, subsidy tracking
+  Sys-->>C: Certificate link on WhatsApp (every serial and warranty date)
+  C->>Sys: Checks cover at /warranty (serial, or phone + last 4)
   C->>Sys: Breakdown months later (support finds the serial with ⌘K)
   Sys-->>Sys: Warranty decided per serial (or workmanship) → ₹0 + cost to the order, or auto invoice
 ```
@@ -117,11 +119,11 @@ Automations run as **service-level side effects inside one MongoDB transaction**
 
 | Trigger | Automatic effects |
 |---|---|
-| First payment on an order | status confirmed, pick list, installation job ~4 days out with 3 installers free that day (`core/crew.ts`), activity, analytics |
+| First payment on an order | status confirmed, pick list, and (when the order sells the installation line) an installation job ~4 days out with 3 installers free that day (`core/crew.ts`); a hardware-only Panel Set books no crew |
 | All serials scanned and bulk lines ticked | status ready_to_dispatch (an un-scan moves it back) |
 | Dispatch | stock moves out, serials in transit, GST sale invoice with payments applied (BR-18) |
-| Delivery | warranty start/end per serial from the months sold on the order |
-| Job completed (installation) | serials installed, order commissioned, a time log per crew member, extra material out of stock and into the order's costs, certificate data |
+| Delivery | warranty start/end per serial from the months sold on the order; a hardware-only order closes |
+| Job completed (installation) | serials installed, order commissioned, a time log per crew member, extra material out of stock and into the order's costs, and a 90-day certificate link for the customer (sent from the job page on WhatsApp) |
 | Ticket raised | warranty state and basis (serial or workmanship) frozen on the ticket |
 | Ticket resolved in warranty | ₹0 to the customer; parts at cost + labour charged to the original order (`extraCosts`, kind `warranty`); service visit completed with a time log |
 | Ticket resolved out of warranty | GST service invoice for parts + labour, stock issued |
@@ -132,13 +134,16 @@ Automations run as **service-level side effects inside one MongoDB transaction**
 | Gate | Where enforced |
 |---|---|
 | No quote before survey approval | quote service + locked UI on the lead |
+| No quote sent without a part its package needs (earthing, inverter, battery…) unless the salesperson confirms, which is logged | quote service (`missingComponents`, R-24) + builder warning |
+| No installation booked before DISCOM feasibility approval without a warning | job service (reschedule warnings) + job and order pages |
 | No dispatch until every serialized unit is scanned and every line is picked | dispatch service (`DISPATCH_INCOMPLETE`, re-checked in the transaction) |
 | A scan must be the right product, in stock and not packed for another order | dispatch service |
 | No installation start before materials are delivered; only the booked crew can start or complete | job service |
 | No completion without times, confirmed kW (reason if different), generation test, kit check, a photo and the signature | job service (BR-14) |
 | A replacement unit must be the same product and in stock | ticket service (BR-15) |
 | No ticket closure without customer confirmation | ticket state machine (`resolved → customer_confirmed → closed`) |
-| Share links work only until expiry or revocation | finance service (checked on every view) |
+| Share links work only until expiry or revocation; a certificate link opens only its own job (and its photos), never the numbers | finance service (checked on every view) + files and profit CSV routes |
+| Stock changes only through the ledger; bulk corrections and serial write-offs are director-only with a reason | inventory service (`moveStock`, never below zero) |
 | Every status change must be legal | `assertTransition(entity, FLOW, from, to)` |
 
 ## 6. Security model
@@ -147,7 +152,8 @@ Automations run as **service-level side effects inside one MongoDB transaction**
 - **Authorisation:** roles (`admin`, `sales`, `technician`, `warehouse`, `support`) are checked in three places: `proxy.ts` (signed-in only), pages via `requireUser(roles)`, and every mutation via `runAction(roles)`. Admin may do everything.
 - **Input validation:** Zod on every action and endpoint, plus HTML constraints in forms.
 - **Abuse protection** on public endpoints: rate limits and a honeypot field.
-- **Privacy:** the public warranty lookup masks names and never returns phones or addresses. Analytics events never contain customer PII.
+- **Privacy:** the public warranty lookup (POST only, 10 per IP per hour, one answer for every miss, last 4 of a serial as a second factor for phone lookups) masks names and never returns phones or addresses. The customer's certificate link leaves out the phone. Analytics events never contain customer PII.
+- **CSV exports** prefix any text that would start a spreadsheet formula, since customer names come from the public form.
 - **Secrets:** only in environment variables (`.env.local` locally, Vercel project settings in production).
 
 ## 7. Media pipeline

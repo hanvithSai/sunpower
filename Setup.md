@@ -154,12 +154,12 @@ What it creates (about 15 s locally, about a minute to Atlas):
 
 | Step | Data |
 |---|---|
-| Staff and catalog | 20 accounts, 30 products, 10 packages, opening stock for bulk items |
+| Staff and catalog | 20 accounts, 30 products, 15 packages (1–5 kW On-Grid, Off-Grid and hardware-only Panel Sets), opening stock for bulk items |
 | Goods receipts | 5 receipts: 181 serial-tracked units (panels, inverters, batteries, controllers) plus consumables |
 | History | 121 finished installations over 14 months with surveys, quotes, monthly GRNs, invoices, payments, crew time logs, warranties and subsidy files; three loss-makers with visible causes; two warranty replacements; and the brief's scenes — **Venkata Ramana Rao** (18 months, inverter still covered), **Lakshmi Prasanna** (25 months, workmanship warranty) and **Padmavathi Devi** (28 months, inverter out of warranty) |
-| Today's pipeline | Through the real services: 11 leads at every stage (two past the 2-hour call-back SLA), 8 orders from awaiting payment to installing, 6 service tickets in different states |
+| Today's pipeline | Through the real services: 11 leads at every stage (two past the 2-hour call-back SLA), 8 orders from awaiting payment to installing, 6 service tickets in different states, and two Panel Set customers (**Ramesh Chary** quoted, **Venu Gopal Reddy** delivered and closed) |
 
-It never deletes data and is safe to re-run: accounts, catalog and receipts are upserted, and history and pipeline run once each (marker counters `seed:history` / `seed:pipeline`). An interrupted pipeline run resumes where it stopped. For a clean local demo, restart `npm run db:local` (in-memory) and seed again.
+It never deletes data and is safe to re-run: accounts, catalog and receipts are upserted, and history and pipeline run once each (marker counters `seed:history` / `seed:pipeline`). An interrupted pipeline run resumes where it stopped. **Re-running the seed on a database seeded before 31 Oct, 20:00 (Atlas) adds what came later:** the 5 Panel Set packages and the two Panel Set customers; it prints `Pipeline: already seeded; added 2 Panel Set customers`. For a clean local demo, restart `npm run db:local` (in-memory) and seed again.
 
 ---
 
@@ -177,7 +177,7 @@ Health check: <http://localhost:3000/api/v1/health> returns `{"status":"ok","db"
 ```bash
 npm run lint        # ESLint (Next.js + TypeScript rules)
 npm run typecheck   # next typegen + tsc --noEmit
-npm test            # Vitest (unit tests: GST, warranty, state machines, form schemas)
+npm test            # Vitest: 55 tests (form schemas as the browser posts them, packing and confirmation gates, missing quote parts, CSV guard, DB errors)
 npm run build       # production build
 ```
 
@@ -185,13 +185,13 @@ npm run build       # production build
 
 ```bash
 npx tsx scripts/check-lead-flow.ts SP-L-0123   # enquiry → qualified → survey → approval gate (10 checks)
-npx tsx scripts/check-sale-flow.ts SP-L-0123   # quote → order → payment → pick list + installation job (15 checks)
-npx tsx scripts/check-ops-flow.ts              # GRN → crews → packing guards → dispatch + invoice → warranties → installation proof (46 checks)
+npx tsx scripts/check-sale-flow.ts SP-L-0123   # quote (missing-parts gate) → order → payment → pick list + installation job (18 checks)
+npx tsx scripts/check-ops-flow.ts              # GRN → crews → packing guards → dispatch + invoice → warranties → installation proof → stock corrections → Panel Set closes at delivery (55 checks)
 npx tsx scripts/check-service-flow.ts          # search → warranty per serial / workmanship → ₹0 replacement → auto invoice → confirm-before-close (29 checks)
-npx tsx scripts/check-finance-flow.ts          # costing from actuals → dashboard → subsidy stages → share links → payroll (21 checks)
+npx tsx scripts/check-finance-flow.ts          # costing → dashboard → subsidy stages + papers + feasibility warning → CSV exports → share and certificate links → payroll (36 checks)
 ```
 
-The first two move the given lead through the pipeline, so use a fresh enquiry (submit `/enquiry` first). The last three build their own orders (and top up stock with a goods receipt when the shelf is short), so they can be re-run any time. All of them write data: run them on a development database, never on production.
+The first two move the given lead through the pipeline, so use a fresh enquiry (submit `/enquiry` first, or any lead still in `new`). The last three build their own orders (and top up stock with a goods receipt when the shelf is short), so they can be re-run any time. All of them write data: run them on a development database, never on production.
 
 ---
 
@@ -248,4 +248,4 @@ git push -u origin feat/<area>-<short-name> # open a PR, the other developer rev
 | Sign-in shows "We couldn't sign you in right now" | The app can't reach MongoDB in that environment. Open `/api/v1/health`: its `reason` names the problem (`auth_failed` = wrong credentials in `MONGODB_URI`, `uri_invalid` = quotes or placeholders, `uri_missing`, `dns` = mistyped host, `timeout` = Atlas Network Access). Fix the variable, then redeploy |
 | Pages feel slow from India | Functions are pinned to Mumbai (`bom1`) in `vercel.json`; `/api/v1/health` shows the live `region`. If it isn't `bom1`, check that `vercel.json` is on the deployed commit and that no dashboard override is set (Project → Settings → Functions) |
 | Seeded, but production still looks empty | The seed went to the database in `.env.local` (usually local). Re-run it with `MONGODB_URI` set to Vercel's string for that command (section 6) and check the `Connected to … / sunpower` line |
-| `next dev` shows old behaviour after a pull or a service change | Turbopack occasionally keeps a stale server module. Stop and restart `npm run dev`; `npm run build && npm start` always uses fresh code |
+| `next dev` shows old behaviour after a pull or a service change, or a new page fails with `… is not a function` | Turbopack occasionally keeps a stale server module (seen again on 31 Oct with `getCustomer360`). Stop and restart `npm run dev`; `npm run build && npm start` always uses fresh code |
