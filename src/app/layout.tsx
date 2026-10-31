@@ -50,7 +50,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${plex.variable} ${bricolage.variable} h-full antialiased`}>
+    <html lang="en-IN" data-scroll-behavior="smooth" className={`${plex.variable} ${bricolage.variable} h-full antialiased`}>
       <body className="min-h-full">
         {/* Every lucide icon in the app inherits the design-system stroke width. */}
         <LucideProvider strokeWidth={1.75}>

@@ -302,6 +302,37 @@
   }
 }
 
+/* Page transitions (PageTransition): the old page leaves fast, the new one rises in. */
+::view-transition-old(.page) {
+  animation: 140ms ease-out both page-out;
+}
+::view-transition-new(.page) {
+  animation: 260ms cubic-bezier(0.25, 1, 0.5, 1) 60ms both page-in;
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* In-page links (/#how-it-works, /#warranty …) glide instead of jumping. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* Energy in motion: current flowing along a wire (the energy-flow diagram). */
 @keyframes energy-flow {
   to {
@@ -312,24 +343,12 @@
   animation: energy-flow 0.9s linear infinite;
 }
 
-/* The landing-page journey line fills as it scrolls into view (progressive enhancement). */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    @keyframes journey-fill {
-      from {
-        transform: scaleX(0);
-      }
-    }
-    .journey-fill {
-      transform-origin: left center;
-      animation: journey-fill linear both;
-      animation-timeline: view();
-      animation-range: entry 10% cover 55%;
-    }
+/* Respect the OS "reduce motion" setting. Loading spinners keep turning so progress stays visible. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(.page) {
+    animation: 120ms ease-out both page-fade;
   }
 }
-
-/* Respect the OS "reduce motion" setting. Loading spinners keep turning so progress stays visible. */
 @media (prefers-reduced-motion: reduce) {
   *:not(.animate-spin),
   *:not(.animate-spin)::before,
