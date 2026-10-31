@@ -4,7 +4,7 @@
  * how a serial arrived.
  */
 import { describe, expect, it } from "vitest";
-import { scrubProperties, scrubUrl } from "@/lib/analytics";
+import { maskContactText, scrubProperties, scrubUrl } from "@/lib/analytics";
 import { ScanSerialSchema } from "@/lib/validation/inventory";
 
 describe("scrubUrl", () => {
@@ -34,6 +34,26 @@ describe("scrubUrl", () => {
       resultCount: 3,
     });
     expect(props).toEqual({ $current_url: "https://x.in/share/:token", $pathname: "/share/:token", $referrer: "https://x.in/customers", resultCount: 3 });
+  });
+});
+
+describe("maskContactText (session replay)", () => {
+  it("hides phone numbers however they are written", () => {
+    expect(maskContactText("Call +91 98480 12345 now")).toBe("Call ••••• now");
+    expect(maskContactText("9848012345")).toBe("•••••");
+    expect(maskContactText("tel:+919848012345")).toBe("tel:•••••");
+    expect(maskContactText("https://wa.me/919848012345?text=Hi")).toBe("https://wa.me/•••••?text=Hi");
+  });
+
+  it("hides emails and GSTINs", () => {
+    expect(maskContactText("ravi.k@gmail.com")).toBe("•••@•••");
+    expect(maskContactText("GSTIN 36AABCS1234F1Z5")).toBe("GSTIN •••");
+  });
+
+  it("leaves serials, amounts, document numbers and long ids readable", () => {
+    for (const text of ["GRW3K-H2504-0001", "₹1,50,000", "SP-O-0205", "INV/26-27/0001", "1730000000000", "6ae5c5a8e2fde1b3dd16fa7a"]) {
+      expect(maskContactText(text)).toBe(text);
+    }
   });
 });
 

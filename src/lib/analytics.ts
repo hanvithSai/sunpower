@@ -101,6 +101,19 @@ export function scrubUrl(url: string): string {
   return absolute ? `${parsed.origin}${path}` : path;
 }
 
+const PHONE = /(?<!\d)(?:\+?91[\s-]?|0)?[6-9]\d{4}[\s-]?\d{5}(?!\d)/g;
+const EMAIL = /[\w.+-]+@[\w-]+\.[\w.-]+/g;
+const GSTIN = /\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b/g;
+
+/**
+ * Session replay runs every recorded text and attribute through this, so a
+ * phone number, email or GSTIN never reaches PostHog wherever it appears on a
+ * page (tables, cards, `tel:` and `wa.me` links).
+ */
+export function maskContactText(text: string): string {
+  return text.replace(PHONE, "•••••").replace(EMAIL, "•••@•••").replace(GSTIN, "•••");
+}
+
 /** Scrub every URL-looking string in an event's properties (current URL, pathname, referrer …). */
 export function scrubProperties<T extends Record<string, unknown> | undefined>(props: T): T {
   if (!props) return props;
