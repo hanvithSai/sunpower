@@ -1,14 +1,18 @@
 /**
- * Read-only shared dashboard (no login). The token is checked against its
+ * Read-only shared view (no login): the director's dashboard, or one
+ * customer's installation certificate. The token is checked against its
  * stored record on every view, so expiry and revocation take effect at once;
- * customer names are masked and nothing links into the app. Not indexed.
+ * the dashboard masks customer names, the certificate leaves out the phone,
+ * and nothing links into the app. Not indexed.
  */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Download, LinkIcon } from "lucide-react";
 import { DashboardView } from "@/components/modules/dashboard/dashboard-view";
+import { CertificateView } from "@/components/modules/jobs/certificate-view";
 import { EmptyState } from "@/components/shared/empty-state";
+import { PrintButton } from "@/components/shared/print-button";
 import { Button } from "@/components/ui/button";
 import { COMPANY } from "@/lib/constants";
 import { RANGE_LABELS, type RangeKey } from "@/lib/dates";
@@ -17,8 +21,9 @@ import { first, type SearchParamsRecord } from "@/lib/query";
 import { cn } from "@/lib/utils";
 import { getDashboard } from "@/server/services/dashboard";
 import { openShareLink } from "@/server/services/finance";
+import { getJobDetail } from "@/server/services/jobs";
 
-export const metadata: Metadata = { title: "Shared dashboard", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Shared by SunPower", robots: { index: false, follow: false } };
 
 const MESSAGES = {
   unknown: "This link isn't valid. Ask SunPower for a new one.",
@@ -36,6 +41,27 @@ export default async function SharedDashboardPage({ params, searchParams }: { pa
     return (
       <div className="mx-auto max-w-xl px-4 py-16">
         <EmptyState icon={LinkIcon} title="Link unavailable" description={MESSAGES[link.reason]} />
+      </div>
+    );
+  }
+
+  // A customer's installation certificate (F22-lite), sent to them on WhatsApp.
+  if (link.scope === "certificate") {
+    const detail = link.jobId ? await getJobDetail(link.jobId) : null;
+    if (!detail || detail.job.status !== "completed") {
+      return (
+        <div className="mx-auto max-w-xl px-4 py-16">
+          <EmptyState icon={LinkIcon} title="Link unavailable" description={MESSAGES.unknown} />
+        </div>
+      );
+    }
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3" data-print-hide>
+          <p className="text-sm text-muted-foreground">Your installation certificate from {COMPANY.name} · link works until {formatDate(link.expiresAt)}</p>
+          <PrintButton label="Print / Save as PDF" />
+        </div>
+        <CertificateView detail={detail} shareToken={token} />
       </div>
     );
   }
