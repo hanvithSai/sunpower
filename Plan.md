@@ -11,7 +11,7 @@
 | **Hard external deadline** | ⚠️ Add evaluator (`gppa-odoo`, `hackathon-odoo`) as GitHub collaborator by **31 Oct, 11:00 AM** |
 | **Team** | Hanvith Sai Alla (`hanvithSai`): Product, Architecture, Frontend · Lagishetty Vamshi (`LV2402`): Backend, DB, Integration, Tests |
 | **Stack** | Next.js 16.4.3 (App Router, TS) · MongoDB Atlas + Mongoose · Tailwind v4 + shadcn/ui · Vercel · GitHub Actions |
-| **Live URLs** | Production: https://www.sunpowersolutions.me (apex `sunpowersolutions.me` redirects to www) · Vercel: https://sunpowersolutions.vercel.app |
+| **Live URLs** | Production: https://www.sunpowersolutions.me (apex `sunpowersolutions.me` redirects to www) · Vercel: https://sunpowersolutions.vercel.app · ✅ live and verified 31 Oct (health `db: up`) |
 
 ---
 
@@ -168,8 +168,8 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 | 0.2 | Design system: Apple-style tokens, Inter, UI kit (Radix), app shell + sidebar + ⌘K palette, login with demo accounts, module placeholders | Hanvith | `feat/ui-shell` | ✅ |
 | 0.3 | Domain lib (enums, state machines, money, GST, subsidy, warranty, IST dates, validation), Mongo connection + transactions, all 18 models, counters, audit log, invoicing, stock ledger | Vamshi | `feat/domain-lib`, `feat/db-core` | ✅ |
 | 0.4 | Auth.js v5 (Credentials + JWT roles), `proxy.ts` guard, role-based nav, `/api/v1/health`, staff seed (20 accounts in Atlas) | Vamshi | `feat/auth`, `feat/seed-users` | ✅ verified on Atlas: sign-in, role landing pages, role redirects, 404 |
-| 0.5 | CI (lint, typecheck, test, build) on every PR + push to main; Vercel deploy | Vamshi | `chore/ci`, `chore/deployment-config` | ✅ CI green on GitHub · 🟨 Vercel project + domains live, but the app isn't building from Git yet (Human_Tasks #6) |
-| 0.6 | 👤 Human: evaluator collaborators, Atlas URI, Vercel link, domain | Hanvith / Vamshi | — | ✅ collaborators · ✅ Atlas · ✅ domain · 🟨 Vercel Git connection |
+| 0.5 | CI (lint, typecheck, test, build) on every PR + push to main; Vercel deploy | Vamshi | `chore/ci`, `chore/deployment-config` | ✅ CI green on every push · ✅ Vercel builds `main` (production verified on `681cea0`) |
+| 0.6 | 👤 Human: evaluator collaborators, Atlas URI, Vercel link, domain | Hanvith / Vamshi | — | ✅ all done |
 
 ### Phase 1: Sales core (T+1:30 → T+4:00), golden path part 1
 | # | Task | Owner | Branch | Status |
@@ -202,7 +202,7 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 |---|---|---|---|---|
 | 4.1 | Unit tests (Vitest): quote calc, state machines, warranty dates, costing. API tests for key routes | Vamshi | `test/core` | ⬜ |
 | 4.2 | E2E (Playwright): golden path smoke test; CI runs tests on PR + deploys `main` | Vamshi | `test/e2e` | ⬜ |
-| 4.3 | Analytics (PostHog/Umami free) + monitoring (Sentry free + Vercel logs), product events per `product/Analytics.md` | Hanvith | `feat/analytics` | ⬜ |
+| 4.3 | PostHog (product analytics + exception autocapture) + Vercel logs; server-side business events already captured via `trackServer` (no-op until the key is set), product events per `product/Analytics.md` | Hanvith | `feat/analytics` | ⬜ |
 | 4.4 | UX polish: responsive pass, empty states, a11y, loading skeletons | Hanvith | `feat/ui-polish` | ⬜ |
 
 ### Phase 5: Demo readiness (T+11:00 → T+12:00)
@@ -238,6 +238,8 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 | Camera scan unsupported on some devices | Manual serial entry fallback always visible |
 | Merge conflicts | Directory ownership + contract-first + small PRs (Section 7) |
 | Scope creep | MoSCoW is enforced; the P0 golden path comes first |
+| Production misconfiguration (env vars) | After every deploy check `/api/v1/health` (`db` and `version`); env-var checklist in Setup.md §8 (no quotes or placeholders, redeploy after edits). See the incident in engineering/Engineering.md |
+| Latency: functions in Washington DC, users and Atlas in Asia | Proposed: pin Vercel functions to Mumbai (`bom1`), Human_Tasks #14 |
 
 ---
 
@@ -247,7 +249,9 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 2. **Photo & video storage:** MongoDB GridFS with chunked uploads.
 3. **Analytics:** PostHog Cloud free tier.
 4. **Domain:** Namecheap. The domain name is still to be shared (Human_Tasks #7).
-5. **Window:** coding wraps up well before the 01 Nov 10:00 AM cut-off. Each phase ends with a review checkpoint: commits from both developers, one push, then review.
+5. **Window:** coding wraps up well before the 01 Nov 10:00 AM cut-off. Commits land after every logical unit under the owning developer and are pushed in small batches.
+6. **Vercel function region:** proposed Mumbai (`bom1`) to cut India → US → Atlas round trips (health reports about 1.8 s cold database latency). Awaiting approval.
+7. **Health diagnostics:** proposed safe failure reasons (`auth_failed`, `uri_missing`, `dns`, `timeout`) in `/api/v1/health`. Awaiting approval.
 
 ---
 
@@ -259,9 +263,12 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 | 31 Oct, 11:00 | Hanvith | Evaluators added as GitHub collaborators |
 | 31 Oct, 11:30 | Vamshi | Domain lib, 18 Mongo models, core services, Auth.js + proxy, health check |
 | 31 Oct, 12:10 | Hanvith | Product docs (PRD, features, personas, analytics, style guide, requirements), engineering docs, Setup guide, design system, app shell, login |
-| 31 Oct, 12:20 | Vamshi | Atlas connected; 20 staff accounts seeded; sign-in and role routing verified. Venue network is slow (DNS 2–7 s per lookup), so the local env uses the standard Atlas string |
-| 31 Oct, 12:30 | Both | **Phase 0 complete:** lint, typecheck, build green; WCAG contrast fixes; self-hosted Inter; pushed for review |
-| 31 Oct, 13:00 | Both | Domains live (www.sunpowersolutions.me, sunpowersolutions.vercel.app). Both currently return Vercel `NOT_FOUND` because Vercel has no Git deployment of `main`. Added `vercel.json` (framework pin) + `metadataBase`; fix steps in Human_Tasks #6 |
-| 31 Oct, 14:00 | Both | Phase 1a done: enquiries (web form + API, dedupe, auto-assign), pipeline board/table with SLA, qualification, survey booking, mobile survey form with photos, review gate → quote unlocked. Verified end to end on Atlas |
-| 31 Oct, 15:30 | Both | Phase 1b done: catalog seed, quote builder (package → full BOM, live GST/subsidy/margin), quote detail/print/WhatsApp, accept → order, payments (first payment confirms → pick list + installation job with least-loaded crew). Verified on Atlas |
-| Next | Both | Phase 2: inventory (GRN + serials) → dispatch scanning → delivery/warranty → installation jobs & technician app. Media pipeline (GridFS uploads, signature, scanner) is drafted and gets finished and verified in Phase 2 |
+| 31 Oct, 12:20 | Vamshi | Atlas connected; 20 staff accounts seeded; sign-in and role routing verified. Slow venue network handled (standard Atlas string locally, 30 s timeout, IPv4) |
+| 31 Oct, 12:24 | Both | **Phase 0 pushed:** lint, typecheck, build green; WCAG contrast fixes; self-hosted Inter |
+| 31 Oct, 12:41 | Both | Live URLs recorded; `vercel.json` framework pin; switched to per-unit commits under each developer |
+| 31 Oct, 12:50 | Both | Media pipeline (GridFS uploads, signature pad, barcode scanner) verified 11/11 on Atlas and merged |
+| 31 Oct, 13:53 | Both | **Phase 1a:** enquiries (web form + API, dedupe, auto-assign), pipeline board/table with SLA, qualification, survey booking, mobile survey form with photos, review gate → quote unlocked. Flow check 10/10 |
+| 31 Oct, 14:11 | Both | **Phase 1b:** catalog seed, quote builder (package → full BOM, live GST/subsidy/margin), quote detail/print/WhatsApp, accept → order, payments (first payment confirms → pick list + installation job). Flow check 15/15 |
+| 31 Oct, 14:30 | Both | **Incident:** production sign-in failed (“We couldn't sign you in right now”). Root cause: the `MONGODB_URI` set in Vercel had credentials Atlas rejected; consistent ~2 s failures ruled out a missing variable (instant) and an IP block (30 s). Fixed by updating the variable and redeploying; health `db: up` on `681cea0` |
+| 31 Oct, 14:45 | Both | Documentation synced with Phase 1, the live deployment and the incident |
+| Next | Both | Phase 2: inventory (GRN + serials) → dispatch scanning → delivery (warranties + GST invoice) → installation jobs + technician “My work” |
