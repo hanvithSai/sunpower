@@ -6,10 +6,9 @@
 import { Types, type ClientSession } from "mongoose";
 import type { CustomerType, OrderStatus } from "@/lib/constants";
 import { escapeRegex, normalizePhone } from "@/lib/format";
-import { getWarrantyInfo } from "@/lib/warranty";
+import { getWarrantyInfo, workmanshipEnd } from "@/lib/warranty";
 import { connectDB } from "../db";
 import { Customer, Invoice, Lead, Order, Payment, Quote, SerialUnit, Ticket, type ICustomer } from "../models";
-import { workmanshipEnd } from "./tickets";
 
 export type CustomerContact = {
   name: string;

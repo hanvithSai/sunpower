@@ -33,11 +33,28 @@ export function getWarrantyInfo(
     return { state: "not_started", daysLeft: 0, endsAt: null, label: "Warranty not started" };
   }
   const end = new Date(endAt);
-  const days = Math.ceil((end.getTime() - now.getTime()) / DAY_MS);
-  if (days >= 0) {
+  const msLeft = end.getTime() - now.getTime();
+  // Same cut-off as ticket billing (covered while now <= end), so the card and the bill agree.
+  if (msLeft >= 0) {
+    const days = Math.ceil(msLeft / DAY_MS);
     return { state: "in_warranty", daysLeft: days, endsAt: end, label: `In warranty · ${formatSpan(days)} left` };
   }
-  return { state: "out_of_warranty", daysLeft: days, endsAt: end, label: `Expired ${formatSpan(-days)} ago` };
+  const daysAgo = Math.ceil(-msLeft / DAY_MS);
+  return { state: "out_of_warranty", daysLeft: -daysAgo, endsAt: end, label: `Expired ${formatSpan(daysAgo)} ago` };
+}
+
+/**
+ * Workmanship warranty (BR-04): faults with no serial — wiring, earthing,
+ * structure, leaks — are covered for the months sold with the installation
+ * service line, counted from commissioning. Nothing before commissioning.
+ */
+export function workmanshipEnd(order: {
+  lines: { category: string; warrantyMonths: number }[];
+  commissionedAt?: Date | null;
+}): Date | undefined {
+  if (!order.commissionedAt) return undefined;
+  const months = Math.max(0, ...order.lines.filter((l) => l.category === "service").map((l) => l.warrantyMonths));
+  return months > 0 ? addMonths(order.commissionedAt, months) : undefined;
 }
 
 /** 500 -> "1 yr 4 mo", 20 -> "20 days". */
