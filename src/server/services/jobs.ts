@@ -234,6 +234,8 @@ export async function getJobDetail(jobId: string) {
           deliveredAt: order.dispatch?.deliveredAt,
           commissionedAt: order.commissionedAt,
           lines: order.lines.filter((l) => l.category !== "service").map((l) => ({ sku: l.sku, name: l.name, qty: l.qty, unit: l.unit })),
+          /** Workmanship warranty sold with the installation service line (BR-04), from commissioning. */
+          workmanshipMonths: Math.max(0, ...order.lines.filter((l) => l.category === "service").map((l) => l.warrantyMonths)),
         }
       : null,
     serials: serials.map((s) => ({ serial: s.serial, productName: s.productName, category: s.category, status: s.status, warrantyStartAt: s.warrantyStartAt, warrantyEndAt: s.warrantyEndAt })),
