@@ -101,7 +101,7 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 | 16 | Customers | Customer list and Customer 360: orders, every serial with its warranty, tickets, invoices, payments, timeline | Both | ✅ |
 | 17 | Finance | Invoices list and printable GST invoice, subsidy board with papers, technician payroll, CSV exports | Both | ✅ |
 | 18 | Director's dashboard | KPIs for today/week/month, 12-month trend, profit per job from actuals, unfinished steps, repairs, subsidy; masked share links | Both | ✅ |
-| 19 | Analytics | Typed event contract, server events after each change, browser SDK with privacy safeguards, error reporting | Both | ✅ (production needs the key in Vercel) |
+| 19 | Analytics | Typed event contract, server events after each change, browser SDK with privacy safeguards, error reporting | Both | ✅ Live on production |
 | 20 | Data, quality and delivery | Seed with 14 months of history and a live pipeline, 5 flow checks (148 checks), 121 unit tests, CI, Vercel config | Vamshi | ✅ |
 
 ## 3. Files

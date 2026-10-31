@@ -116,7 +116,7 @@ Status as of 31 Oct 2026 is in the last column. For the hackathon, items 6 to 16
 | 1 | MongoDB Atlas connection string (`MONGODB_URI`) and network access for Vercel | Database in every environment | Phase 0 | Hanvith | ✅ Provided; Vercel connected (31 Oct) |
 | 2 | Vercel project access and permission to set environment variables | Deployments | Phase 0 | Hanvith | ✅ Live |
 | 3 | Namecheap domain name and DNS access | Custom domain pointed at Vercel | Phase 5 | Hanvith | ✅ www.sunpowersolutions.me |
-| 4 | PostHog project API key and region (US or EU) | Analytics, session replay, exceptions | Phase 4 | Hanvith | ⏳ Key received (in `.env.local`); add it in Vercel (Human_Tasks #8) |
+| 4 | PostHog project API key and region (US or EU) | Analytics, session replay, exceptions | Phase 4 | Hanvith | ✅ Key in `.env.local` and Vercel, verified on production |
 | 5 | Session signing secret (32+ random bytes) | Signing session cookies | Phase 0 | Vamshi generates | ✅ Set locally and in Vercel |
 | 6 | Company legal name, registered address, GSTIN (Telangana, starts with 36), PAN, phone and email | Quotes, invoices, certificates | Phase 1 | Company | ⬜ Placeholders in `COMPANY` |
 | 7 | Bank account and UPI ID for payment instructions | Quotes and invoices | Phase 3 | Company | ⬜ Pending |
