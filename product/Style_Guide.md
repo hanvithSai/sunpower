@@ -126,6 +126,7 @@ Groups of equal items (the landing platform grid, the facts strip) use 1 px rule
 - **Energy flow:** current moves along the diagram's wires as a dashed stroke (`energy-dash`, 0.9 s linear loop) with arrowheads showing direction, so the meaning survives when motion is off.
 - **Page transitions:** every navigation fades the old page out (140 ms) and lifts the new one in by 8 px (260 ms) with React's `<ViewTransition>` keyed by the path; reduced motion keeps a plain crossfade. In-page links (`/#how-it-works`, `/#warranty`) scroll smoothly; route changes still jump to the top (`data-scroll-behavior="smooth"`).
 - **Count-up:** the landing facts count from 0 to their value once, when they scroll into view (1.4 s, ease-out); screen readers get the final value.
+- **Hero panel grid:** on the landing hero, a solar-panel cell grid (64 px cells, faint busbars, a brighter module frame every 4 cells, in current lime) appears only under the mouse, in a soft-edged square about 280 px wide; it fades out when the pointer leaves. Mouse only, no effect on touch.
 - **Solar-panel cards:** the eight journey steps are drawn as panels (aluminium frame, cell grid) that tilt slightly and catch a light sweep on hover.
 - Sidebar collapse animates width (200 ms). Menus and popovers fade with a 4 px slide; dialogs fade and scale from 0.96.
 - `prefers-reduced-motion: reduce` freezes the energy dashes and the journey fill, and turns movement into instant changes.
@@ -262,6 +263,10 @@ Measured 1 Nov 2026 against the tokens in `src/app/globals.css` (WCAG 2.x relati
 
 1. **Hairline borders** (#DBE2DA, 1.3:1) separate decorative structure only; every interactive boundary uses the input border (3.7:1).
 2. **Display font coverage:** Bricolage Grotesque ships the Latin subset only; Telugu or Hindi text in titles would fall back to Plex and then the system font.
+
+### Scrollbars
+
+Thin everywhere. On light surfaces a sage thumb (#B7C3B8, #7C897F on hover) on a transparent track; on forest (sidebar, mobile menu) a 24% light thumb (`scrollbar-on-dark`). Board columns scroll inside themselves with the same style.
 
 ## 12. Responsive behaviour
 
