@@ -1,9 +1,10 @@
 "use client";
 
 /**
- * The role-filtered navigation and the signed-in user card, on the deep-forest
- * sidebar. Shared by the desktop sidebar (expanded or collapsed to icons) and
- * the mobile navigation sheet so both always match.
+ * The role-filtered navigation on the deep-forest sidebar. Shared by the
+ * desktop sidebar (expanded or collapsed to icons) and the mobile navigation
+ * sheet so both always match. The signed-in user sits under it as the account
+ * menu (src/components/shell/user-menu.tsx).
  *
  * Sections follow a solar project's life (src/lib/navigation.ts). Each item's
  * one-line purpose shows as its tooltip; collapsed, the label moves into the
@@ -11,16 +12,10 @@
  */
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
 
-import { ROLE_LABELS, type Role } from "@/lib/constants";
+import type { Role } from "@/lib/constants";
 import { activeNavItem, navForRole } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-import { Avatar } from "@/components/ui/avatar";
-import { SubmitButton } from "@/components/shared/submit-button";
-import { resetAnalytics } from "@/lib/analytics-client";
-import { logoutAction } from "@/server/actions/auth";
-import type { SessionUser } from "@/server/auth/session";
 
 export function SidebarNav({
   role,
@@ -79,32 +74,5 @@ export function SidebarNav({
         </div>
       ))}
     </nav>
-  );
-}
-
-export function SidebarUserCard({ user, collapsed = false }: { user: SessionUser; collapsed?: boolean }) {
-  return (
-    <div className={cn("flex items-center gap-3 rounded-lg px-2 py-1.5", collapsed && "flex-col gap-2 px-0")}>
-      {/* Sunlight on forest (7.8:1) instead of the light-surface avatar tints. */}
-      <Avatar name={user.name || user.email} className="bg-sun text-forest" />
-      {collapsed ? null : (
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm leading-5 font-medium text-white">{user.name || user.email}</p>
-          <p className="truncate text-xs leading-4 text-forest-muted">{ROLE_LABELS[user.role] ?? user.role}</p>
-        </div>
-      )}
-      <form action={logoutAction} onSubmit={resetAnalytics}>
-        <SubmitButton
-          variant="ghost"
-          size="icon"
-          className="size-8 text-forest-muted hover:bg-white/8 hover:text-white"
-          aria-label="Sign out"
-          title="Sign out"
-          pendingText={<span className="sr-only">Signing out…</span>}
-        >
-          <LogOut aria-hidden="true" />
-        </SubmitButton>
-      </form>
-    </div>
   );
 }

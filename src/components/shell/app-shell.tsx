@@ -4,11 +4,12 @@
  * AppShell — the frame around every signed-in page.
  *
  * - Desktop (lg+): a deep-forest sidebar organised by the project lifecycle (logo, role-filtered
- *   navigation, user card with sign-out). It collapses to icons; the choice is remembered on
+ *   navigation, account menu with sign-out). It collapses to icons; the choice is remembered on
  *   this device (`sunpower:sidebar`, listed on /privacy).
- * - Sticky top bar: where you are ("Operations / Dispatch"), search ("⌘K"/"Ctrl K"), a "New"
- *   menu with the role's quick actions (the same list as ⌘K), and the account menu. Below lg
- *   it also gets the hamburger that opens the navigation sheet.
+ * - Sticky top bar: where you are ("Operations / Dispatch"), search ("⌘K"/"Ctrl K") and a "New"
+ *   menu with the role's quick actions (the same list as ⌘K). Below lg it also gets the
+ *   hamburger that opens the navigation sheet. The signed-in user appears once, at the foot
+ *   of the sidebar (or the sheet), as the account menu.
  * - Main column: max-w-7xl, 16px padding on phones and 24px from `sm`.
  * - One global command palette (⌘K / Ctrl+K).
  * - Analytics: identifies the signed-in user by id and role only (only after cookie consent).
@@ -27,8 +28,8 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CommandPalette } from "@/components/shell/command-palette";
 import { MobileNav } from "@/components/shell/mobile-nav";
-import { SidebarNav, SidebarUserCard } from "@/components/shell/sidebar-nav";
-import { UserMenu } from "@/components/shell/user-menu";
+import { SidebarNav } from "@/components/shell/sidebar-nav";
+import { AccountMenu } from "@/components/shell/user-menu";
 import { PageTransition } from "@/components/shared/page-transition";
 import type { SessionUser } from "@/server/auth/session";
 
@@ -107,7 +108,7 @@ export function AppShell({ user, children }: AppShellProps) {
             {collapsed ? <PanelLeftOpen className="size-4" aria-hidden="true" /> : <PanelLeftClose className="size-4" aria-hidden="true" />}
             {collapsed ? null : "Collapse"}
           </button>
-          <SidebarUserCard user={user} collapsed={collapsed} />
+          <AccountMenu user={user} collapsed={collapsed} />
         </div>
       </aside>
 
@@ -122,9 +123,8 @@ export function AppShell({ user, children }: AppShellProps) {
           </Link>
           <WhereAmI role={user.role} />
           <SearchTrigger onOpen={() => setPaletteOpen(true)} />
-          <div className="ml-auto flex shrink-0 items-center gap-1.5">
+          <div className="ml-auto flex shrink-0 items-center">
             <NewMenu role={user.role} />
-            <UserMenu user={user} />
           </div>
         </header>
 

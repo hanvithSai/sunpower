@@ -519,7 +519,7 @@ Every action follows the same pattern: `runAction(roles)` → `parseForm(schema)
 | MediaUploader | `classifyFile`; `compressImage` (1600 px, JPEG 80%, keeps photo orientation); `uploadDirect` or `uploadChunked`; `withRetries` (3 tries); 2 uploads at a time; blocks submit until uploads finish |
 | ActionForm / ActionButton | `useActionFormState`, `toastActionResult`, `useFieldError`: the server's message becomes a toast, and errors show under each field |
 | CommandPalette | ⌘K / Ctrl+K: quick actions and pages for the user's role, plus record search through `/api/v1/search`; tracks result counts and the type opened (never the search text) |
-| AppShell / UserMenu | Identifies the signed-in staff member to PostHog (id and role only) and resets on sign-out; the account menu has Cookie settings |
+| AppShell / AccountMenu | Identifies the signed-in staff member to PostHog (id and role only) and resets on sign-out. The user shows once, at the foot of the sidebar: the card opens the account menu (My home, Warranty check, Public website, Cookie settings, Sign out) |
 | ConsentBanner | Bottom card on every page while no choice is made: equal *Reject analytics* / *Accept analytics*, link to `/privacy`; reopened by `CookieSettingsButton` with the current state. Renders nothing on the server or without an analytics key |
 | SidebarNav / MobileNav | Forest sidebar: `navForRole` filters the menu, `activeNavItem` marks the current page in amber; collapses to icons with labels in tooltips (remembered as `sunpower:sidebar`). The top bar shows "Section / Page" and a New menu from `QUICK_ACTIONS` |
 | LoginForm | Demo-account shortcuts; only internal `callbackUrl` redirects |

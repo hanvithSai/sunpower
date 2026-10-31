@@ -177,7 +177,8 @@ White surface, 12–14 px radius, hairline border, 20–24 px padding. KPI cards
 ### Navigation (app shell)
 
 - **Sidebar:** forest, sections in sentence case that follow the project's life: Overview, Customer acquisition, Sales, Operations, After-sales, Business. Each item has a one-line purpose as its tooltip. The current page gets a white-tinted row, an amber icon and a 3 px amber marker. Collapses to 68 px icons (labels move into tooltips); the choice is remembered on the device.
-- **Top bar:** "Section / Page" location (from `xl`), ⌘K search, a primary **New** menu with the role's quick actions (the same list as ⌘K), and the account menu.
+- **Top bar:** "Section / Page" location (from `xl`), ⌘K search and a primary **New** menu with the role's quick actions (the same list as ⌘K).
+- **Account:** the signed-in user appears once, at the foot of the sidebar (and of the mobile menu): avatar, name and role. The card opens the account menu upwards (email, My home, Warranty check, Public website, Cookie settings, Sign out); collapsed, only the avatar shows and the menu opens to the right.
 - **Mobile:** the same navigation in a forest sheet from the hamburger.
 
 ### Lifecycle pipeline (dashboard)

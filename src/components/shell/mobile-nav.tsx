@@ -2,7 +2,7 @@
 
 /**
  * Mobile navigation: the hamburger in the top bar (below the `lg` breakpoint) opens a
- * left sheet with the same role-filtered navigation and user card as the desktop sidebar.
+ * left sheet with the same role-filtered navigation and account menu as the desktop sidebar.
  * The sheet closes itself when a link is chosen.
  */
 import { useState } from "react";
@@ -13,7 +13,8 @@ import { roleHome } from "@/lib/navigation";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { SidebarNav, SidebarUserCard } from "@/components/shell/sidebar-nav";
+import { SidebarNav } from "@/components/shell/sidebar-nav";
+import { AccountMenu } from "@/components/shell/user-menu";
 import type { SessionUser } from "@/server/auth/session";
 
 export function MobileNav({ user }: { user: SessionUser }) {
@@ -37,7 +38,7 @@ export function MobileNav({ user }: { user: SessionUser }) {
         </SheetHeader>
         <SidebarNav role={user.role} onNavigate={close} className="flex-1 overflow-y-auto px-3 py-4" />
         <div className="shrink-0 border-t border-white/10 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <SidebarUserCard user={user} />
+          <AccountMenu user={user} onNavigate={close} />
         </div>
       </SheetContent>
     </Sheet>
