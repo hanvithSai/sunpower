@@ -1,12 +1,14 @@
 /**
  * Serial register: every panel, inverter, battery and charge controller by
  * serial number — where it is, which goods receipt it came on, which customer
- * it went to and when its warranty ends.
+ * it went to and when its warranty ends, with every move it made. The
+ * director can write off a damaged unit that is still on the shelf.
  */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ScanBarcode } from "lucide-react";
 import { InventoryNav } from "@/components/modules/inventory/inventory-nav";
+import { WriteOffSerialDialog } from "@/components/modules/inventory/stock-correction-dialogs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FilterTabs } from "@/components/shared/filter-tabs";
 import { PageHeader } from "@/components/shared/page-header";
@@ -15,7 +17,7 @@ import { SearchInput } from "@/components/shared/search-input";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SERIAL_STATUSES, statusMeta } from "@/lib/constants";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { formatINR } from "@/lib/money";
 import { first, type SearchParamsRecord } from "@/lib/query";
 import { requireUser } from "@/server/auth/session";
@@ -24,7 +26,7 @@ import { listSerials } from "@/server/services/inventory";
 export const metadata: Metadata = { title: "Serial register" };
 
 export default async function SerialsPage({ searchParams }: { searchParams: Promise<SearchParamsRecord> }) {
-  await requireUser(["warehouse"]);
+  const user = await requireUser(["warehouse"]);
   const sp = await searchParams;
   const data = await listSerials({ status: first(sp.status), q: first(sp.q), page: Number(first(sp.page)) || 1 });
 
@@ -64,9 +66,30 @@ export default async function SerialsPage({ searchParams }: { searchParams: Prom
                     <TableCell>
                       <p className="font-mono text-sm font-medium text-foreground">{u.serial}</p>
                       <p className="text-xs text-muted-foreground">{u.productName}</p>
+                      {u.history.length ? (
+                        <details className="mt-1 text-xs">
+                          <summary className="cursor-pointer text-primary">History ({u.history.length})</summary>
+                          <ol className="mt-1 space-y-1 border-l border-border pl-3">
+                            {u.history.map((h, i) => (
+                              <li key={i}>
+                                <span className="text-foreground">{h.note ?? statusMeta("serial", h.status).label}</span>
+                                <span className="block text-muted-foreground">
+                                  {formatDateTime(h.at)}
+                                  {h.by ? ` · ${h.by}` : ""}
+                                </span>
+                              </li>
+                            ))}
+                          </ol>
+                        </details>
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       <StatusBadge kind="serial" status={u.status} />
+                      {user.role === "admin" && u.status === "in_stock" ? (
+                        <div className="mt-1">
+                          <WriteOffSerialDialog serial={u.serial} productName={u.productName} />
+                        </div>
+                      ) : null}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {u.customerName ? (
