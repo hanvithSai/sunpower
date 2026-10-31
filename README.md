@@ -17,10 +17,10 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
 
 | Area | Status |
 |---|---|
-| Production | ✅ Live at [www.sunpowersolutions.me](https://www.sunpowersolutions.me); [health](https://www.sunpowersolutions.me/api/v1/health) shows the database up |
+| Production | ✅ Live at [www.sunpowersolutions.me](https://www.sunpowersolutions.me), served from Mumbai (`bom1`); [health](https://www.sunpowersolutions.me/api/v1/health) shows database, version and region |
 | Phase 0: foundation (auth, data model, design system, CI/CD) | ✅ Done |
 | Phase 1: leads → surveys → quotes → orders & payments | ✅ Done, verified end to end on Atlas |
-| Phase 2: inventory & serials, dispatch scanning, delivery → warranties, installation jobs | ⏳ Next |
+| Phase 2: inventory & serials, dispatch scanning, delivery → warranties, installation jobs | ⏸️ Next, on hold until the go-ahead |
 | Phase 3: service desk, invoices, director dashboard, full demo seed | 🗓️ Planned |
 | Phase 4–5: tests, analytics, polish, demo | 🗓️ Planned |
 

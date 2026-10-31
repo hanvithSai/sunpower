@@ -66,6 +66,7 @@ Each decision below records **what** we chose, **why**, and **how it helps** lat
 | Unit | Vitest | `src/lib` rules: GST splits, subsidy slabs, warranty dates, IST ranges, state machines, validators |
 | Integration | Vitest + mongodb-memory-server (replica set) | services: counters, invoicing, stock ledger, payment → order confirmation, dispatch gate, delivery → warranties, ticket billing |
 | End-to-end | Playwright (planned) | golden path smoke test on the preview URL |
+| Unit ✅ (started) | Vitest (`npm test`, runs in CI) | `tests/unit/db-errors.test.ts`: database failure classification (6 tests) |
 | Flow smoke checks ✅ | `scripts/check-lead-flow.ts`, `scripts/check-sale-flow.ts` (tsx, real database) | lead → survey → approval gate (10 checks) and quote → order → payment → pick list + job (15 checks), including every guard |
 
 CI (`.github/workflows/ci.yml`) runs lint → typecheck → test → build on every PR and every push to `main`.
@@ -77,7 +78,7 @@ CI (`.github/workflows/ci.yml`) runs lint → typecheck → test → build on ev
 | 1 | Seed and Atlas connections timed out at the venue | Phone-hotspot uplink of about 5 KB/s and 2–7 s DNS lookups | Standard (non-SRV) Atlas string locally, 30 s server-selection timeout, IPv4 sockets, bulk writes in the seed | Batch database writes; keep git pushes under about 200 KB |
 | 2 | Dev server reported "uncached data … outside of <Suspense>" | Pages read the session without a route-level Suspense boundary (Partial Prefetching) | `loading.tsx` in every `(app)` route folder | Rule documented in Architecture §3 and Agent_Content |
 | 3 | ⌘K palette threw "Cannot read properties of undefined (reading toLowerCase)" | Browser autofill fires synthetic `keydown` events without a `key` | Guard `typeof event.key === "string"` | Never assume optional DOM event fields exist |
-| 4 | **Production sign-in failed** ("We couldn't sign you in right now") | The `MONGODB_URI` set in Vercel had credentials Atlas rejected. `/api/v1/health` failed in about 2 s every time: a missing variable fails instantly and an IP block hangs for the 30 s timeout, so Atlas was reachable but refused the login | Updated the variable in Vercel and redeployed; health `db: up` on `681cea0` | Env-var checklist in Setup §8 (no quotes or placeholders; redeploy after edits; verify health `db` and `version`); proposed safe failure reasons in the health response |
+| 4 | **Production sign-in failed** ("We couldn't sign you in right now") | The `MONGODB_URI` set in Vercel had credentials Atlas rejected. `/api/v1/health` failed in about 2 s every time: a missing variable fails instantly and an IP block hangs for the 30 s timeout, so Atlas was reachable but refused the login | Updated the variable in Vercel and redeployed; health `db: up` on `681cea0` | Env-var checklist in Setup §8 (no quotes or placeholders; redeploy after edits; verify health `db` and `version`); the health response now reports a safe failure `reason` (`auth_failed`, `uri_invalid`, `uri_missing`, `dns`, `timeout`) plus `version` and `region` |
 
 ## Standards
 
