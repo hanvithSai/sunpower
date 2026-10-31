@@ -11,7 +11,7 @@ import { connectDB } from "@/server/db";
 import { AppError } from "@/server/errors";
 import { Job, Lead, Order, User } from "@/server/models";
 import { recordPayment } from "@/server/services/payments";
-import { acceptQuote, getQuoteBuilderContext, saveQuote } from "@/server/services/quotes";
+import { acceptQuote, getQuoteBuilderContext, markQuoteSent, saveQuote } from "@/server/services/quotes";
 import { expandPackage } from "@/lib/quote-calc";
 import { formatINR } from "@/lib/money";
 
@@ -49,6 +49,14 @@ async function main() {
   const byId = new Map(ctx!.catalog.products.map((p) => [p.id, p]));
   const lines = expandPackage(pkg.lines, byId);
   check("package expands into the full BOM", lines.length === 13, `${lines.length} lines`);
+
+  // R-24: dropping the earthing line blocks sending until the salesperson confirms the gap.
+  const noEarthing = lines.filter((l) => l.category !== "earthing").map((l) => ({ productId: l.productId, qty: l.qty, unitPriceRs: l.unitPricePaise / 100 }));
+  const base = { leadId, packageId: pkg.id, capacityKw: pkg.capacityKw, systemType: pkg.systemType, notes: undefined };
+  await expectError("sending without earthing needs a confirmation", "VALIDATION", () => saveQuote({ ...base, lines: noEarthing, send: true }, sales));
+  const draft = await saveQuote({ ...base, lines: noEarthing, send: false }, sales);
+  check("…but it can be saved as a draft", Boolean(draft.quoteId), draft.number);
+  await expectError("…and marking that draft sent asks again", "VALIDATION", () => markQuoteSent(draft.quoteId, sales));
 
   const saved = await saveQuote(
     {
