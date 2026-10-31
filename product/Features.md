@@ -30,8 +30,8 @@ Live at https://www.sunpowersolutions.me. Where this spec and the code differ, `
 | F06 Site survey | ✅ Shipped | Mobile form, compass picker, camera uploads to GridFS; approve / re-survey / not feasible |
 | F07 Catalog and packages | 🟨 Partly | Seeded catalog (30 products, 10 packages) shown read-only; create/edit UI pending |
 | F08 Quote builder | ✅ Shipped | Package → full BOM, live GST/subsidy/margin, server re-pricing, print + WhatsApp |
-| F09 Orders and payments | ✅ Shipped | First payment confirms the order → pick list + installation job (least-loaded crew) |
-| F19 Activity timeline | 🟨 Partly | Timelines on leads, quotes and orders; customer-wide timeline with F13 |
+| F09 Orders and payments | ✅ Shipped | First payment confirms the order → pick list + installation job with a crew free that day; job costing and subsidy stepper on the order page |
+| F19 Activity timeline | 🟨 Partly | Timelines on leads, quotes, orders, jobs and tickets; a customer-wide timeline comes with the `/customers` page |
 | F10 Inventory, serials and purchases | ✅ Shipped | Stock (on hand, reserved, available, value at GRN cost), serial register, GRN with serials by camera, typing or paste; stock adjustment UI pending |
 | F11 Dispatch and serial scanning | ✅ Shipped | Packing bench (camera + manual), wrong-product / already-packed / not-in-stock refusals, auto "Packed", dispatch gate (BR-02), sale invoice at dispatch (BR-18), delivery starts warranties (BR-03) |
 | F12 Installation jobs | ✅ Shipped | Auto-crew free that day (BR-07), My work, crew calendar, Start gate, completion with times, kW, generation test, kit check, extras, photos, signature (BR-14), time logs, certificate |
