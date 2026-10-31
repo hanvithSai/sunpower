@@ -44,6 +44,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const canTakePayment = (user.role === "sales" || user.role === "admin") && order.status !== "cancelled" && order.outstandingPaise > 0;
   const canCancel = user.role === "admin" && (order.status === "pending_payment" || order.status === "confirmed") && order.paidPaise === 0;
   const canPack = user.role === "warehouse" || user.role === "admin";
+  // Installation is sold as a service line; without it (a bare Panel Set) the order ends at delivery.
+  const hardwareOnly = !order.lines.some((l) => l.category === "service");
   const serialUnits = order.pickList.filter((l) => l.isSerialized).reduce((n, l) => n + l.qty, 0);
   const scanned = order.pickList.reduce((n, l) => n + l.serials.length, 0);
 
@@ -78,7 +80,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       />
 
       <div className="mb-6">
-        <OrderStepper status={order.status} />
+        <OrderStepper status={order.status} hardwareOnly={hardwareOnly} />
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -238,6 +240,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                   </Button>
                 ) : null}
               </div>
+            ) : hardwareOnly ? (
+              <p className="text-sm text-muted-foreground">Hardware only: no installation was sold, so no crew is booked and the order completes at delivery.</p>
             ) : (
               <p className="text-sm text-muted-foreground">Booked automatically when the first payment arrives.</p>
             )}

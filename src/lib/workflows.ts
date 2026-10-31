@@ -51,7 +51,8 @@ export const ORDER_FLOW: Flow<OrderStatus> = {
   confirmed: ["ready_to_dispatch", "cancelled"],
   ready_to_dispatch: ["dispatched", "confirmed"],
   dispatched: ["delivered"],
-  delivered: ["installing", "commissioned"],
+  // Hardware-only orders (a Panel Set without the installation line) close at delivery.
+  delivered: ["installing", "commissioned", "closed"],
   installing: ["commissioned"],
   commissioned: ["closed"],
   closed: [],

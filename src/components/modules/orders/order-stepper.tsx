@@ -1,12 +1,16 @@
 /**
- * Where an order is on its way from payment to commissioning.
+ * Where an order is on its way from payment to commissioning. A hardware-only
+ * order (a Panel Set without the installation line) skips the installation
+ * steps and closes at delivery.
  */
 import { Check, XCircle } from "lucide-react";
 import { statusMeta, type OrderStatus } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ORDER_STEPS } from "@/lib/workflows";
 
-export function OrderStepper({ status }: { status: OrderStatus }) {
+const INSTALL_STEPS: OrderStatus[] = ["installing", "commissioned"];
+
+export function OrderStepper({ status, hardwareOnly = false }: { status: OrderStatus; hardwareOnly?: boolean }) {
   if (status === "cancelled") {
     return (
       <div className="flex items-center gap-2 rounded-2xl border border-danger/20 bg-danger/8 p-4 text-sm font-medium">
@@ -15,10 +19,11 @@ export function OrderStepper({ status }: { status: OrderStatus }) {
       </div>
     );
   }
-  const current = ORDER_STEPS.indexOf(status);
+  const steps = hardwareOnly ? ORDER_STEPS.filter((s) => !INSTALL_STEPS.includes(s)) : ORDER_STEPS;
+  const current = steps.indexOf(status);
   return (
     <ol className="flex flex-wrap items-center gap-x-1 gap-y-2 text-xs" aria-label="Order progress">
-      {ORDER_STEPS.map((step, i) => {
+      {steps.map((step, i) => {
         const done = i < current;
         const active = i === current;
         return (
@@ -35,7 +40,7 @@ export function OrderStepper({ status }: { status: OrderStatus }) {
               {done ? <Check className="size-3" aria-hidden="true" /> : null}
               {statusMeta("order", step).label}
             </span>
-            {i < ORDER_STEPS.length - 1 ? <span className="h-px w-3 bg-border" aria-hidden="true" /> : null}
+            {i < steps.length - 1 ? <span className="h-px w-3 bg-border" aria-hidden="true" /> : null}
           </li>
         );
       })}

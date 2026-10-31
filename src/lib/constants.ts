@@ -64,19 +64,27 @@ export const CUSTOMER_TYPE_LABELS: Record<CustomerType, string> = {
 export const DISCOMS = ["TSSPDCL", "TSNPDCL"] as const;
 export type Discom = (typeof DISCOMS)[number];
 
-export const SYSTEM_TYPES = ["on_grid", "off_grid"] as const;
+/**
+ * The four packages in the brief: On-Grid and Off-Grid systems, the hardware-
+ * only Panel Set (panels, connectors, wires), and Installation, which is the
+ * service line on a quote. An order books an installation crew only when it
+ * sells that service line, so a bare Panel Set ends at delivery.
+ */
+export const SYSTEM_TYPES = ["on_grid", "off_grid", "panel_set"] as const;
 export type SystemType = (typeof SYSTEM_TYPES)[number];
 export const SYSTEM_TYPE_LABELS: Record<SystemType, string> = {
   on_grid: "On-Grid",
   off_grid: "Off-Grid",
+  panel_set: "Panel Set",
 };
 
 /** What a homeowner can pick on the enquiry form (they may not know yet). */
-export const REQUESTED_SYSTEM_TYPES = ["on_grid", "off_grid", "unsure"] as const;
+export const REQUESTED_SYSTEM_TYPES = ["on_grid", "off_grid", "panel_set", "unsure"] as const;
 export type RequestedSystemType = (typeof REQUESTED_SYSTEM_TYPES)[number];
 export const REQUESTED_SYSTEM_TYPE_LABELS: Record<RequestedSystemType, string> = {
   on_grid: "On-Grid (with net metering)",
   off_grid: "Off-Grid (battery backup)",
+  panel_set: "Panels only (I have my own installer)",
   unsure: "Not sure — advise me",
 };
 

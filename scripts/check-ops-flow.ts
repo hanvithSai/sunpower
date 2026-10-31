@@ -23,7 +23,7 @@ import { recordPayment } from "@/server/services/payments";
 import { toDateTimeInputValue } from "@/lib/format";
 import { formatINR } from "@/lib/money";
 import type { CompleteJobInput } from "@/lib/validation/jobs";
-import { makeConfirmedOrder, staff, uploadPhoto } from "./flows/order";
+import { makeConfirmedOrder, packAndDeliver, staff, topUpStock, uploadPhoto } from "./flows/order";
 
 loadEnvConfig(process.cwd());
 
@@ -63,6 +63,7 @@ async function main() {
   /* ---- Packing ---- */
   const made = await makeConfirmedOrder({ kw: 3, systemType: "on_grid" });
   const { orderId } = made;
+  await topUpStock(orderId); // a busy development database may be short of panels
   console.log(`\nOrder ${made.orderNumber} (${formatINR(made.totalPaise)}, advance ${formatINR(made.advancePaise)})\n`);
   let detail = (await getDispatchDetail(orderId))!;
   check("pick list ready for packing", detail.canPack && detail.lines.length === 12, `${detail.lines.length} lines`);
@@ -222,6 +223,25 @@ async function main() {
     formatINR(commissioned.extraCosts.reduce((s, e) => s + e.amountPaise, 0)),
   );
   await expectError("can't complete twice", "INVALID_STATE", () => completeJob(proof, crewMember));
+
+  /* ---- Panel Set: hardware only, no crew booked, complete at delivery ---- */
+  const kit = await makeConfirmedOrder({ kw: 2, systemType: "panel_set", name: "Panel Set Customer" });
+  const kitOrder = (await Order.findById(kit.orderId).lean())!;
+  check(
+    "panel set: panels, connectors and cable only",
+    kitOrder.lines.length === 3 && kitOrder.lines.every((l) => ["panel", "connector", "cable"].includes(l.category)),
+    kitOrder.lines.map((l) => `${l.qty} ${l.sku}`).join(", "),
+  );
+  check("panel set: no subsidy and no installation booked", !kitOrder.subsidy.applicable && !kitOrder.installationJobId && !kit.jobNumber && !(await Job.exists({ orderId: kit.orderId })));
+  await packAndDeliver(kit.orderId, "Panel Set Customer");
+  const kitDone = (await Order.findById(kit.orderId).lean())!;
+  check("panel set: delivery completes the order", kitDone.status === "closed" && Boolean(kitDone.closedAt) && Boolean(kitDone.invoiceId), kitDone.status);
+  const kitPanels = await SerialUnit.find({ orderId: kit.orderId }).lean();
+  check(
+    "panel set: 20-year warranty started on every panel",
+    kitPanels.length === 4 && kitPanels.every((u) => u.warrantyMonths === 240 && sameDay(u.warrantyStartAt, kitDone.dispatch.deliveredAt)),
+    `${kitPanels.length} panels`,
+  );
 
   console.log(`\n${failures === 0 ? "All checks passed" : `${failures} check(s) failed`}`);
   await mongoose.disconnect();

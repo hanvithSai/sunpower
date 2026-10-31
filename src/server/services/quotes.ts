@@ -53,7 +53,9 @@ export async function getQuoteBuilderContext(leadId: string, fromQuoteId?: strin
   const blocked = await quoteGate(lead._id, lead.status);
 
   const recommendedKw = survey?.measurements?.recommendedKw ?? lead.requirement.capacityKw;
-  const recommendedType = survey?.measurements?.recommendedSystemType ?? (lead.requirement.systemType === "off_grid" ? "off_grid" : "on_grid");
+  // A customer who asked for panels only gets the Panel Set even if the surveyor sized a full system.
+  const requested = lead.requirement.systemType;
+  const recommendedType = requested === "panel_set" ? "panel_set" : (survey?.measurements?.recommendedSystemType ?? (requested === "off_grid" ? "off_grid" : "on_grid"));
   const defaultPackage =
     catalog.packages.find((p) => p.capacityKw === recommendedKw && p.systemType === recommendedType) ??
     catalog.packages.find((p) => p.systemType === recommendedType) ??
