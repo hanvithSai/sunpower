@@ -86,7 +86,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Invoices", href: "/invoices", icon: ReceiptIndianRupee, roles: ["admin", "sales"], hint: "GST invoices, dues and CSV export" },
       { label: "Subsidy", href: "/subsidy", icon: Landmark, roles: ["admin", "sales"], hint: "PM Surya Ghar files, stage by stage" },
       { label: "Team & payroll", href: "/team", icon: Users, roles: ["admin"], hint: "Hours logged and technician payouts" },
-      { label: "Reports", href: "/dashboard#reports", icon: BarChart3, roles: ["admin"], hint: "Profit per job and exports" },
+      { label: "Reports", href: "/reports", icon: BarChart3, roles: ["admin"], hint: "Twelve months of installations, money, sales, profit and service, with charts and CSVs" },
     ],
   },
 ];
