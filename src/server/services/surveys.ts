@@ -15,6 +15,7 @@ import { toObjectId, type Actor } from "../lib/actor";
 import { Customer, Lead, Survey, User } from "../models";
 import { logActivity } from "./core/activity";
 import { nextNumber } from "./core/counters";
+import { getFilesInfo } from "./core/files";
 
 type SurveyActor = Actor & { role: Role };
 
@@ -133,6 +134,14 @@ async function loadLeadFor(leadId: Types.ObjectId, session: ClientSession) {
 
 /** The technician's on-roof submission. Only the assigned technician (or an admin) may submit. */
 export async function submitSurvey(input: SubmitSurveyInput, actor: SurveyActor): Promise<{ leadId: string }> {
+  // Every photo id must point at a finished upload in GridFS (not a half-sent file).
+  const stored = await getFilesInfo(input.photos);
+  if (stored.length !== new Set(input.photos.map((p) => p.toLowerCase())).size) {
+    throw new AppError("VALIDATION", "Some photos didn't finish uploading. Remove them and try again.", {
+      photos: "Some photos didn't finish uploading",
+    });
+  }
+
   return withTransaction(async (session) => {
     const now = new Date();
     const survey = await loadSurvey(input.surveyId, session);

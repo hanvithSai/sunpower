@@ -174,8 +174,8 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 ### Phase 1: Sales core (T+1:30 → T+4:00), golden path part 1
 | # | Task | Owner | Branch | Status |
 |---|---|---|---|---|
-| 1.1 | Schemas + services: lead, customer, qualification, survey (state machine) | Vamshi | `feat/leads-api` | ⬜ |
-| 1.2 | Public enquiry form, pipeline kanban/table, lead detail + timeline, qualification UI | Hanvith | `feat/leads-ui` | ⬜ |
+| 1.1 | Schemas + services: lead, customer, qualification, survey (state machine) | Vamshi | `feat/leads-api` | ✅ (flow check: scripts/check-lead-flow.ts) |
+| 1.2 | Public enquiry form, pipeline kanban/table, lead detail + timeline, qualification UI, survey mobile form + review | Hanvith | `feat/leads-ui` | ✅ |
 | 1.3 | Schemas + services: products, packages/BOM, quote (calc engine: subsidy, GST, paise), order, payments + automations | Vamshi | `feat/quotes-api` | ⬜ |
 | 1.4 | Survey mobile form, quote builder (template → BOM), printable quote, order + payment UI | Hanvith | `feat/quotes-ui` | ⬜ |
 | 1.5 | Seed v1: users, catalog, packages, leads at all stages | Vamshi | `feat/seed` | ⬜ |
@@ -262,4 +262,5 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 | 31 Oct, 12:20 | Vamshi | Atlas connected; 20 staff accounts seeded; sign-in and role routing verified. Venue network is slow (DNS 2–7 s per lookup), so the local env uses the standard Atlas string |
 | 31 Oct, 12:30 | Both | **Phase 0 complete:** lint, typecheck, build green; WCAG contrast fixes; self-hosted Inter; pushed for review |
 | 31 Oct, 13:00 | Both | Domains live (www.sunpowersolutions.me, sunpowersolutions.vercel.app). Both currently return Vercel `NOT_FOUND` because Vercel has no Git deployment of `main`. Added `vercel.json` (framework pin) + `metadataBase`; fix steps in Human_Tasks #6 |
-| Next | Both | Phase 1: leads → surveys → quotes → orders/payments (after review). Media pipeline (GridFS uploads, signature, scanner) is drafted and gets finished and verified in Phase 2 |
+| 31 Oct, 14:00 | Both | Phase 1a done: enquiries (web form + API, dedupe, auto-assign), pipeline board/table with SLA, qualification, survey booking, mobile survey form with photos, review gate → quote unlocked. Verified end to end on Atlas |
+| Next | Both | Phase 1b: catalog → quotes (BOM auto-expansion) → orders/payments. Media pipeline (GridFS uploads, signature, scanner) is drafted and gets finished and verified in Phase 2 |
