@@ -302,6 +302,33 @@
   }
 }
 
+/* Energy in motion: current flowing along a wire (the energy-flow diagram). */
+@keyframes energy-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+.energy-dash {
+  animation: energy-flow 0.9s linear infinite;
+}
+
+/* The landing-page journey line fills as it scrolls into view (progressive enhancement). */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    @keyframes journey-fill {
+      from {
+        transform: scaleX(0);
+      }
+    }
+    .journey-fill {
+      transform-origin: left center;
+      animation: journey-fill linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 55%;
+    }
+  }
+}
+
 /* Respect the OS "reduce motion" setting. Loading spinners keep turning so progress stays visible. */
 @media (prefers-reduced-motion: reduce) {
   *:not(.animate-spin),

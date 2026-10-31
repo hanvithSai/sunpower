@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 const POINTS = [
   { icon: PhoneCall, text: "Call back within 2 working hours" },
   { icon: BadgeIndianRupee, text: "PM Surya Ghar subsidy paperwork handled" },
-  { icon: ShieldCheck, text: "Up to 25-year panel warranty, tracked by serial number" },
+  { icon: ShieldCheck, text: "20-year panel warranty, tracked by serial number" },
 ];
 
 export default function EnquiryPage() {

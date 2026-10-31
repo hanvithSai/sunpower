@@ -43,7 +43,7 @@ export function Logo({ className, showWordmark = true, size = "md" }: LogoProps)
 export function LogoMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 64" fill="none" className={cn("shrink-0", className)} aria-hidden="true" focusable="false">
-      <rect width="64" height="64" rx="14" fill="#0F2F24" />
+      <rect x="1" y="1" width="62" height="62" rx="13" fill="#0F2F24" stroke="#DCE9DF" strokeOpacity="0.28" strokeWidth="2" />
       <circle cx="39" cy="24" r="11" fill="#F2B441" />
       <path d="M22 31h33l-10 17H12z" fill="#DCE9DF" />
       <g stroke="#0F2F24" strokeWidth="2.2" strokeLinecap="round">

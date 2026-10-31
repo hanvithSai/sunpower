@@ -122,7 +122,14 @@ export function maskContactText(text: string): string {
  */
 export const CTAS = [
   "hero_get_quote",
-  "hero_staff_sign_in",
+  "hero_check_warranty",
+  "estimator_get_quote",
+  "systems_on_grid",
+  "systems_off_grid",
+  "systems_panel_set",
+  "band_check_warranty",
+  "platform_staff_sign_in",
+  "closing_get_quote",
   "nav_get_quote",
   "nav_warranty",
   "nav_staff_login",
