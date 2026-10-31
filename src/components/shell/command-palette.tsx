@@ -18,11 +18,8 @@ import {
   FileText,
   Headset,
   LoaderCircle,
-  PackagePlus,
-  Plus,
   ReceiptIndianRupee,
   SearchX,
-  ShieldCheck,
   ShoppingCart,
   UserRound,
   UserRoundSearch,
@@ -32,46 +29,13 @@ import {
 
 import { track } from "@/lib/analytics-client";
 import { STATUS_META, type Role, type StatusKind, type Tone } from "@/lib/constants";
-import { canAccess, navForRole } from "@/lib/navigation";
+import { QUICK_ACTIONS, canAccess, navForRole } from "@/lib/navigation";
 import { SEARCH_TYPE_LABELS, type SearchResponse, type SearchResult, type SearchResultType } from "@/lib/search";
 import { Badge } from "@/components/ui/badge";
 import { CommandDialog, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
 
 const MIN_QUERY_LENGTH = 2;
 const DEBOUNCE_MS = 200;
-
-type QuickAction = { label: string; href: string; icon: LucideIcon; roles: Role[]; keywords: string };
-
-const QUICK_ACTIONS: QuickAction[] = [
-  {
-    label: "New enquiry",
-    href: "/leads?new=1",
-    icon: Plus,
-    roles: ["admin", "sales", "support"],
-    keywords: "lead customer add create walk-in call",
-  },
-  {
-    label: "New service ticket",
-    href: "/service/new",
-    icon: Headset,
-    roles: ["admin", "support", "technician"],
-    keywords: "complaint issue repair breakdown create",
-  },
-  {
-    label: "Receive stock (GRN)",
-    href: "/inventory/purchases/new",
-    icon: PackagePlus,
-    roles: ["admin", "warehouse"],
-    keywords: "goods receipt purchase inward serials",
-  },
-  {
-    label: "Check warranty",
-    href: "/warranty",
-    icon: ShieldCheck,
-    roles: ["admin", "sales", "technician", "warehouse", "support"],
-    keywords: "serial lookup guarantee coverage",
-  },
-];
 
 const TYPE_ICONS: Record<SearchResultType, LucideIcon> = {
   customer: UserRound,

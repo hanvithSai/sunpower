@@ -51,6 +51,7 @@ const COOKIES = [
   { name: "__Host-authjs.csrf-token, __Secure-authjs.callback-url", type: "Essential", purpose: "Protects sign-in against forgery; returns you to the page you asked for", where: "Cookie, staff only" },
   { name: "sunpower_consent", type: "Essential", purpose: "Remembers your cookie choice (12 months)", where: "Local storage" },
   { name: "sunpower_ph_opt_out", type: "Essential", purpose: "Remembers that you turned analytics off", where: "Local storage, only after rejecting" },
+  { name: "sunpower:sidebar", type: "Essential", purpose: "Remembers that you collapsed the staff sidebar", where: "Local storage, staff devices only" },
   { name: "sunpower:job-draft:…", type: "Essential", purpose: "Saves a half-filled installation form on the technician's phone; cleared when the job is completed", where: "Local storage, staff devices only" },
   { name: "ph_…_posthog and other ph_… items", type: "Analytics", purpose: "PostHog: an anonymous visitor id and session so visits can be counted; set only after you accept and removed when you withdraw", where: "Cookie and local/session storage" },
 ];
