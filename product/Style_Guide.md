@@ -124,7 +124,7 @@ Groups of equal items (the landing platform grid, the facts strip) use 1 px rule
 
 - One orchestrated element per screen. Interface motion is 150–200 ms ease-out on opacity and transform; no bounce or overshoot.
 - **Energy flow:** current moves along the diagram's wires as a dashed stroke (`energy-dash`, 0.9 s linear loop) with arrowheads showing direction, so the meaning survives when motion is off.
-- **Page transitions:** every navigation fades the old page out (140 ms) and lifts the new one in by 8 px (260 ms) with React's `<ViewTransition>` keyed by the path; reduced motion keeps a plain crossfade. In-page links (`/#how-it-works`, `/#warranty`) scroll smoothly; route changes still jump to the top (`data-scroll-behavior="smooth"`).
+- **Page transitions:** every navigation fades the old page out (140 ms) and lifts the new one in by 8 px (260 ms) with React's `<ViewTransition>` in each route group's `template.tsx` (between sections; pages within one section swap instantly); reduced motion keeps a plain crossfade. In-page links (`/#how-it-works`, `/#warranty`) scroll smoothly; route changes still jump to the top (`data-scroll-behavior="smooth"`).
 - **Count-up:** the landing facts count from 0 to their value once, when they scroll into view (1.4 s, ease-out); screen readers get the final value.
 - **Hero panel grid:** on the landing hero, a solar-panel cell grid (64 px cells, faint busbars, a brighter module frame every 4 cells, in current lime) appears only under the mouse, in a soft-edged square about 280 px wide; it fades out when the pointer leaves. Mouse only, no effect on touch.
 - **Solar-panel cards:** the eight journey steps are drawn as panels (aluminium frame, cell grid) that tilt slightly and catch a light sweep on hover.
