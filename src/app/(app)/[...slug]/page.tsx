@@ -21,10 +21,6 @@ const UPCOMING: Record<string, { phase: string; summary: string }> = {
     phase: "Phase 3",
     summary: "Customer 360: installed systems, every serial number with its warranty status, tickets and invoices.",
   },
-  "/invoices": {
-    phase: "Phase 3",
-    summary: "GST tax invoices with the CGST/SGST split and payment tracking.",
-  },
   "/subsidy": {
     phase: "Phase 3",
     summary: "PM Surya Ghar subsidy tracker from application to disbursement.",
