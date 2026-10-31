@@ -83,7 +83,7 @@ export function AppShell({ user, children }: AppShellProps) {
       <aside
         data-app-sidebar
         className={cn(
-          "fixed inset-y-0 left-0 z-30 hidden flex-col bg-forest transition-[width] duration-200 lg:flex",
+          "scrollbar-on-dark fixed inset-y-0 left-0 z-30 hidden flex-col bg-forest transition-[width] duration-200 lg:flex",
           collapsed ? "w-[68px]" : "w-64",
         )}
       >

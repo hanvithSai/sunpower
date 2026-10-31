@@ -27,7 +27,7 @@ export function MobileNav({ user }: { user: SessionUser }) {
           <Menu className="size-5" aria-hidden="true" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="gap-0 border-white/10 bg-forest p-0 text-forest-foreground" closeClassName="text-forest-muted hover:bg-white/8 hover:text-white">
+      <SheetContent side="left" className="scrollbar-on-dark gap-0 border-white/10 bg-forest p-0 text-forest-foreground" closeClassName="text-forest-muted hover:bg-white/8 hover:text-white">
         <SheetHeader className="h-14 shrink-0 justify-center border-b border-white/10 px-5 py-0">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
           <SheetDescription className="sr-only">Pages available to your role.</SheetDescription>

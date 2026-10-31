@@ -28,6 +28,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { EnergyFlow } from "@/components/modules/public/energy-flow";
+import { PanelGridGlow } from "@/components/modules/public/panel-grid-glow";
 import { SubsidyEstimator } from "@/components/modules/public/subsidy-estimator";
 import { CountUp } from "@/components/shared/count-up";
 import { buttonVariants } from "@/components/ui/button";
@@ -131,6 +132,7 @@ export default function HomePage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden bg-forest text-forest-foreground">
+        <PanelGridGlow />
         <div aria-hidden="true" className="pointer-events-none absolute -top-40 -right-40 size-[36rem] rounded-full bg-[radial-gradient(circle,rgb(242_180_65/0.18),transparent_65%)]" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pt-14 pb-16 sm:px-6 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:pt-20 lg:pb-24">
           <div>

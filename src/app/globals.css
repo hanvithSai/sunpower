@@ -333,6 +333,77 @@
   }
 }
 
+/* Hero panel grid (PanelGridGlow): solar-panel cells revealed in a soft-edged
+   square around the mouse. --gx/--gy are set from the pointer; two linear masks
+   intersect to make the square. Cells 64 px with two faint busbars each, and a
+   brighter module frame every 4 cells. */
+.panel-grid-glow {
+  --gx: -999px;
+  --gy: -999px;
+  --r: 140px;
+  --soft: 90px;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+  background-image:
+    linear-gradient(rgb(185 239 98 / 0.3) 2px, transparent 2px),
+    linear-gradient(90deg, rgb(185 239 98 / 0.3) 2px, transparent 2px),
+    linear-gradient(rgb(185 239 98 / 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(185 239 98 / 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(185 239 98 / 0.06) 1px, transparent 1px);
+  background-size:
+    256px 256px,
+    256px 256px,
+    64px 64px,
+    64px 64px,
+    21.333px 64px;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent calc(var(--gx) - var(--r) - var(--soft)), #000 calc(var(--gx) - var(--r)), #000 calc(var(--gx) + var(--r)), transparent calc(var(--gx) + var(--r) + var(--soft))),
+    linear-gradient(to bottom, transparent calc(var(--gy) - var(--r) - var(--soft)), #000 calc(var(--gy) - var(--r)), #000 calc(var(--gy) + var(--r)), transparent calc(var(--gy) + var(--r) + var(--soft)));
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent calc(var(--gx) - var(--r) - var(--soft)), #000 calc(var(--gx) - var(--r)), #000 calc(var(--gx) + var(--r)), transparent calc(var(--gx) + var(--r) + var(--soft))),
+    linear-gradient(to bottom, transparent calc(var(--gy) - var(--r) - var(--soft)), #000 calc(var(--gy) - var(--r)), #000 calc(var(--gy) + var(--r)), transparent calc(var(--gy) + var(--r) + var(--soft)));
+  mask-composite: intersect;
+}
+.panel-grid-glow[data-on="true"] {
+  opacity: 1;
+}
+
+/* Scrollbars in the theme: thin, a sage thumb on light surfaces and a faint
+   light thumb on forest (sidebar, mobile menu) — no grey OS bars with arrows. */
+:root {
+  scrollbar-color: #b7c3b8 transparent;
+}
+* {
+  scrollbar-width: thin;
+}
+.scrollbar-on-dark {
+  scrollbar-color: rgb(232 240 233 / 0.24) transparent;
+}
+/* Browsers without scrollbar-color (older Safari) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background-color: #b7c3b8;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #7c897f;
+}
+.scrollbar-on-dark::-webkit-scrollbar-thumb {
+  background-color: rgb(232 240 233 / 0.24);
+}
+
 /* Energy in motion: current flowing along a wire (the energy-flow diagram). */
 @keyframes energy-flow {
   to {
