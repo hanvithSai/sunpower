@@ -1,8 +1,10 @@
 /**
  * Smoke test for operations against the configured database (needs
  * `npm run seed` for staff, catalog and goods receipts):
- *   confirmed order → packing (scan guards, bulk ticks) → dispatch gate →
- *   dispatch (stock out, sale invoice) → delivery (warranty clocks).
+ *   confirmed order → crew booking → packing (scan guards, bulk ticks) →
+ *   dispatch gate → dispatch (stock out, sale invoice) → delivery (warranty
+ *   clocks) → installation start gate → completion proof (BR-14) →
+ *   commissioned, serials installed, time logs and extras on the order.
  * Builds its own fresh order each run, so it can be re-run safely.
  *
  *   npx tsx scripts/check-ops-flow.ts
@@ -13,12 +15,15 @@ import { startOfDayIST } from "@/lib/dates";
 import { addMonths } from "@/lib/warranty";
 import { connectDB } from "@/server/db";
 import { AppError } from "@/server/errors";
-import { Invoice, Job, Order, Product, Purchase, SerialUnit } from "@/server/models";
+import { Invoice, Job, Order, Product, Purchase, SerialUnit, User } from "@/server/models";
 import { deliverOrder, dispatchOrder, getDispatchDetail, scanSerial, setBulkPicked, unscanSerial } from "@/server/services/dispatch";
 import { receiveGoods } from "@/server/services/inventory";
+import { completeJob, startJob } from "@/server/services/jobs";
 import { recordPayment } from "@/server/services/payments";
+import { toDateTimeInputValue } from "@/lib/format";
 import { formatINR } from "@/lib/money";
-import { makeConfirmedOrder, staff } from "./flows/order";
+import type { CompleteJobInput } from "@/lib/validation/jobs";
+import { makeConfirmedOrder, staff, uploadPhoto } from "./flows/order";
 
 loadEnvConfig(process.cwd());
 
@@ -147,6 +152,76 @@ async function main() {
   check("inverter warranty: 2 years from delivery", sameDay(inverterUnit?.warrantyEndAt, addMonths(at, 24)));
   check("charge controller warranty: 2 years from delivery", sameDay(ccUnit?.warrantyEndAt, addMonths(at, 24)));
   await expectError("can't deliver twice", "INVALID_STATE", () => deliverOrder({ orderId, receivedBy: "x", note: undefined }, warehouse));
+
+  /* ---- Installation (BR-14) ---- */
+  const job = (await Job.findById(delivered.installationJobId).lean())!;
+  const crewIds = job.technicianIds.map(String);
+  const crewUser = await User.findById(job.technicianIds[0]).lean();
+  const crewMember = { id: String(crewUser!._id), name: crewUser!.name, role: "technician" as const };
+  const outsider = await User.findOne({ role: "technician", _id: { $nin: job.technicianIds } }).lean();
+  const stranger = { id: String(outsider!._id), name: outsider!.name, role: "technician" as const };
+
+  const otherJob = (await Job.findOne({ orderId: other.orderId }).lean())!;
+  const otherCrew = await User.findById(otherJob.technicianIds[0]).lean();
+  await expectError("start blocked until the kit is delivered", "INVALID_STATE", () =>
+    startJob(String(otherJob._id), { id: String(otherCrew!._id), name: otherCrew!.name, role: "technician" }),
+  );
+  await expectError("only the booked crew can start", "FORBIDDEN", () => startJob(String(job._id), stranger));
+  await startJob(String(job._id), crewMember);
+  check("job started → order Installing", (await Order.findById(orderId).lean())?.status === "installing" && (await Job.findById(job._id).lean())?.status === "in_progress");
+
+  const now = new Date();
+  const photo = await uploadPhoto(crewMember.id, "finished-roof.png");
+  const cable = await Product.findOne({ sku: "CBL-DC-4" }).lean();
+  const cableBefore = cable!.stockQty;
+  const proof: CompleteJobInput = {
+    jobId: String(job._id),
+    startedAt: toDateTimeInputValue(new Date(now.getTime() - 5.5 * 3_600_000)),
+    finishedAt: toDateTimeInputValue(now),
+    confirmedKw: 3,
+    kwChangeReason: undefined,
+    generationReadingKw: 2.4,
+    generationTested: true,
+    kitComplete: true,
+    missingItems: undefined,
+    mounting: true,
+    panels: true,
+    wiring: true,
+    earthing: true,
+    inverter: true,
+    photos: [photo],
+    photos__uploading: undefined,
+    signature: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    signedBy: "Flow Check Customer",
+    customerRemarks: "Neat work",
+    notes: undefined,
+    extras: [{ productId: String(cable!._id), qty: 12 }],
+    extraCostRs: 800,
+    extraCostNote: "Scaffolding hire",
+  };
+  await expectError("a different size needs a reason", "VALIDATION", () => completeJob({ ...proof, confirmedKw: 2.7 }, crewMember));
+  await expectError("finish must be after start", "VALIDATION", () => completeJob({ ...proof, finishedAt: proof.startedAt }, crewMember));
+  await expectError("photos must exist in GridFS", "VALIDATION", () => completeJob({ ...proof, photos: ["0123456789abcdef01234567"] }, crewMember));
+  await expectError("only the booked crew can complete", "FORBIDDEN", () => completeJob(proof, stranger));
+
+  const done = await completeJob(proof, crewMember);
+  const finished = (await Job.findById(job._id).lean())!;
+  const commissioned = (await Order.findById(orderId).lean())!;
+  check("job completed with signature and photos", finished.status === "completed" && finished.signature?.signedBy === "Flow Check Customer" && finished.photos.length === 1);
+  check("order commissioned", commissioned.status === "commissioned" && Boolean(commissioned.commissionedAt));
+  check("every serial installed", (await SerialUnit.countDocuments({ orderId, status: "installed" })) === 8, `${done.serials}`);
+  check(
+    "a time log for each crew member from the recorded times",
+    finished.timeLogs.length === crewIds.length && finished.timeLogs.every((t) => t.hours === 5.5),
+    `${finished.timeLogs.length} × ${finished.timeLogs[0]?.hours} h`,
+  );
+  check("extra cable left stock", (await Product.findById(cable!._id).lean())!.stockQty === cableBefore - 12, `${cableBefore} → ${cableBefore - 12}`);
+  check(
+    "extras charged to the order's costs",
+    commissioned.extraCosts.some((e) => e.label.includes("DC Cable") && e.amountPaise === 12 * cable!.costPaise) && commissioned.extraCosts.some((e) => e.amountPaise === 80_000),
+    formatINR(commissioned.extraCosts.reduce((s, e) => s + e.amountPaise, 0)),
+  );
+  await expectError("can't complete twice", "INVALID_STATE", () => completeJob(proof, crewMember));
 
   console.log(`\n${failures === 0 ? "All checks passed" : `${failures} check(s) failed`}`);
   await mongoose.disconnect();
