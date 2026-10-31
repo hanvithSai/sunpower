@@ -10,6 +10,8 @@ import { COMPANY } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { cta } from "@/lib/analytics";
+import { CookieSettingsButton } from "@/components/shared/consent-banner";
 
 const navLink =
   "inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-foreground/80 transition-colors duration-150 hover:bg-accent hover:text-foreground pointer-coarse:h-11";
@@ -30,15 +32,15 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
             <Logo className="hidden sm:inline-flex" />
           </Link>
           <nav aria-label="Main" className="flex items-center gap-1 sm:gap-2">
-            <Link href="/warranty" className={navLink}>
+            <Link href="/warranty" className={navLink} {...cta("nav_warranty")}>
               <span className="sm:hidden">Warranty</span>
               <span className="hidden sm:inline">Warranty check</span>
             </Link>
-            <Link href="/login" className={cn(navLink, "hidden sm:inline-flex")}>
+            <Link href="/login" className={cn(navLink, "hidden sm:inline-flex")} {...cta("nav_staff_login")}>
               Staff login
             </Link>
             <Button asChild size="sm" className="ml-1 rounded-full px-4">
-              <Link href="/enquiry">
+              <Link href="/enquiry" {...cta("nav_get_quote")}>
                 <span className="sm:hidden">Free quote</span>
                 <span className="hidden sm:inline">Get a free quote</span>
               </Link>
@@ -67,7 +69,7 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
                 <span>{COMPANY.address}</span>
               </li>
               <li>
-                <a href={telHref} className="flex items-center gap-2.5 rounded-sm transition-colors hover:text-foreground">
+                <a href={telHref} className="flex items-center gap-2.5 rounded-sm transition-colors hover:text-foreground" {...cta("footer_call")}>
                   <Phone className="size-4 shrink-0" aria-hidden="true" />
                   {COMPANY.phone}
                 </a>
@@ -88,17 +90,17 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
             <h2 className="text-[13px] font-semibold text-foreground">Customers & staff</h2>
             <ul className="mt-3 space-y-2.5 text-sm text-muted-foreground">
               <li>
-                <Link href="/enquiry" className="rounded-sm transition-colors hover:text-foreground">
+                <Link href="/enquiry" className="rounded-sm transition-colors hover:text-foreground" {...cta("footer_get_quote")}>
                   Get a free quote
                 </Link>
               </li>
               <li>
-                <Link href="/warranty" className="rounded-sm transition-colors hover:text-foreground">
+                <Link href="/warranty" className="rounded-sm transition-colors hover:text-foreground" {...cta("footer_warranty")}>
                   Warranty check
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="rounded-sm transition-colors hover:text-foreground">
+                <Link href="/login" className="rounded-sm transition-colors hover:text-foreground" {...cta("footer_staff_login")}>
                   Staff login
                 </Link>
               </li>
@@ -109,6 +111,12 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
         <div className="border-t border-border">
           <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <p>© {COMPANY.name}. All rights reserved.</p>
+            <p className="flex gap-4">
+              <Link href="/privacy" className="rounded-sm transition-colors hover:text-foreground">
+                Privacy & cookies
+              </Link>
+              <CookieSettingsButton className="rounded-sm transition-colors hover:text-foreground" />
+            </p>
             <p className="tabular-nums">GSTIN {COMPANY.gstin}</p>
           </div>
         </div>

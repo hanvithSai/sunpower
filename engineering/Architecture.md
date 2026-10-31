@@ -153,6 +153,7 @@ Automations run as **service-level side effects inside one MongoDB transaction**
 - **Input validation:** Zod on every action and endpoint, plus HTML constraints in forms.
 - **Abuse protection** on public endpoints: rate limits and a honeypot field.
 - **Privacy:** the public warranty lookup (POST only, 10 per IP per hour, one answer for every miss, last 4 of a serial as a second factor for phone lookups) masks names and never returns phones or addresses. The customer's certificate link leaves out the phone. Analytics events never contain customer PII.
+- **Consent:** browser analytics (PostHog) is opt-in. `src/lib/consent.ts` stores the choice; `instrumentation-client.ts` starts PostHog only after *Accept analytics* and stops it, deleting its cookies, on withdrawal. Global Privacy Control and Do Not Track count as a rejection. Click capture is fully masked (no element text or attributes) and every URL, including heatmap pages and web-vitals metrics, is scrubbed before sending. `/privacy` is the public notice.
 - **CSV exports** prefix any text that would start a spreadsheet formula, since customer names come from the public form.
 - **Secrets:** only in environment variables (`.env.local` locally, Vercel project settings in production).
 

@@ -32,6 +32,7 @@ import { getJobDetail } from "@/server/services/jobs";
 import { listStaff } from "@/server/services/users";
 import { revokeShareLinkAction } from "@/server/actions/finance";
 import { certificateLinkAction, startJobAction } from "@/server/actions/jobs";
+import { cta } from "@/lib/analytics";
 
 export const metadata: Metadata = { title: "Installation" };
 
@@ -238,6 +239,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
                       )}
                       target="_blank"
                       rel="noreferrer"
+                      {...cta("certificate_whatsapp")}
                     >
                       <MessageCircle aria-hidden="true" />
                       Send on WhatsApp

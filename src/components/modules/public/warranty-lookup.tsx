@@ -20,6 +20,7 @@ import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { lookupWarrantyAction } from "@/server/actions/public";
 import type { PublicWarranty, PublicWarrantyUnit } from "@/server/services/warranty";
+import { cta } from "@/lib/analytics";
 
 type Mode = "serial" | "phone";
 
@@ -86,7 +87,7 @@ export function WarrantyLookup() {
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">We never show your phone number or address here.</p>
-          <SubmitButton size="lg" pendingText="Checking…">
+          <SubmitButton size="lg" pendingText="Checking…" {...cta("warranty_submit")}>
             <Search aria-hidden="true" />
             Check warranty
           </SubmitButton>
@@ -141,13 +142,13 @@ function WarrantyResult({ result }: { result: PublicWarranty }) {
       </p>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button asChild size="lg">
-          <a href={COMPANY_TEL}>
+          <a href={COMPANY_TEL} {...cta("warranty_call")}>
             <Phone aria-hidden="true" />
             Call {COMPANY.phone}
           </a>
         </Button>
         <Button asChild size="lg" variant="outline">
-          <a href={`https://wa.me/91${COMPANY.whatsapp}?text=${encodeURIComponent(complaint)}`} target="_blank" rel="noopener noreferrer">
+          <a href={`https://wa.me/91${COMPANY.whatsapp}?text=${encodeURIComponent(complaint)}`} target="_blank" rel="noopener noreferrer" {...cta("warranty_whatsapp")}>
             <MessageCircle aria-hidden="true" />
             Raise a complaint on WhatsApp
           </a>

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Snapshot** | `main` at `ba6fbab`, 31 Oct 2026 (end of Phase 4: hardening) |
+| **Snapshot** | `main` at `ba6fbab`, 31 Oct 2026 (end of Phase 4: hardening), plus the 1 Nov analytics and privacy work (consent, CTAs, heatmaps, web vitals). Section 5 numbers are at `ba6fbab` |
 | **Owner** | Hanvith Sai Alla |
 | **Related** | [Architecture.md](Architecture.md) · [Engineering.md](Engineering.md) · [API.md](API.md) · [DB.md](DB.md) · [Plan.md](../Plan.md) |
 
@@ -18,7 +18,7 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 
 ```
  Browser: director · sales · technician (phone) · warehouse · support · homeowner
-    │      instrumentation-client.ts → PostHog (privacy-first, off without a key)
+    │      instrumentation-client.ts → PostHog only after cookie consent (via /ingest)
     ▼
  proxy.ts ── staff page while signed out? → /login        (checks the cookie only, no DB)
     │
@@ -55,8 +55,8 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
    - No installation start before delivery.
    - No completion without photos and the customer's signature.
    - No ticket closed until the customer confirms it works.
-9. **Pure rules are testable.** The maths behind quotes, warranties, costing and crew choice lives in `src/lib` with no database access, so 121 unit tests cover it directly.
-10. **Privacy by default.** Analytics never carry names, phones, serials or search text; URLs are scrubbed and session replay masks contact details. Share links and the public warranty page mask customer names.
+9. **Pure rules are testable.** The maths behind quotes, warranties, costing and crew choice lives in `src/lib` with no database access, so 128 unit tests cover it directly.
+10. **Privacy by default.** Browser analytics start only after opt-in cookie consent. Analytics never carry names, phones, serials or search text; clicks are captured without text or attributes, URLs are scrubbed and session replay masks contact details. Share links and the public warranty page mask customer names.
 11. **Fast pages.** A static frame appears instantly and the data streams in. Every staff route has a loading skeleton.
 
 ### One order, end to end
@@ -94,15 +94,15 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 | 9 | Dispatch | Packing bench with camera scanning, dispatch gate, tax invoice at dispatch, delivery starts the warranties | Both | ✅ |
 | 10 | Installations | Crew calendar with clash highlights, the technician's "My work", start gate, completion proof with a local draft, certificate and customer link | Both | ✅ |
 | 11 | Media | Photos and videos in GridFS: compressed in the browser, large files uploaded in pieces, streamed with seeking; certificate photos visible through the share token | Both | ✅ |
-| 12 | Public website | Landing page, enquiry form, enquiry API, public warranty check, rate limits, spam trap | Both | ✅ |
-| 13 | App shell and design system | Layouts, sidebar, mobile menu, ⌘K palette, Apple-style tokens at WCAG AA, 19 UI primitives, 22 shared components | Hanvith | ✅ |
+| 12 | Public website | Landing page, enquiry form, enquiry API, public warranty check, privacy notice, cookie banner, rate limits, spam trap | Both | ✅ |
+| 13 | App shell and design system | Layouts, sidebar, mobile menu, ⌘K palette, Apple-style tokens at WCAG AA, 19 UI primitives, 23 shared components | Hanvith | ✅ |
 | 14 | Search | ⌘K across customers, leads, quotes, orders, serials (last 4+ characters), tickets and invoices, filtered by role | Vamshi (API), Hanvith (palette) | ✅ |
 | 15 | Service desk | Tickets with the warranty decided at creation, visits on the technician's calendar, parts and replacements, ₹0 repairs costed to the installation, auto service invoice, confirm-before-close, CSV | Both | ✅ |
 | 16 | Customers | Customer list and Customer 360: orders, every serial with its warranty, tickets, invoices, payments, timeline | Both | ✅ |
 | 17 | Finance | Invoices list and printable GST invoice, subsidy board with papers, technician payroll, CSV exports | Both | ✅ |
 | 18 | Director's dashboard | KPIs for today/week/month, 12-month trend, profit per job from actuals, unfinished steps, repairs, subsidy; masked share links | Both | ✅ |
-| 19 | Analytics | Typed event contract, server events after each change, browser SDK with privacy safeguards, error reporting | Both | ✅ Live on production |
-| 20 | Data, quality and delivery | Seed with 14 months of history and a live pipeline, 5 flow checks (148 checks), 121 unit tests, CI, Vercel config | Vamshi | ✅ |
+| 19 | Analytics and consent | Typed event contract, server events after each change; browser SDK only after opt-in consent, with masked click capture and named CTAs, heatmaps, rage/dead clicks, Core Web Vitals, staff replays; error reporting | Both | ✅ Live (1 Nov additions not yet pushed) |
+| 20 | Data, quality and delivery | Seed with 14 months of history and a live pipeline, 5 flow checks (148 checks), 128 unit tests, CI, Vercel config | Vamshi | ✅ |
 
 ## 3. Files
 
@@ -117,7 +117,7 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 | [vitest.config.mts](../vitest.config.mts) | Unit-test runner | Vamshi |
 | [ci.yml](../.github/workflows/ci.yml) | Lint → typecheck → test → build on every pull request and push to `main` | Vamshi |
 | [CODEOWNERS](../.github/CODEOWNERS) | Requests the right reviewer automatically (Hanvith: UI; Vamshi: server, API, scripts) | Vamshi |
-| [instrumentation-client.ts](../src/instrumentation-client.ts) | Starts PostHog in the browser before the app is interactive; no autocapture, replay only after staff sign-in, URLs scrubbed, contact details masked | Hanvith |
+| [instrumentation-client.ts](../src/instrumentation-client.ts) | Runs before the app is interactive: starts PostHog if the visitor accepted cookies earlier, and starts or stops it when the choice changes | Hanvith |
 | [instrumentation.ts](../src/instrumentation.ts) | `onRequestError`: unhandled server errors go to PostHog as `$exception` | Vamshi |
 
 ### `src/server`: backend (all Vamshi)
@@ -193,14 +193,14 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 | By | Files |
 |---|---|
 | Vamshi | [constants.ts](../src/lib/constants.ts), [workflows.ts](../src/lib/workflows.ts), [money.ts](../src/lib/money.ts), [gst.ts](../src/lib/gst.ts), [subsidy.ts](../src/lib/subsidy.ts), [quote-calc.ts](../src/lib/quote-calc.ts), [warranty.ts](../src/lib/warranty.ts), [costing.ts](../src/lib/costing.ts), [crew.ts](../src/lib/crew.ts), [analytics.ts](../src/lib/analytics.ts), [dates.ts](../src/lib/dates.ts), [validation/](../src/lib/validation/) (common, leads, surveys, quotes, inventory, jobs, service, finance, warranty) |
-| Hanvith | [format.ts](../src/lib/format.ts), [navigation.ts](../src/lib/navigation.ts), [query.ts](../src/lib/query.ts), [search.ts](../src/lib/search.ts), [utils.ts](../src/lib/utils.ts), [action-state.ts](../src/lib/action-state.ts), [analytics-client.ts](../src/lib/analytics-client.ts) |
+| Hanvith | [format.ts](../src/lib/format.ts), [navigation.ts](../src/lib/navigation.ts), [query.ts](../src/lib/query.ts), [search.ts](../src/lib/search.ts), [utils.ts](../src/lib/utils.ts), [action-state.ts](../src/lib/action-state.ts), [analytics-client.ts](../src/lib/analytics-client.ts), [consent.ts](../src/lib/consent.ts) |
 
 ### `src/app`: pages (all Hanvith)
 
 | Area | Contents |
 |---|---|
 | Root | `layout.tsx` (fonts, toasts), `globals.css` (design tokens at WCAG AA, print styles), error and 404 pages, `global-error.tsx` (styled fallback if the root layout fails), self-hosted Inter font |
-| Public (no login) | `/` landing page, `/enquiry` form, `/warranty` check, `/share/[token]` (read-only dashboard or one customer's certificate) |
+| Public (no login) | `/` landing page, `/enquiry` form, `/warranty` check, `/privacy` notice, `/share/[token]` (read-only dashboard or one customer's certificate) |
 | Auth | `/login` |
 | Director | `/dashboard`, `/team` (payroll) |
 | Sales | `/leads`, `/leads/[id]`, `/surveys`, `/surveys/[id]`, `/quotes`, `/quotes/new`, `/quotes/[id]`, `/quotes/[id]/print`, `/orders`, `/orders/[id]`, `/catalog`, `/customers`, `/customers/[id]`, `/invoices`, `/invoices/[id]`, `/subsidy` |
@@ -215,7 +215,7 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 |---|---|
 | [ui/](../src/components/ui/) (19) | Building blocks on Radix: button, input, select, dialog, sheet, dropdown, command, table, tabs, card, badge, avatar, checkbox, label, progress, separator, skeleton, toasts, textarea |
 | [shell/](../src/components/shell/) (6) | App frame, sidebar, mobile menu, account menu, ⌘K palette, frame skeleton |
-| [shared/](../src/components/shared/) (22) | **Forms:** action form, action button, form field, submit button. **Lists:** filter tabs, URL select (`ParamSelect`), search, pagination, empty state. **Pages:** header, section, detail list, stat card, status badge, timeline, skeletons. **Tools:** media uploader and gallery, signature pad, barcode scanner, copy and print buttons |
+| [shared/](../src/components/shared/) (23) | **Forms:** action form, action button, form field, submit button. **Lists:** filter tabs, URL select (`ParamSelect`), search, pagination, empty state. **Pages:** header, section, detail list, stat card, status badge, timeline, skeletons. **Tools:** media uploader and gallery, signature pad, barcode scanner, copy and print buttons. **Privacy:** cookie banner and Cookie settings button |
 | [modules/leads/](../src/components/modules/leads/) (7) | Board, table, source and first-call badges, shared enquiry fields, lead forms, progress bar, new-lead dialog |
 | [modules/surveys/](../src/components/modules/surveys/) (2) | The technician's phone form; the sales review |
 | [modules/quotes/](../src/components/modules/quotes/) (3) | Quote builder (with the missing-parts warning), read-only parts list with totals, decline dialog |
@@ -241,7 +241,7 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 | [db-local.ts](../scripts/db-local.ts) | In-memory MongoDB for working offline |
 | [check-lead-flow.ts](../scripts/check-lead-flow.ts), [check-sale-flow.ts](../scripts/check-sale-flow.ts), [check-ops-flow.ts](../scripts/check-ops-flow.ts), [check-service-flow.ts](../scripts/check-service-flow.ts), [check-finance-flow.ts](../scripts/check-finance-flow.ts) | Whole-flow checks against a real database: 10, 18, 55, 29 and 36 checks (148) |
 | [flows/order.ts](../scripts/flows/order.ts) | Builds a fresh confirmed order through the real services for the checks |
-| [tests/unit/](../tests/unit/) | 121 unit tests in 10 files: quote maths (14), state machines (19), warranty dates (13), costing and crews (12), analytics privacy (8), operations forms (19), sales checks (13), service forms (11), finance extras (6), DB errors (6) |
+| [tests/unit/](../tests/unit/) | 128 unit tests in 11 files: quote maths (14), state machines (19), warranty dates (13), costing and crews (12), analytics privacy (11), cookie consent (4), operations forms (19), sales checks (13), service forms (11), finance extras (6), DB errors (6) |
 
 ## 4. Functions
 
@@ -279,7 +279,12 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
   - `AnalyticsProps`: every event name mapped to its exact properties, so a typo or a stray property fails the type check. No names, phones, serials or search text.
   - ★ `scrubUrl`: share tokens become `:token`; only filters, tabs, pages and record ids survive in query strings.
   - ★ `maskContactText`: hides phone numbers, emails and GSTINs in session replay.
-  - `scrubProperties`: runs `scrubUrl` over every string property of an event.
+  - `scrubProperties`: runs `scrubUrl` over every string in an event, nested ones included (the page URL inside each web-vitals metric).
+  - `scrubHeatmapData`: heatmap batches are keyed by page URL; the keys are scrubbed and merged.
+  - `CTAS` and `cta(name)`: the 14 named calls to action. `cta()` adds `data-ph-capture-attribute-cta`, the only label masked autocapture keeps, so clicks per CTA (and CTR) are measurable without element text.
+- **[consent.ts](../src/lib/consent.ts)** (Hanvith):
+  - ★ `consentStatus`: granted, denied or pending from the stored record. A choice lasts 12 months and one `CONSENT_VERSION`; with no choice, Global Privacy Control or Do Not Track mean denied.
+  - `readConsent`, `saveConsent`, `onConsentChange` (this tab and others), `openConsentSettings`.
 - **[dates.ts](../src/lib/dates.ts):**
   - `startOfDayIST`, `addDays`, `addHours`.
   - `getRange`: today, this week (from Monday) or this month, all in IST. `getPreviousRange` gives the period before.
@@ -504,7 +509,8 @@ Every action follows the same pattern: `runAction(roles)` → `parseForm(schema)
 | MediaUploader | `classifyFile`; `compressImage` (1600 px, JPEG 80%, keeps photo orientation); `uploadDirect` or `uploadChunked`; `withRetries` (3 tries); 2 uploads at a time; blocks submit until uploads finish |
 | ActionForm / ActionButton | `useActionFormState`, `toastActionResult`, `useFieldError`: the server's message becomes a toast, and errors show under each field |
 | CommandPalette | ⌘K / Ctrl+K: quick actions and pages for the user's role, plus record search through `/api/v1/search`; tracks result counts and the type opened (never the search text) |
-| AppShell / UserMenu | Identifies the signed-in staff member to PostHog (id and role only) and resets on sign-out |
+| AppShell / UserMenu | Identifies the signed-in staff member to PostHog (id and role only) and resets on sign-out; the account menu has Cookie settings |
+| ConsentBanner | Bottom card on every page while no choice is made: equal *Reject analytics* / *Accept analytics*, link to `/privacy`; reopened by `CookieSettingsButton` with the current state. Renders nothing on the server or without an analytics key |
 | SidebarNav / MobileNav | `navForRole` filters the menu; `isNavItemActive` highlights the current page |
 | LoginForm | Demo-account shortcuts; only internal `callbackUrl` redirects |
 
@@ -513,7 +519,7 @@ Every action follows the same pattern: `runAction(roles)` → `parseForm(schema)
 - [format.ts](../src/lib/format.ts): IST dates, phone formatting, WhatsApp and call links, kW display.
 - [navigation.ts](../src/lib/navigation.ts): `canAccess` (the director can open everything), `navForRole`, `roleHome`.
 - [query.ts](../src/lib/query.ts): `hrefWith` changes one URL parameter and keeps the rest.
-- [analytics-client.ts](../src/lib/analytics-client.ts): `track` for the two browser events, `identifyStaff` (starts session replay), `resetAnalytics`, `captureClientError` for error boundaries.
+- [analytics-client.ts](../src/lib/analytics-client.ts): ★ `startAnalytics` (the whole PostHog configuration, run only after consent: `/ingest` proxy, masked autocapture, heatmaps, rage/dead clicks, web vitals, replay masking, `before_send` scrubbing) and ★ `stopAnalytics` (opt out, forget the identity, delete every `ph_…` cookie and storage item); `track` for the two browser events; `identifyStaff` (remembered, so a later Accept still identifies and starts replay); `resetAnalytics`; `captureClientError` for error boundaries.
 
 ### Scripts and tests (Vamshi)
 

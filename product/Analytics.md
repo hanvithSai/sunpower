@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Version** | 1.0, 31 Oct 2026 |
-| **Tool** | PostHog Cloud, free tier: product analytics, session replay, exception autocapture |
+| **Version** | 1.2, 1 Nov 2026 (cookie consent, masked click capture, CTAs, heatmaps, web vitals) |
+| **Tool** | PostHog Cloud, free tier: product analytics, web analytics, session replay, heatmaps, web vitals, exception autocapture |
 | **Owners** | Hanvith Sai Alla (client events, dashboards) · Lagishetty Vamshi (server events in services) |
 | **Related** | [PRD.md](PRD.md) (success metrics) · [Features.md](Features.md) (where each event fires) |
 
@@ -11,7 +11,7 @@
 
 1. **Measure outcomes, not clicks.** Every event maps to a lifecycle step or a KPI.
 2. **MongoDB is the system of record** for money, stages and cycle times. PostHog shows behaviour, adoption, funnels and errors. When the two disagree, MongoDB wins, and PostHog figures are never used for accounting.
-3. **Privacy by default.** No customer phone numbers or emails in events (section 3).
+3. **Privacy by default.** Browser analytics only with consent, and no customer phone numbers or emails in events (section 3).
 4. **The taxonomy is a contract.** Code and dashboards use the exact event and property names in section 6.
 
 ## 2. Setup
@@ -19,20 +19,24 @@
 | Item | Decision |
 |---|---|
 | Plan | PostHog Cloud free tier (1 million events and 5,000 session recordings a month at the time of writing). About 20 staff users and 40 installations a month need only a few thousand events a month. |
-| Client SDK | `posthog-js`, initialised in `src/instrumentation-client.ts`, which runs before the app becomes interactive |
+| Consent | **Opt-in.** PostHog is not started until the visitor clicks *Accept analytics* in the cookie banner, so before that nothing is stored on the device and nothing is sent to PostHog. See section 3 |
+| Client SDK | `posthog-js`, configured in `src/lib/analytics-client.ts` (`startAnalytics`). `src/instrumentation-client.ts` starts it at load when consent was given on an earlier visit, otherwise when the visitor accepts |
 | Server SDK | `posthog-node` in the services layer, flushed after the response with Next.js `after()` so tracking never slows an action |
 | Pageviews | `$pageview` on every App Router navigation (history change), not only on full page loads |
-| Click autocapture | Off. Only the explicit events below are sent, which also keeps `tel:` and `wa.me` links (they contain phone numbers) out of PostHog |
-| Session replay | Staff only. Recording starts after sign-in; all inputs masked |
+| Click autocapture | On for clicks and submits on links, buttons and forms, **fully masked** (`mask_all_text`, `mask_all_element_attributes`): no element text and no attributes, so `tel:` and `wa.me` links (they contain phone numbers) never reach PostHog. The one label that survives is `data-ph-capture-attribute-cta`, set by `cta()` in `src/lib/analytics.ts` on the calls to action in section 6 |
+| Rage and dead clicks | On, with the same masking. Elements inside `ph-no-capture` are ignored |
+| Web vitals | On (`capture_performance: { web_vitals: true, network_timing: false }`): LCP, INP, CLS and FCP per page as `$web_vitals`. Network timing in replays stays off. The page URL inside each metric is scrubbed |
+| Heatmaps | On (`capture_heatmaps`): click positions and scroll depth per page, for every visitor, no text. `before_send` scrubs the page URLs the heatmap data is keyed by. Also switch on **Settings → Heatmaps** in PostHog; view them with the PostHog toolbar on the live site |
+| Session replay | Staff only, and only with consent. Recording starts after sign-in; all inputs masked; phones, emails and GSTINs masked in all text |
 | Exceptions | Client exception autocapture produces `$exception`; server errors are reported from `onRequestError` in `src/instrumentation.ts` |
 | Person profiles | `identified_only`, so anonymous public visitors don't create person profiles |
-| Environments | `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` are set only in Vercel Production. Without a key, analytics is off (local development, CI, previews). Developers can point the key at a test project to check events. |
+| Environments | `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` should be set only in Vercel Production. Without a key, analytics and the cookie banner are off (local development, CI, previews). Developers can point the key at a test project to check events. Browser events go through our `/ingest` proxy; `NEXT_PUBLIC_POSTHOG_HOST` is used by the server SDK |
 
 ## 3. Identity and privacy
 
 - **Staff:** after sign-in the client calls `identify(userId)` with the internal MongoDB user id and sets one person property, `role` (`admin`, `sales`, `technician`, `warehouse`, `support`). No staff names or emails are sent.
 - **Sign-out:** `reset()` clears the identity on shared devices.
-- **Public visitors:** anonymous, never identified, never recorded.
+- **Public visitors:** anonymous, never identified, never recorded, and counted only if they accept analytics cookies.
 - **Server events:** `distinct_id` is the acting user's id. System events (public form, scheduled quote expiry) use `system` with `$process_person_profile: false`.
 
 **Privacy rules (non-negotiable)**
@@ -40,11 +44,24 @@
 1. No customer phone numbers or email addresses in any event property, person property or URL. Also excluded: customer names, addresses, GSTINs, service connection numbers, serial numbers, free-text notes, search text, photos and signatures.
 2. Users are identified only by internal user id and role.
 3. Session replay masks every input. Elements that display customer contact data (contact cards, addresses, the signature pad) carry the `ph-no-capture` class.
-4. URLs carry ids, never personal data. Warranty lookup is a POST. `before_send` rewrites `/share/<token>` to `/share/:token`, so share tokens never reach PostHog.
+4. URLs carry ids, never personal data. Warranty lookup is a POST. `before_send` rewrites `/share/<token>` to `/share/:token` and drops unknown query parameters, in event properties, replay metadata and heatmap page keys, so share tokens and search text never reach PostHog.
+7. Click capture is masked: no element text, no attributes, no link URLs. CTAs are labelled only by a fixed name from `CTAS`.
 5. Money appears only as whole-rupee business amounts (`totalRs`, `amountRs`).
-6. Do Not Track is respected (`respect_dnt`).
+6. Do Not Track and Global Privacy Control are respected as a rejection until the visitor explicitly accepts.
 
-These rules keep personal data in analytics to the minimum, in line with India's Digital Personal Data Protection Act 2023.
+**Cookie consent**
+
+| Rule | How it works |
+|---|---|
+| Opt-in, not opt-out | Analytics cookies are off until the visitor clicks *Accept analytics*. PostHog isn't initialised before that: no cookies, no storage, no requests |
+| A fair choice | *Accept analytics* and *Reject analytics* are the same size and style; nothing is pre-ticked; the page stays usable behind the banner; no "accept by continuing" |
+| Informed | The banner says what analytics does (including staff screen recordings with personal details hidden) and links to `/privacy`, which lists every cookie and storage item, the processors and their locations, retention and rights |
+| Browser signals | Global Privacy Control and Do Not Track count as *Reject*, and no banner is shown. An explicit *Accept* later (from Cookie settings) overrides them |
+| Easy to withdraw | "Cookie settings" in the public footer, on `/privacy` and in the staff account menu reopen the banner. Withdrawing stops PostHog, forgets the identity and deletes every `ph_…` cookie and storage item |
+| Recorded and renewed | The choice is one essential item, `sunpower_consent` (`{v, analytics, at}`). It lasts 12 months, and raising `CONSENT_VERSION` in `src/lib/consent.ts` asks everyone again |
+| Not covered by the banner | Essential cookies (the staff session and sign-in protection) and server-side events, which carry no cookies and no personal data |
+
+These rules keep personal data in analytics to the minimum, in line with India's Digital Personal Data Protection Act 2023 (notice, consent as easy to withdraw as to give, rights and grievance contact on `/privacy`) and the opt-in standard of the EU GDPR and ePrivacy rules.
 
 ## 4. North-star metric
 
@@ -106,6 +123,10 @@ Money and cycle-time KPIs appear on the in-app dashboard (F15), computed from Mo
 | `warranty_lookup` | `by` (`serial`, `phone`), `found` (boolean) | A public warranty check is answered (the serial and phone are never sent) | Server | F20 |
 | `certificate_shared` | none | A customer certificate link is created from the job page | Server | F22 |
 | `$pageview` | Automatic (URL sanitised by `before_send`) | Every route change | Client | All |
+| `$autocapture` | Automatic, masked; `cta` when the element is a tagged call to action: `hero_get_quote`, `hero_staff_sign_in`, `nav_get_quote`, `nav_warranty`, `nav_staff_login`, `footer_call`, `footer_get_quote`, `footer_warranty`, `footer_staff_login`, `enquiry_submit`, `warranty_submit`, `warranty_call`, `warranty_whatsapp`, `certificate_whatsapp` | A click on a link or button, or a form submit | Client | F01, F20, F22 |
+| `$rageclick`, `$dead_click` | Automatic, masked | Repeated clicks on one spot; a click that changed nothing | Client | All |
+| `$$heatmap` | Automatic (page URLs scrubbed) | Batched click and scroll positions | Client | All |
+| `$web_vitals` | Automatic: `$web_vitals_LCP_value`, `…_INP_value`, `…_CLS_value`, `…_FCP_value` (URLs scrubbed) | Page load and interaction speed, once per page | Client | All |
 | `$exception` | Automatic (type, message, stack) | An unhandled client error; server errors via `onRequestError` | Client, Server | All |
 
 ## 7. Funnels
@@ -114,7 +135,8 @@ PostHog funnels follow one person. Steps done by different roles (for example sa
 
 | Funnel | Steps | Window | Breakdown | Question it answers |
 |---|---|---|---|---|
-| Public enquiry | `$pageview` on `/` → `$pageview` on `/enquiry` → `enquiry_submitted` | 1 day | Device type, `systemType` | Does the landing page turn visitors into enquiries? |
+| Public enquiry | `$pageview` on `/` → `$autocapture` with `cta` = `hero_get_quote` or `nav_get_quote` → `$pageview` on `/enquiry` → `$autocapture` with `cta` = `enquiry_submit` | 1 day | Device type, `cta` | Does the landing page turn visitors into enquiries, and which button brings them? |
+| Warranty self-service | `$pageview` on `/warranty` → `$autocapture` with `cta` = `warranty_submit` → `$autocapture` with `cta` = `warranty_call` or `warranty_whatsapp` | 1 day | Device type | Do homeowners answer their own question, or still need to call? |
 | Quote to cash (sales) | `quote_created` → `quote_sent` → `quote_accepted` → `payment_recorded` | 30 days | `packageCode` | Where do deals stall? |
 | Dispatch (warehouse) | `$pageview` on `/dispatch/[orderId]` → `serial_scanned` → `order_dispatched` → `order_delivered` | 1 day | `method` | Does scanning slow or block dispatch? |
 | Installation (technician) | `job_started` → `job_completed` | 12 hours | Device type | Do technicians finish jobs in the app? |
@@ -122,6 +144,10 @@ PostHog funnels follow one person. Steps done by different roles (for example sa
 | Lifecycle (business) | Enquiry → Qualified → Survey approved → Quote sent → Order confirmed → Delivered → Commissioned | Monthly cohorts | Source, city, package | Where does the business lose customers? |
 
 The lifecycle funnel is computed from MongoDB. Its PostHog proxy is a trend of monthly counts of `lead_created`, `quote_sent`, `quote_accepted`, `order_confirmed`, `order_delivered` and `job_completed`.
+
+Public funnels use browser events only: `enquiry_submitted` and `warranty_lookup` are sent by the server under `system` (visitors are anonymous), so they can't join a visitor's funnel. Count them as trends next to the funnel; `warranty_lookup` by `found` gives the self-service answer rate.
+
+**CTR of a call to action** = `$autocapture` where `cta` = X ÷ `$pageview` of the page it sits on, as a Trends formula (for example `hero_get_quote` clicks ÷ `/` pageviews, daily).
 
 ## 8. Dashboards
 
@@ -131,7 +157,7 @@ The lifecycle funnel is computed from MongoDB. Its PostHog proxy is a trend of m
 | Sales | Sales, daily | Enquiries by `systemType` and `capacityKw`; lead transitions (`lead_status_changed` by `to`); public enquiry and quote-to-cash funnels; package mix (`quote_created` by `packageCode`) |
 | Operations | Warehouse and director, weekly | Units received (sum of `units`); scans by `method`; dispatched vs delivered per week; job duration median and 90th percentile (`durationHours`); dispatch and installation funnels |
 | Service | Support and director, daily | Tickets by `warrantyState` and `category`; resolutions by `resolutionType` and `billable`; tickets created vs closed per week; search success and zero-result rate; invoices by `type` |
-| Product health | Developers, daily during the event | Weekly active users by `role`; pageviews by route; `$exception` by route and browser; session replays with exceptions; share links and exports |
+| Product health | Developers, daily during the event | Weekly active users by `role`; pageviews by route; `$exception` by route and browser; session replays with exceptions; Core Web Vitals (p75 LCP, INP, CLS by route and device); rage and dead clicks; share links and exports |
 
 The in-app director dashboard (F15) stays the place for exact money figures: revenue, cash, profit per job, open repairs, stuck projects and the subsidy pipeline.
 

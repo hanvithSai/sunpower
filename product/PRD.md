@@ -383,11 +383,11 @@ Each acceptance criterion is testable on seeded data. Screens, fields and valida
 | Performance | Staff pages render in under 2 s on the full seed (~150 projects, 14 months); search under 1 s; technician pages usable on a mid-range Android phone on 4G |
 | Validation | Zod schemas shared by forms and server; the server never trusts the client; business rules return typed errors |
 | Security | bcrypt password hashes; signed JWT session in an httpOnly cookie; role checks in `proxy.ts` and again in every server action and API route; rate limits on public endpoints; expiring, revocable share tokens |
-| Privacy | Collect only what the job needs (Digital Personal Data Protection Act 2023); no customer phone or email in analytics; public pages mask personal data |
+| Privacy | Collect only what the job needs (Digital Personal Data Protection Act 2023); `/privacy` notice with rights and grievance contact; analytics only after opt-in cookie consent; no customer phone or email in analytics; public pages mask personal data |
 | Reliability | Automations run inside MongoDB transactions; human-readable numbers come from atomic counters |
 | Accessibility | WCAG 2.2 AA target; full keyboard access; 44 px touch targets on technician screens ([Style_Guide.md](Style_Guide.md)) |
 | Compatibility | Current Chrome, Edge, Safari and Firefox; Android Chrome for camera scanning |
-| Observability | PostHog product analytics, session replay and exception capture; Vercel logs |
+| Observability | PostHog product analytics, session replay, heatmaps, Core Web Vitals and exception capture (browser parts with consent); Vercel logs |
 | Data | Money in integer paise; dates stored in UTC and shown in IST; warranty records kept for at least 20 years |
 
 ## 12. Release scope

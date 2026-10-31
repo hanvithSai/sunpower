@@ -9,7 +9,7 @@ import type { Role } from "@/lib/constants";
 import { roleHome } from "@/lib/navigation";
 
 /** Pages anyone can open without signing in. */
-const PUBLIC_PATHS = new Set(["/", "/enquiry", "/warranty", "/login"]);
+const PUBLIC_PATHS = new Set(["/", "/enquiry", "/warranty", "/privacy", "/login"]);
 const PUBLIC_PREFIXES = ["/share/", "/enquiry/"];
 
 export function isPublicPath(pathname: string): boolean {

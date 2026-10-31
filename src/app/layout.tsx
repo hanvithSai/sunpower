@@ -1,5 +1,6 @@
 /**
- * Root layout: fonts, global styles, metadata and the toast host.
+ * Root layout: fonts, global styles, metadata, the toast host and the cookie
+ * banner (a client component that renders nothing on the server).
  *
  * Kept fully static on purpose (Cache Components prerenders it into the static shell).
  * Request-time work such as reading the session lives behind <Suspense> in the
@@ -12,6 +13,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { LucideProvider } from "lucide-react";
 
+import { ConsentBanner } from "@/components/shared/consent-banner";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -46,6 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <LucideProvider strokeWidth={1.75}>
           {children}
           <Toaster />
+          <ConsentBanner />
         </LucideProvider>
       </body>
     </html>
