@@ -103,31 +103,42 @@ sequenceDiagram
   Sales->>Sys: Record payment
   Sys-->>WH: Pick list created
   Sys-->>Tech: Installation job on the crew calendar
-  WH->>Sys: Scan every serial → dispatch → delivered
-  Sys-->>Sys: Warranty clocks start per serial, GST invoice issued
-  Tech->>Sys: Completion form + photos + customer signature
-  Sys-->>Sales: Order commissioned → subsidy tracking
+  WH->>Sys: Scan every serial, tick bulk lines → dispatch
+  Sys-->>Sys: Stock out, GST sale invoice issued (advance applied)
+  WH->>Sys: Mark delivered
+  Sys-->>Sys: Warranty clock starts for every serial
+  Tech->>Sys: Start (only after delivery) → completion form + photos + customer signature
+  Sys-->>Sales: Order commissioned → certificate, crew hours, subsidy tracking
+  C->>Sys: Breakdown months later (support finds the serial with ⌘K)
+  Sys-->>Sys: Warranty decided per serial (or workmanship) → ₹0 + cost to the order, or auto invoice
 ```
 
 Automations run as **service-level side effects inside one MongoDB transaction**, so a crash can never leave an order confirmed without its pick list or job.
 
 | Trigger | Automatic effects |
 |---|---|
-| First payment on an order | status confirmed, pick list, installation job (least-loaded 3-person crew), activity, analytics |
-| All pick lines scanned | status ready_to_dispatch |
-| Delivery | serials → installed, warranty start/end per serial, GST sale invoice, activity |
-| Job completed (installation) | order commissioned, labour hours logged for costing and payroll |
-| Ticket resolved out of warranty | service invoice for parts + labour, stock issued |
-| Customer confirms the fix | ticket closed |
+| First payment on an order | status confirmed, pick list, installation job ~4 days out with 3 installers free that day (`core/crew.ts`), activity, analytics |
+| All serials scanned and bulk lines ticked | status ready_to_dispatch (an un-scan moves it back) |
+| Dispatch | stock moves out, serials in transit, GST sale invoice with payments applied (BR-18) |
+| Delivery | warranty start/end per serial from the months sold on the order |
+| Job completed (installation) | serials installed, order commissioned, a time log per crew member, extra material out of stock and into the order's costs, certificate data |
+| Ticket raised | warranty state and basis (serial or workmanship) frozen on the ticket |
+| Ticket resolved in warranty | ₹0 to the customer; parts at cost + labour charged to the original order (`extraCosts`, kind `warranty`); service visit completed with a time log |
+| Ticket resolved out of warranty | GST service invoice for parts + labour, stock issued |
+| Customer confirms the fix | ticket `customer_confirmed`, then it can close |
 
 ## 5. Gates (process enforcement)
 
 | Gate | Where enforced |
 |---|---|
 | No quote before survey approval | quote service + locked UI on the lead |
-| No dispatch until every serialized unit is scanned and every line is picked | dispatch service |
-| No installation start before materials are delivered | job service |
-| No ticket closure without customer confirmation | ticket state machine |
+| No dispatch until every serialized unit is scanned and every line is picked | dispatch service (`DISPATCH_INCOMPLETE`, re-checked in the transaction) |
+| A scan must be the right product, in stock and not packed for another order | dispatch service |
+| No installation start before materials are delivered; only the booked crew can start or complete | job service |
+| No completion without times, confirmed kW (reason if different), generation test, kit check, a photo and the signature | job service (BR-14) |
+| A replacement unit must be the same product and in stock | ticket service (BR-15) |
+| No ticket closure without customer confirmation | ticket state machine (`resolved → customer_confirmed → closed`) |
+| Share links work only until expiry or revocation | finance service (checked on every view) |
 | Every status change must be legal | `assertTransition(entity, FLOW, from, to)` |
 
 ## 6. Security model
