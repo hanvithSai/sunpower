@@ -1,0 +1,321 @@
+/*
+ * SunPower OS — design tokens and global styles (Apple-inspired light theme).
+ *
+ * How it fits together
+ * - Raw values live as CSS variables on :root (one place to retune the brand).
+ * - `@theme inline` maps them to Tailwind utilities: bg-primary, text-muted-foreground,
+ *   border-border, bg-success/12, text-danger-foreground, shadow-card, animate-dialog-in ...
+ * - Status tones (success | warning | danger | info | brand) pair a vivid base colour with a
+ *   darker, accessible `*-foreground` text colour. Tinted badges use `bg-{tone}/12 text-{tone}-foreground`.
+ * - `secondary`, `muted` and `accent` are translucent Apple "fills", so they read correctly on both
+ *   white cards and the #F5F5F7 app background.
+ * - The print block at the bottom lets quotes, invoices and certificates print cleanly via window.print().
+ */
+@import "tailwindcss";
+
+:root {
+  /* Radius scale is derived from the 10px control radius (see @theme below). */
+  --radius: 0.625rem;
+
+  /* Surfaces & ink */
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --card: #ffffff;
+  --card-foreground: #1d1d1f;
+  --popover: #ffffff;
+  --popover-foreground: #1d1d1f;
+
+  /* Actions */
+  --primary: #0071e3;
+  --primary-hover: #0066cc; /* white text 5.6:1 (was #0077ed, 4.3:1) */
+  --primary-foreground: #ffffff;
+  --secondary: rgb(118 118 128 / 0.12);
+  --secondary-hover: rgb(118 118 128 / 0.18);
+  --secondary-foreground: #1d1d1f;
+  --muted: rgb(118 118 128 / 0.08);
+  --muted-foreground: #6e6e73;
+  --accent: rgb(118 118 128 / 0.1);
+  --accent-foreground: #1d1d1f;
+
+  /* Lines & focus */
+  --border: #e5e5ea;
+  --input: #86868b; /* 3.6:1 field boundary, WCAG 1.4.11 (was #d2d2d7) */
+  --ring: #0071e3; /* solid focus ring 4.7:1 (was 40% opacity, 1.8:1) */
+
+  /* Brand (sun-amber) and status tones: base colour + accessible dark text variant */
+  --brand: #ff9f0a;
+  --brand-light: #ffb340;
+  --brand-foreground: #c93400;
+  --success: #34c759;
+  --success-foreground: #1a7f37; /* 5.1:1 on white, 4.6:1 on its tint (was #248a3d) */
+  --warning: #ff9f0a;
+  --warning-foreground: #b25000;
+  --danger: #ff3b30;
+  --danger-foreground: #d70015;
+  --info: #007aff;
+  --info-foreground: #0040dd;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-brand: var(--brand);
+  --color-brand-light: var(--brand-light);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  /* shadcn/ui aliases so copied snippets (text-destructive, bg-destructive) keep working */
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: #ffffff;
+
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* 6 / 8 / 10 (controls) / 16 (cards) / 20 (sheets) */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 10px);
+}
+
+@theme {
+  /* Elevation: cards sit almost flat; dialogs and popovers float. */
+  --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.04), 0 1px 1px rgb(0 0 0 / 0.02);
+  --shadow-md: 0 8px 30px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 8px 30px rgb(0 0 0 / 0.08);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 1px 1px rgb(0 0 0 / 0.02);
+  --shadow-elevated: 0 8px 30px rgb(0 0 0 / 0.08);
+
+  /* Motion: 150–200 ms, ease-out. Disabled for prefers-reduced-motion (see base layer). */
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --animate-fade-in: fade-in 180ms var(--ease-out);
+  --animate-fade-out: fade-out 150ms var(--ease-out);
+  --animate-dialog-in: dialog-in 200ms var(--ease-out);
+  --animate-dialog-out: dialog-out 150ms var(--ease-out);
+  --animate-pop-in: pop-in 160ms var(--ease-out);
+  --animate-pop-out: pop-out 120ms var(--ease-out);
+  --animate-sheet-in-left: sheet-in-left 200ms var(--ease-out);
+  --animate-sheet-out-left: sheet-out-left 160ms var(--ease-out);
+  --animate-sheet-in-right: sheet-in-right 200ms var(--ease-out);
+  --animate-sheet-out-right: sheet-out-right 160ms var(--ease-out);
+  --animate-sheet-in-bottom: sheet-in-bottom 200ms var(--ease-out);
+  --animate-sheet-out-bottom: sheet-out-bottom 160ms var(--ease-out);
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+  @keyframes dialog-out {
+    to {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97) translateY(-2px);
+    }
+  }
+  @keyframes pop-out {
+    to {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+  @keyframes sheet-in-left {
+    from {
+      transform: translateX(-100%);
+    }
+  }
+  @keyframes sheet-out-left {
+    to {
+      transform: translateX(-100%);
+    }
+  }
+  @keyframes sheet-in-right {
+    from {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes sheet-out-right {
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes sheet-in-bottom {
+    from {
+      transform: translateY(100%);
+    }
+  }
+  @keyframes sheet-out-bottom {
+    to {
+      transform: translateY(100%);
+    }
+  }
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after,
+  ::backdrop,
+  ::file-selector-button {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: light;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background font-sans text-sm text-foreground antialiased;
+  }
+
+  /* One consistent focus ring for every focusable element: solid 2px blue, offset 2px (WCAG 2.4.11). */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Tailwind v4 resets buttons to the default cursor; restore the pointer for clickable things. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background-color: rgb(0 113 227 / 0.18);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+}
+
+@layer components {
+  /* Native <Select>: Apple-style up/down chevrons drawn as a background image (no wrapper element). */
+  select[data-slot="select"]:not([multiple]) {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5'/%3E%3Cpath d='m7 9 5-5 5 5'/%3E%3C/svg%3E");
+    background-position: right 0.625rem center;
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+  }
+
+  /* Native <Checkbox>: white tick / dash on the blue fill. */
+  input[data-slot="checkbox"]:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.75 8.25 6.5 11 12.25 5'/%3E%3C/svg%3E");
+  }
+  input[data-slot="checkbox"]:indeterminate {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.25' stroke-linecap='round'%3E%3Cpath d='M4.5 8h7'/%3E%3C/svg%3E");
+  }
+  input[data-slot="checkbox"]:checked,
+  input[data-slot="checkbox"]:indeterminate {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+}
+
+/* Respect the OS "reduce motion" setting. Loading spinners keep turning so progress stays visible. */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.animate-spin),
+  *:not(.animate-spin)::before,
+  *:not(.animate-spin)::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Printing (quotes, tax invoices, certificates): white page, no app chrome, no shadows. */
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  [data-print-hide],
+  [data-app-sidebar],
+  [data-app-topbar],
+  [data-skip-link],
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  [data-app-frame] {
+    padding-left: 0 !important;
+  }
+
+  [data-app-main] {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  *,
+  ::before,
+  ::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  a[href] {
+    color: inherit;
+    text-decoration: none;
+  }
+}

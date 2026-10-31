@@ -1,0 +1,106 @@
+/**
+ * Upcoming-module screen.
+ *
+ * During the phased build every sidebar link should open a real page instead
+ * of a 404. This catch-all renders a short "what's coming" card for modules
+ * that haven't shipped yet. As soon as a module adds its own route (e.g.
+ * src/app/(app)/leads/page.tsx) that route takes precedence automatically.
+ * Unknown paths still return 404.
+ */
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Hammer } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PageHeader } from "@/components/shared/page-header";
+import { NAV_SECTIONS, roleHome } from "@/lib/navigation";
+import { requireUser } from "@/server/auth/session";
+
+const UPCOMING: Record<string, { phase: string; summary: string }> = {
+  "/dashboard": {
+    phase: "Phase 3",
+    summary: "Today / week / month KPIs, profit per job, open repairs and unfinished work, with read-only share links.",
+  },
+  "/my-work": {
+    phase: "Phase 2",
+    summary: "Today's surveys and installations for the signed-in technician, with navigation and one-tap calling.",
+  },
+  "/customers": {
+    phase: "Phase 3",
+    summary: "Customer 360: installed systems, every serial number with its warranty status, tickets and invoices.",
+  },
+  "/leads": {
+    phase: "Phase 1",
+    summary: "Website, WhatsApp, phone and walk-in enquiries in one pipeline with a 2-hour response SLA.",
+  },
+  "/surveys": {
+    phase: "Phase 1",
+    summary: "Mobile site surveys: roof direction, tilt, shading, cable distance and photos, followed by approval.",
+  },
+  "/quotes": {
+    phase: "Phase 1",
+    summary: "Quotes from 1–5 kW templates with an automatic bill of materials, GST and PM Surya Ghar subsidy.",
+  },
+  "/orders": {
+    phase: "Phase 1",
+    summary: "Orders and payments that automatically create the warehouse pick list and the installation job.",
+  },
+  "/inventory": {
+    phase: "Phase 2",
+    summary: "Stock levels, goods receipts with serial numbers, the serial register and low-stock alerts.",
+  },
+  "/dispatch": {
+    phase: "Phase 2",
+    summary: "Scan every serial before the truck leaves; delivery starts each warranty clock automatically.",
+  },
+  "/jobs": {
+    phase: "Phase 2",
+    summary: "Crew schedule and on-roof completion with photos and the customer's on-screen signature.",
+  },
+  "/service": {
+    phase: "Phase 3",
+    summary: "Service tickets with instant warranty lookup — free when covered, billed automatically when not.",
+  },
+  "/invoices": {
+    phase: "Phase 3",
+    summary: "GST tax invoices with the CGST/SGST split and payment tracking.",
+  },
+  "/subsidy": {
+    phase: "Phase 3",
+    summary: "PM Surya Ghar subsidy tracker from application to disbursement.",
+  },
+  "/team": {
+    phase: "Phase 3",
+    summary: "Technician hours, utilisation and monthly payouts.",
+  },
+  "/catalog": {
+    phase: "Phase 1",
+    summary: "Products with cost, price, GST, HSN and warranty, plus ready-made 1–5 kW packages.",
+  },
+};
+
+export default async function UpcomingModulePage({ params }: { params: Promise<{ slug: string[] }> }) {
+  const user = await requireUser();
+  const { slug } = await params;
+  const href = `/${slug[0]}`;
+  const item = NAV_SECTIONS.flatMap((section) => section.items).find((navItem) => navItem.href === href);
+  const upcoming = UPCOMING[href];
+  if (!item || !upcoming || slug.length > 1) notFound();
+  await requireUser(item.roles);
+
+  return (
+    <>
+      <PageHeader title={item.label} description={upcoming.summary} />
+      <EmptyState
+        icon={Hammer}
+        title={`${item.label} ships in ${upcoming.phase}`}
+        description="This module is on the build plan. Its screens appear here automatically as soon as it is merged."
+        action={
+          <Button asChild variant="outline">
+            <Link href={roleHome(user.role)}>Back to my home</Link>
+          </Button>
+        }
+      />
+    </>
+  );
+}
