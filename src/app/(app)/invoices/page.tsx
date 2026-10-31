@@ -5,7 +5,7 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertTriangle, IndianRupee, ReceiptIndianRupee } from "lucide-react";
+import { AlertTriangle, Download, IndianRupee, ReceiptIndianRupee } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FilterTabs } from "@/components/shared/filter-tabs";
 import { PageHeader } from "@/components/shared/page-header";
@@ -14,6 +14,7 @@ import { SearchInput } from "@/components/shared/search-input";
 import { StatCard } from "@/components/shared/stat-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate } from "@/lib/format";
 import { formatINR, formatINRCompact } from "@/lib/money";
@@ -27,11 +28,24 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
   await requireUser(["sales", "support"]);
   const sp = await searchParams;
   const now = new Date();
+  // The export follows the filters on screen.
+  const csvQuery = new URLSearchParams(Object.entries({ status: first(sp.status), type: first(sp.type) }).filter((e): e is [string, string] => Boolean(e[1]))).toString();
   const data = await listInvoices({ status: first(sp.status), type: first(sp.type), q: first(sp.q), page: Number(first(sp.page)) || 1 }, now);
 
   return (
     <>
-      <PageHeader title="Invoices" description="Issued automatically: sale invoices at dispatch, service invoices when an out-of-warranty repair is resolved." />
+      <PageHeader
+        title="Invoices"
+        description="Issued automatically: sale invoices at dispatch, service invoices when an out-of-warranty repair is resolved."
+        actions={
+          <Button asChild variant="outline">
+            <a href={`/api/v1/reports/invoices?${csvQuery}`} download>
+              <Download aria-hidden="true" />
+              CSV for the accountant
+            </a>
+          </Button>
+        }
+      />
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard label="Due from customers" value={formatINRCompact(data.outstanding.duePaise)} hint={`${data.outstanding.count} unpaid invoice${data.outstanding.count === 1 ? "" : "s"}`} icon={IndianRupee} tone="warning" href="/invoices?status=open" />
         <StatCard label="Overdue" value={data.outstanding.overdue} hint="Past the due date" icon={AlertTriangle} tone={data.outstanding.overdue ? "danger" : "success"} href="/invoices?status=overdue" />
