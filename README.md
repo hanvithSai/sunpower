@@ -22,8 +22,9 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
 | Phase 1: leads → surveys → quotes → orders & payments | ✅ Done, verified end to end on Atlas |
 | Phase 2: goods receipts & serials, dispatch scanning, invoice at dispatch, warranties on delivery, crew booking, technician My work, installation proof & certificate | ✅ Done |
 | Phase 3: ⌘K search, service desk, job costing, director dashboard & share link, invoices, subsidy board, payroll, full demo seed | ✅ Done; production seeded and verified |
-| Phase 3b + verification (31 Oct, 20:30): public warranty check, customer certificate link on WhatsApp, subsidy papers, invoice/ticket CSVs, Customer 360, Panel Sets, missing-parts gate on quotes, business GSTIN, stock corrections | ✅ Done locally; push + Atlas re-seed pending ([Human_Tasks](Human_Tasks.md) #18) |
-| Next: analytics key in Vercel, polish, demo video | 🗓️ See [Plan.md](Plan.md) |
+| Phase 3b + verification (31 Oct, 20:30): public warranty check, customer certificate link on WhatsApp, subsidy papers, invoice/ticket CSVs, Customer 360, Panel Sets, missing-parts gate on quotes, business GSTIN, stock corrections | ✅ Done and live; Atlas re-seed for Panel Sets pending ([Human_Tasks](Human_Tasks.md) #18) |
+| Phase 4: hardening (121 unit tests, privacy-first PostHog analytics, WCAG AA contrast, 360 px fixes, job-form draft) | ✅ Done and live; analytics switch on once the key is in Vercel (#8) |
+| Next: bug bash, final docs pass, demo video | 🗓️ See [Plan.md](Plan.md) |
 
 ## Highlights
 
@@ -66,7 +67,7 @@ The full Windows and macOS guide is in [Setup.md](Setup.md). No Atlas yet? Run `
 
 Demo logins (password `SunPower@2026`): `director@`, `sales@`, `tech@`, `warehouse@`, `support@` with the domain `sunpower.demo`.
 
-Flow smoke checks against a development database: `check-lead-flow`, `check-sale-flow`, `check-ops-flow` (55 checks), `check-service-flow` (29) and `check-finance-flow` (36) in `scripts/` (148 in all), plus 55 unit tests (`npm test`). See [Setup.md](Setup.md#flow-smoke-checks-real-database).
+Flow smoke checks against a development database: `check-lead-flow`, `check-sale-flow`, `check-ops-flow` (55 checks), `check-service-flow` (29) and `check-finance-flow` (36) in `scripts/` (148 in all), plus 121 unit tests (`npm test`). See [Setup.md](Setup.md#flow-smoke-checks-real-database).
 
 ## Documentation
 
@@ -89,7 +90,7 @@ src/
   lib/            pure business rules: GST, subsidy, warranty, state machines, validation
   server/         models, auth, services (business logic), server actions
 scripts/          local MongoDB, demo data seeder (history + live pipeline), flow smoke checks
-tests/            Vitest unit tests (domain rules, form schemas, packing gate)
+tests/            Vitest unit tests (quote maths, state machines, warranty, costing, crews, forms, analytics privacy)
 engineering/      technical documentation (code walkthrough: Codebase.md)
 product/          product documentation
 ```

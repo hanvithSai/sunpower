@@ -39,7 +39,7 @@ flowchart TB
   SVC["Services: src/server/services/*<br/>business rules, state machines, automations"]
   CORE["Core services: counters · activity log · invoicing · stock ledger · files"]
   MOD["Models: src/server/models/* (Mongoose)"]
-  LIB["Pure domain lib: src/lib/*<br/>constants · workflows · money · GST · subsidy · warranty · dates · validation"]
+  LIB["Pure domain lib: src/lib/*<br/>constants · workflows · money · GST · subsidy · warranty · costing · crew · analytics · dates · validation"]
 
   UI --> ACT --> SVC
   UI -->|reads| SVC

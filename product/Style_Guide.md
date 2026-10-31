@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | 1.0, 31 Oct 2026 |
+| **Version** | 1.1, 31 Oct 2026 (WCAG AA colour pass) |
 | **Owner** | Hanvith Sai Alla (design system, `globals.css`) |
 | **Stack** | Tailwind CSS v4, shadcn/ui, Inter via `next/font`, lucide-react, Recharts |
 | **Related** | [PRD.md](PRD.md) · [Features.md](Features.md) |
@@ -20,7 +20,7 @@ An Apple-inspired system: a quiet grey canvas, white cards, one blue for actions
 
 ## 2. Logo
 
-- **Construction:** a rounded-square tile filled with an amber linear gradient from #FFB340 (top-left) to #FF9F0A (bottom-right), with a white sun glyph (lucide `Sun`) centred in it. The wordmark follows: "SunPower" in semibold ink (#1D1D1F) and "OS" in secondary grey (#6E6E73), with a single space between them.
+- **Construction:** a rounded-square tile filled with an amber linear gradient from #FFB340 (top-left) to #FF9F0A (bottom-right), with a white sun glyph (lucide `Sun`) centred in it. The wordmark follows: "SunPower" in semibold ink (#1D1D1F) and "OS" in ink at 70% opacity, with a single space between them.
 - **Recommended sizes:** sidebar tile 28 px with a 17 px wordmark; sign-in page tile 40 px with a 22 px wordmark; the favicon uses the tile alone.
 - **Clear space:** at least half the tile's width on every side. **Minimum size:** 20 px tile.
 - **Don't:** recolour or re-angle the gradient, stretch the tile, add outlines or shadows, place it on photos, use it as a button, or write the name as "Sunpower" or "SunPowerOS".
@@ -32,12 +32,12 @@ An Apple-inspired system: a quiet grey canvas, white cards, one blue for actions
 
 | Token | Hex | Use |
 |---|---|---|
-| Primary | #0071E3 | Primary buttons, links, selected states, focus |
-| Primary hover | #0066CC | Hover on primary buttons |
+| Primary | #0066CC | Primary buttons, links, selected states, focus (was #0071E3 before the AA pass) |
+| Primary hover | #0066CC | Same as primary since the AA pass; the pressed state dims to 90% |
 | On primary | #FFFFFF | Text and icons on primary |
 | Accent (sun amber) | #FF9F0A | Logo and brand highlights on public pages |
 | Ink | #1D1D1F | Headings and body text |
-| Secondary text | #6E6E73 | Labels, helper text, metadata, placeholders |
+| Secondary text | #66666B | Labels, helper text, metadata, placeholders (was #6E6E73) |
 | Background | #F5F5F7 | App canvas |
 | Surface | #FFFFFF | Cards, tables, dialogs, inputs |
 | Separator / border | #E5E5EA | Dividers, card and table rules |
@@ -49,15 +49,15 @@ Badges use a soft tint of the base colour (about 12%) with the dark text variant
 
 | Status | Base | Text variant | Badge background |
 |---|---|---|---|
-| Success | #34C759 | #1A7F37 | rgba(52, 199, 89, 0.12) ≈ #E7F8EB |
-| Warning | #FF9F0A | #B25000 | rgba(255, 159, 10, 0.12) ≈ #FFF3E2 |
+| Success | #34C759 | #17732F | rgba(52, 199, 89, 0.12) ≈ #E7F8EB |
+| Warning | #FF9F0A | #A64A00 | rgba(255, 159, 10, 0.12) ≈ #FFF3E2 |
 | Danger | #FF3B30 | #D70015 | rgba(255, 59, 48, 0.12) ≈ #FFE7E6 |
 | Info | #007AFF | #0040DD | rgba(0, 122, 255, 0.12) ≈ #E0EFFF |
-| Neutral | #6E6E73 | #6E6E73 | #F5F5F7 (background token) |
+| Neutral | #66666B | #66666B | #F5F5F7 (background token) |
 
 ### 3.3 Rules
 
-- **Blue means "you can act."** Never use #0071E3 for decoration or status. Info status uses its own blues (#007AFF, #0040DD).
+- **Blue means "you can act."** Never use #0066CC for decoration or status. Info status uses its own blues (#007AFF, #0040DD).
 - **Amber is the brand in the logo; inside the app amber means warning.** Don't use the accent as decoration near status information.
 - **Base status colours** are for dots, icons, chart marks and fills. **Text uses the dark variant**, because the base colours are too light for text on white.
 - **Colour is never the only signal:** every status has a text label, and an icon where space allows.
@@ -131,9 +131,9 @@ White cards sit on the #F5F5F7 canvas with the card shadow and no border. A card
 
 | Variant | Look | Use |
 |---|---|---|
-| Primary | #0071E3 fill, white text; hover #0066CC | One per view: Create quote, Record payment, Dispatch |
+| Primary | #0066CC fill, white text; pressed 90% | One per view: Create quote, Record payment, Dispatch |
 | Secondary | White fill, 1 px #86868B border, ink text | Every other action |
-| Tertiary | No fill, #0071E3 text | Low emphasis: Cancel, View all |
+| Tertiary | No fill, #0066CC text | Low emphasis: Cancel, View all |
 | Destructive | White fill, #D70015 text; filled #D70015 with white text only inside a confirmation dialog | Cancel order, Revoke link |
 
 - Height 36 px on desktop and **44 px on technician and other touch screens**; 16 px side padding; label in Callout, medium; 16 px icon with an 8 px gap.
@@ -142,15 +142,15 @@ White cards sit on the #F5F5F7 canvas with the card shadow and no border. A card
 
 ### Inputs
 
-- Height 36 px (44 px on touch screens), radius 10 px, 1 px #86868B border, white fill, Callout text, #6E6E73 placeholder.
+- Height 36 px (44 px on touch screens), radius 10 px, 1 px #86868B border, white fill, Callout text, #66666B placeholder.
 - Label above every field (Footnote, medium); helper text below (Footnote, secondary); errors below in Footnote #D70015 with a #FF3B30 border and an alert icon.
-- Focus: the border turns #0071E3 and the focus ring appears (section 11).
+- Focus: the border turns #0066CC and the focus ring appears (section 11).
 - Special fields: amounts with a ₹ prefix, right-aligned tabular figures and lakh grouping on blur; mobile with a fixed +91 prefix and a numeric keypad; 6-digit pincode; serial fields in capitals with autocorrect and autocomplete off; dates shown as DD MMM YYYY.
 - Validate on blur, then on every change once a field has an error. On submit, focus the first invalid field.
 
 ### Tables
 
-- Callout text; headers in Footnote semibold #6E6E73, sentence case; rows 44 px high with 1 px #E5E5EA separators; hover row #F5F5F7.
+- Callout text; headers in Footnote semibold #66666B, sentence case; rows 44 px high with 1 px #E5E5EA separators; hover row #F5F5F7.
 - Numbers right-aligned in tabular figures; status shown as badges; the first column links to the record; sticky header; sortable columns show their direction; 25 rows per page.
 - Below `md`, rows become stacked cards: title, two or three key facts and the status badge.
 - Profit table: loss-making rows get the danger badge tint with the profit in #D70015; rows below 15% margin get the warning tint.
@@ -193,7 +193,7 @@ Elevated card about 640 px wide with a 16 px radius; Body-size input; results gr
 
 ### Charts
 
-Recharts. Primary series #0071E3, comparison series #6E6E73, gridlines #E5E5EA, axis labels in Caption #6E6E73, ₹ axis values in compact form (₹5 L); tooltips use the elevated style; status colours only when the series means a status. No 3D charts and no pie charts with more than five slices.
+Recharts. Invoiced series #0071E3, cash series #EB6834, gridlines #E5E5EA, axis labels in Caption #66666B, ₹ axis values in compact form (₹5 L); tooltips use the elevated style; status colours only when the series means a status. No 3D charts and no pie charts with more than five slices.
 
 ## 10. Content style
 
@@ -210,7 +210,7 @@ Recharts. Primary series #0071E3, comparison series #6E6E73, gridlines #E5E5EA, 
 Target: **WCAG 2.2 AA**.
 
 - **Contrast:** text at least 4.5:1, large text (24 px, or 18.66 px bold) at least 3:1, meaningful icons and component boundaries at least 3:1.
-- **Focus:** every focusable element shows a **solid 2 px #0071E3 ring with a 2 px offset** on `:focus-visible`. Outlines are never removed without this replacement.
+- **Focus:** every focusable element shows a **solid 2 px #0066CC ring with a 2 px offset** on `:focus-visible`. Outlines are never removed without this replacement.
 - **Touch targets:** at least **44 × 44 px on technician mobile screens** (and every touch layout), with 8 px between adjacent targets.
 - **Forms:** every input has a visible label; errors are linked with `aria-describedby`; the first invalid field takes focus on submit.
 - **Keyboard:** everything is reachable in a logical order; ⌘K or Ctrl+K opens search; Esc closes dialogs; focus is trapped inside dialogs and returned on close.
@@ -219,26 +219,26 @@ Target: **WCAG 2.2 AA**.
 
 ### Contrast check (measured)
 
+Re-measured 31 Oct, 22:45 against the tokens in `src/app/globals.css` (WCAG 2.x relative luminance; badge tints are 12% of the base colour over white).
+
 | Pair | Ratio | Result |
 |---|---|---|
 | Ink on surface / on background | 16.8:1 / 15.5:1 | Pass |
-| Secondary text on surface / on background | 5.1:1 / 4.7:1 | Pass |
-| White on primary #0071E3 | 4.7:1 | Pass |
-| White on primary hover #0066CC | 4.3:1 | Below 4.5:1 (hover state only) |
-| Primary text on surface / on background | 4.7:1 / 4.3:1 | Pass on white; below 4.5:1 on the grey canvas |
-| Badge text on its tint, over white: info / warning / danger | 6.5:1 / 4.8:1 / 4.6:1 | Pass |
-| Success badge text #1A7F37 on its tint, over white | 4.6:1 | Pass |
-| Neutral badge (#6E6E73 on #F5F5F7) | 4.7:1 | Pass |
-| Focus ring (solid #0071E3) against white | 4.7:1 | Pass |
+| Secondary text #66666B on surface / on background | 5.7:1 / 5.2:1 | Pass |
+| White on primary #0066CC | 5.6:1 | Pass |
+| Primary text on surface / on background | 5.6:1 / 5.1:1 | Pass |
+| Badge text on its tint, over white: info / warning #A64A00 / danger | 6.5:1 / 5.3:1 / 4.6:1 | Pass |
+| Success text #17732F on its tint / on white | 5.4:1 / 5.9:1 | Pass |
+| Neutral badge (#66666B on #F5F5F7) | 5.2:1 | Pass |
+| Focus ring (solid #0066CC) against white | 5.6:1 | Pass |
 | Input border #86868B against white | 3.6:1 | Pass |
 
 ### Known gaps and mitigations
 
-1. **Links and badges on the grey canvas:** primary text on #F5F5F7 measures 4.3:1, so links and badges sit on white surfaces (cards, tables), which is the default layout.
-2. **Resolved 31 Oct:** success text changed from #248A3D to **#1A7F37** (5.1:1 on white, 4.6:1 on its tint).
-3. **Resolved 31 Oct:** the focus ring is now **solid #0071E3** (4.7:1) instead of 40% opacity (1.8:1).
-4. **Resolved 31 Oct:** the input border is now **#86868B** (3.6:1, WCAG 1.4.11), the same border apple.com uses on its fields.
-5. **Resolved 31 Oct:** primary hover is now **#0066CC** (white text 5.6:1) instead of #0077ED (4.3:1).
+1. **Resolved 31 Oct (AA pass):** primary is now **#0066CC**, so links and badges pass on the grey canvas too (5.1:1, was 4.3:1). Secondary text moved from #6E6E73 to **#66666B**, success text to **#17732F** and warning text to **#A64A00**.
+2. **Resolved 31 Oct:** the focus ring is **solid** (now #0066CC, 5.6:1) instead of 40% opacity (1.8:1).
+3. **Resolved 31 Oct:** the input border is now **#86868B** (3.6:1, WCAG 1.4.11), the same border apple.com uses on its fields.
+4. **Open:** primary and primary hover are now the same colour, so a primary button has no hover change, only the 90% pressed state.
 
 ## 12. Responsive behaviour
 
