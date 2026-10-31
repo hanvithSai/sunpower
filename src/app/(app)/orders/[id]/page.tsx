@@ -38,6 +38,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
   const canTakePayment = (user.role === "sales" || user.role === "admin") && order.status !== "cancelled" && order.outstandingPaise > 0;
   const canCancel = user.role === "admin" && (order.status === "pending_payment" || order.status === "confirmed") && order.paidPaise === 0;
+  const canPack = user.role === "warehouse" || user.role === "admin";
   const serialUnits = order.pickList.filter((l) => l.isSerialized).reduce((n, l) => n + l.qty, 0);
   const scanned = order.pickList.reduce((n, l) => n + l.serials.length, 0);
 
@@ -97,7 +98,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             <QuoteLines lines={order.lines} totals={order} />
           </Section>
 
-          <Section title="Payments" description={invoice ? `Tax invoice ${invoice.number}` : "The tax invoice is issued on delivery."}>
+          <Section title="Payments" description={invoice ? `Tax invoice ${invoice.number}` : "The tax invoice is issued automatically on dispatch."}>
             {payments.length === 0 ? (
               <p className="text-sm text-muted-foreground">No payments yet. The first payment confirms the order.</p>
             ) : (
@@ -186,7 +187,16 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             )}
           </Section>
 
-          <Section title="Warehouse">
+          <Section
+            title="Warehouse"
+            actions={
+              canPack && order.pickList.length > 0 ? (
+                <Button asChild size="sm" variant="outline">
+                  <Link href={`/dispatch/${order.id}`}>{order.status === "confirmed" || order.status === "ready_to_dispatch" ? "Pack" : "Dispatch"}</Link>
+                </Button>
+              ) : null
+            }
+          >
             {order.pickList.length === 0 ? (
               <p className="text-sm text-muted-foreground">The pick list is created when the order is confirmed.</p>
             ) : (

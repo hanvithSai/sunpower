@@ -29,14 +29,6 @@ const UPCOMING: Record<string, { phase: string; summary: string }> = {
     phase: "Phase 3",
     summary: "Customer 360: installed systems, every serial number with its warranty status, tickets and invoices.",
   },
-  "/inventory": {
-    phase: "Phase 2",
-    summary: "Stock levels, goods receipts with serial numbers, the serial register and low-stock alerts.",
-  },
-  "/dispatch": {
-    phase: "Phase 2",
-    summary: "Scan every serial before the truck leaves; delivery starts each warranty clock automatically.",
-  },
   "/jobs": {
     phase: "Phase 2",
     summary: "Crew schedule and on-roof completion with photos and the customer's on-screen signature.",

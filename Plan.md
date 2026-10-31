@@ -220,7 +220,7 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 | # | Task | Owner | Branch | Status |
 |---|---|---|---|---|
 | 2.1 | Inventory: stock moves, serial units, GRN with unit cost per serial, allocation, dispatch validation (BR-02), **sale invoice at dispatch**, delivery → warranty automation (BR-03). **Seed GRNs with serials now** (moved up from 3.5) so dispatch can be tested | Vamshi | `feat/inventory-api` | ✅ (flow check: scripts/check-ops-flow.ts, 30/30; 4 GRNs, 181 serials seeded) |
-| 2.2 | Stock (with value at cost), GRN and serial register screens; dispatch scanner (camera + manual) | Hanvith | `feat/dispatch-ui` | ⬜ |
+| 2.2 | Stock (with value at cost), GRN and serial register screens; dispatch scanner (camera + manual) | Hanvith | `feat/dispatch-ui` | ✅ stock, serial register, GRN form (camera + paste), dispatch queue, packing bench |
 | 2.3 | Jobs: **crew picked from technicians free on the date** (fix `pickCrew`), reschedule/reassign with double-booking warning, start gate (delivered), completion (BR-14) + signature + photos, **extra material as stock moves**, time log per crew member, certificate data (installed serials + warranty ends) | Vamshi | `feat/jobs-api` | ⬜ |
 | 2.4 | **My work first** (replaces the placeholder technician home: today's surveys, jobs, visits), then crew calendar, installation form, signature pad, certificate print view | Hanvith | `feat/jobs-ui` | ⬜ |
 
