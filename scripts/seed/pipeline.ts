@@ -28,7 +28,7 @@ import { recordPayment } from "@/server/services/payments";
 import { acceptQuote, getQuoteBuilderContext, saveQuote } from "@/server/services/quotes";
 import { reviewSurvey, submitSurvey } from "@/server/services/surveys";
 import { assignTicket, closeTicket, confirmTicket, createTicket, overrideBilling, resolveTicket, startTicket } from "@/server/services/tickets";
-import { uploadPhoto } from "../flows/order";
+import { topUpStock, uploadPhoto } from "../flows/order";
 import { PLACES, seededPhone } from "./people";
 
 const MARKER = "seed:pipeline";
@@ -126,6 +126,8 @@ async function buildLead(s: Spec, k: number, actors: { sales: Awaited<ReturnType
   await recordPayment({ orderId, amountPaise: Math.round(order.totalPaise / 2 / 100_000) * 100_000, mode: "upi", type: "advance", reference: `UPI${400000 + k * 131}` }, sales);
   if (s.stage === "confirmed") return;
 
+  // Receive whatever the shelf is short of first, so packing never stalls on a busy database.
+  await topUpStock(orderId);
   const detail = (await getDispatchDetail(orderId))!;
   for (const line of detail.lines) {
     if (line.isSerialized) {
@@ -198,7 +200,11 @@ export async function seedPipeline(): Promise<string> {
     warehouse: await staff("warehouse@sunpower.demo"),
     support: await staff("support@sunpower.demo"),
   };
-  for (const [k, s] of SPECS.entries()) await buildLead(s, k, actors);
+  for (const [k, s] of SPECS.entries()) {
+    // Each entry is keyed by its phone, so a re-run after an interruption only adds what is missing.
+    if (await Customer.exists({ phone: seededPhone(5000 + k) })) continue;
+    await buildLead(s, k, actors);
+  }
   await seedTickets(actors);
   await Counter.create({ _id: MARKER, seq: SPECS.length });
   const orders = SPECS.filter((s) => reached(s.stage, "accepted", FLOW) && ORDER_STAGES.includes(s.stage)).length;

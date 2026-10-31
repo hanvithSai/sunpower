@@ -147,7 +147,7 @@ export async function topUpStock(orderId: string) {
     }
   }
   if (lines.length) {
-    await receiveGoods({ supplierName: "Flow Check Supplier", supplierGstin: undefined, invoiceNo: `CHK-${tag}`, invoiceDate: toDateTimeInputValue(new Date()).slice(0, 10), notes: undefined, lines }, warehouse);
+    await receiveGoods({ supplierName: "Sri Venkateswara Solar Distributors", supplierGstin: "36ABCFS7214K1Z8", invoiceNo: `SVSD/TOP/${tag}`, invoiceDate: toDateTimeInputValue(new Date()).slice(0, 10), notes: undefined, lines }, warehouse);
   }
 }
 
