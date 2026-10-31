@@ -81,6 +81,8 @@ sequenceDiagram
 
 **Cache Components** (`cacheComponents: true`) makes the shell (sidebar, header, skeletons) prerender and appear instantly. Session- and DB-dependent content streams in behind `<Suspense>`. **Partial Prefetching** prefetches one reusable shell per route, which makes navigation feel instant.
 
+**Rendering rule:** every route folder under `src/app/(app)` has its own `loading.tsx`. With Partial Prefetching, a page that reads the session needs a Suspense boundary *below* the shared app layout for client navigations to be instant. Without one, the Next.js dev validation reports "uncached data … outside of <Suspense>". We hit this on the module placeholders and fixed it with route-level boundaries.
+
 ## 4. The lifecycle as one connected flow (golden path)
 
 ```mermaid
@@ -159,6 +161,8 @@ Vercel caps request bodies at 4.5 MB, so large files are split into 16 × 255 Ki
 ## 9. Delivery pipeline
 
 Production runs at **https://www.sunpowersolutions.me** (Namecheap DNS → Vercel; the apex redirects to `www`), with **https://sunpowersolutions.vercel.app** as the Vercel URL.
+
+**Region:** Vercel functions currently run in Washington DC (`iad1`) while users are in India and the Atlas cluster is in Asia, so each request crosses India → US → Atlas (production health reports about 1.8 s of cold database latency). Pinning functions to Mumbai (`bom1`) is proposed (Human_Tasks #14).
 
 ```mermaid
 flowchart LR
