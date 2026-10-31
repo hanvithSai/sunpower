@@ -63,7 +63,7 @@ export async function searchRecords(raw: string, role: Role, now: Date): Promise
         id: String(c._id),
         title: c.name,
         subtitle: `${formatPhone(c.phone)} · ${c.address.city}`,
-        href: role === "sales" ? `/leads?q=${c.phone}` : `/service/new?customerId=${c._id}`,
+        href: `/customers/${c._id}`,
       });
     }
   }

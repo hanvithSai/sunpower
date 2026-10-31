@@ -165,7 +165,13 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           {customer ? (
             <Section title="Customer">
               <div className="space-y-3 text-sm">
-                <p className="font-medium">{customer.name}</p>
+                {user.role === "technician" ? (
+                  <p className="font-medium">{customer.name}</p>
+                ) : (
+                  <Link href={`/customers/${customer.id}`} className="font-medium text-foreground hover:text-primary">
+                    {customer.name}
+                  </Link>
+                )}
                 <p className="text-muted-foreground">{[customer.address.line1, customer.address.city, customer.address.pincode].filter(Boolean).join(", ")}</p>
                 <div className="grid grid-cols-2 gap-2">
                   <Button asChild variant="outline">
