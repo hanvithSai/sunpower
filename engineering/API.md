@@ -49,8 +49,8 @@ All media endpoints require a signed-in user. Allowed types: JPEG, PNG, WebP, MP
 
 ## Public endpoints 🗓️
 
-### `POST /api/v1/enquiries` (Phase 1)
-Website enquiry form (also usable by any external landing page).
+### `POST /api/v1/enquiries` ✅
+Website enquiry form (also usable by any external landing page). New enquiries are auto-assigned to the salesperson with the fewest open leads.
 ```json
 { "name": "Lakshmi Narayana", "phone": "9848012345", "email": "", "city": "Hyderabad", "pincode": "500072",
   "addressLine": "Plot 12, KPHB Colony", "capacityKw": 3, "systemType": "on_grid", "wantsSubsidy": true,
