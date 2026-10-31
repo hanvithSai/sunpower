@@ -51,16 +51,31 @@ export interface IJob {
   startedAt?: Date;
   finishedAt?: Date;
   confirmedKw?: number;
+  /** Required when the installed size differs from the order. */
+  kwChangeReason?: string;
   generationReadingKw?: number;
   checklist: IJobChecklist;
+  /** Did everything on the pick list arrive at site? */
+  kitCheck?: { complete: boolean; missing?: string };
   photos: string[];
   signature?: ISignature;
   customerRemarks?: string;
   notes?: string;
   timeLogs: ITimeLog[];
+  /** Material used beyond the pick list; also posted to stock and to the order's extra costs. */
+  materialsUsed: IMaterialUsed[];
   completedBy?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface IMaterialUsed {
+  productId: Types.ObjectId;
+  sku: string;
+  name: string;
+  unit: string;
+  qty: number;
+  costPaise: number;
 }
 
 const JobSchema = new Schema<IJob>(
@@ -80,7 +95,28 @@ const JobSchema = new Schema<IJob>(
     startedAt: Date,
     finishedAt: Date,
     confirmedKw: { type: Number, min: 0 },
+    kwChangeReason: String,
     generationReadingKw: { type: Number, min: 0 },
+    kitCheck: {
+      type: new Schema<{ complete: boolean; missing?: string }>({ complete: { type: Boolean, required: true }, missing: String }, { _id: false }),
+      required: false,
+    },
+    materialsUsed: {
+      type: [
+        new Schema<IMaterialUsed>(
+          {
+            productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+            sku: { type: String, required: true },
+            name: { type: String, required: true },
+            unit: { type: String, required: true },
+            qty: { type: Number, required: true, min: 0 },
+            costPaise: { type: Number, required: true, min: 0 },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
     checklist: {
       mounting: { type: Boolean, default: false },
       panels: { type: Boolean, default: false },
