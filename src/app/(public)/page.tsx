@@ -1,7 +1,7 @@
 /**
  * Public home page (Phase 0 version).
  *
- * Introduces SunPower and routes staff to sign in. The full landing page —
+ * Introduces SunPower, routes homeowners to the enquiry form and staff to sign in. The full landing page —
  * live installation stats, package pricing and the subsidy calculator backed
  * by the database — replaces this with the Sales module in Phase 1.
  */
@@ -40,12 +40,14 @@ export default function HomePage() {
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button asChild size="lg">
-            <Link href="/login">
-              Staff sign in <ArrowRight className="size-4" aria-hidden />
+            <Link href="/enquiry">
+              Get a free quote <ArrowRight className="size-4" aria-hidden />
             </Link>
           </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/login">Staff sign in</Link>
+          </Button>
         </div>
-        <p className="mt-3 text-sm text-muted-foreground">Online enquiries and warranty checks open in the next release.</p>
       </section>
 
       <section className="mt-16 grid gap-4 sm:grid-cols-3" aria-label="Why SunPower">
