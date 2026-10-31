@@ -11,17 +11,18 @@
  */
 import { randomBytes } from "node:crypto";
 import { Types } from "mongoose";
-import { INVOICE_STATUSES, SYSTEM_TYPE_LABELS, statusMeta, type InvoiceStatus, type SubsidyStatus } from "@/lib/constants";
+import { INVOICE_STATUSES, SUBSIDY_DOC_LABELS, SYSTEM_TYPE_LABELS, statusMeta, type InvoiceStatus, type SubsidyStatus } from "@/lib/constants";
 import { addDays } from "@/lib/dates";
 import { escapeRegex, fromISTInput } from "@/lib/format";
 import { formatINR } from "@/lib/money";
-import type { AdvanceSubsidyInput, CreateShareLinkInput } from "@/lib/validation/finance";
+import type { AddSubsidyDocumentInput, AdvanceSubsidyInput, CreateShareLinkInput } from "@/lib/validation/finance";
 import { SUBSIDY_FLOW } from "@/lib/workflows";
 import { connectDB } from "../db";
 import { AppError, assertTransition, notFoundError } from "../errors";
 import { actorRef, type Actor } from "../lib/actor";
 import { Customer, Invoice, Job, Order, Payment, ShareLink, Ticket, User } from "../models";
 import { logActivity } from "./core/activity";
+import { getFilesInfo } from "./core/files";
 
 /* ------------------------------- Invoices ------------------------------- */
 
@@ -72,6 +73,32 @@ export async function listInvoices(filter: { status?: string; type?: string; q?:
     totalPages: Math.max(1, Math.ceil(total / pageSize)),
     outstanding: { duePaise: open[0]?.due ?? 0, count: open[0]?.n ?? 0, overdue: open[0]?.overdue ?? 0 },
   };
+}
+
+/** Every invoice matching the /invoices filters, flattened for the CSV export (F17). */
+export async function exportInvoices(filter: { status?: string; type?: string }, now: Date) {
+  await connectDB();
+  const query: Record<string, unknown> = {};
+  if (filter.status === "open") query.status = { $in: ["issued", "partially_paid"] };
+  else if (filter.status === "overdue") Object.assign(query, { status: { $in: ["issued", "partially_paid"] }, dueAt: { $lt: now } });
+  else if (filter.status && (INVOICE_STATUSES as readonly string[]).includes(filter.status)) query.status = filter.status;
+  if (filter.type === "sale" || filter.type === "service") query.type = filter.type;
+  const rows = await Invoice.find(query).sort({ issuedAt: -1 }).limit(5000).lean();
+  return rows.map((i) => ({
+    number: i.number,
+    type: i.type,
+    issuedAt: i.issuedAt,
+    dueAt: i.dueAt,
+    customer: i.billTo.name,
+    gstin: i.billTo.gstin,
+    taxablePaise: i.taxablePaise,
+    cgstPaise: i.cgstPaise,
+    sgstPaise: i.sgstPaise,
+    totalPaise: i.totalPaise,
+    paidPaise: i.paidPaise,
+    status: i.status,
+    overdue: ["issued", "partially_paid"].includes(i.status) && i.dueAt.getTime() < now.getTime(),
+  }));
 }
 
 export async function getInvoiceDetail(id: string) {
@@ -139,6 +166,31 @@ export async function advanceSubsidy(input: AdvanceSubsidyInput, actor: Actor) {
   return { number: order.number };
 }
 
+/** Keep photographed subsidy papers on the order's file, so none gets lost (F16). */
+export async function addSubsidyDocuments(input: AddSubsidyDocumentInput, actor: Actor) {
+  await connectDB();
+  const order = await Order.findById(input.orderId);
+  if (!order) throw notFoundError("Order");
+  if (!order.subsidy.applicable) throw new AppError("INVALID_STATE", "This order isn't eligible for PM Surya Ghar (residential on-grid only).");
+  const files = await getFilesInfo(input.photos);
+  if (files.length !== input.photos.length || files.some((f) => !f.contentType.startsWith("image/"))) {
+    throw new AppError("VALIDATION", "Upload the document as a photo first.", { photos: "Photo not found" });
+  }
+  const now = new Date();
+  for (const fileId of input.photos) order.subsidy.documents.push({ kind: input.kind, fileId, note: input.note, at: now, by: actor.name });
+  order.markModified("subsidy");
+  await order.save();
+  await logActivity({
+    entityType: "order",
+    entityId: order._id,
+    customerId: order.customerId,
+    action: "subsidy_document",
+    message: `Subsidy paper added: ${SUBSIDY_DOC_LABELS[input.kind]}${input.photos.length > 1 ? ` (${input.photos.length} photos)` : ""}${input.note ? `. ${input.note}` : ""}`,
+    actor,
+  });
+  return { number: order.number };
+}
+
 export async function getSubsidyBoard() {
   await connectDB();
   const orders = await Order.find({ "subsidy.applicable": true, status: { $ne: "cancelled" } }).select("number customerId capacityKw subsidy status commissionedAt").sort({ updatedAt: -1 }).limit(300).lean();
@@ -158,6 +210,7 @@ export async function getSubsidyBoard() {
       applicationNo: o.subsidy.applicationNo,
       expectedPaise: o.subsidy.expectedPaise,
       disbursedPaise: o.subsidy.disbursedPaise,
+      documents: o.subsidy.documents?.length ?? 0,
       orderStatus: o.status,
       since: last?.at ?? o.commissionedAt,
     };

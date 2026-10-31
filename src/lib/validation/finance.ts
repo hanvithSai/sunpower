@@ -3,7 +3,7 @@
  * report parameters.
  */
 import { z } from "zod";
-import { SUBSIDY_STATUSES } from "../constants";
+import { SUBSIDY_DOC_KINDS, SUBSIDY_STATUSES } from "../constants";
 import { enumOf, objectId, optionalText, rupeesAsPaise } from "./common";
 
 const emptyToUndefined = (v: unknown) => (v === "" || v === null ? undefined : v);
@@ -29,3 +29,15 @@ export type CreateShareLinkInput = z.output<typeof CreateShareLinkSchema>;
 export const ShareLinkIdSchema = z.object({ shareLinkId: objectId });
 
 export const MonthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Use YYYY-MM");
+
+/** Photos of one subsidy paper, uploaded to GridFS first (see <MediaUploader>). */
+export const AddSubsidyDocumentSchema = z
+  .object({
+    orderId: objectId,
+    kind: enumOf(SUBSIDY_DOC_KINDS, "document"),
+    photos: z.preprocess((v) => (v === undefined || v === null || v === "" ? [] : Array.isArray(v) ? v : [v]), z.array(objectId).min(1, "Add a photo of the document").max(6, "At most 6 photos")),
+    photos__uploading: z.string().optional(),
+    note: optionalText(200),
+  })
+  .refine((v) => !v.photos__uploading, { path: ["photos"], message: "Wait for the photos to finish uploading" });
+export type AddSubsidyDocumentInput = z.output<typeof AddSubsidyDocumentSchema>;

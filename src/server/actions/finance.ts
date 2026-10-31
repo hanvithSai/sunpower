@@ -1,15 +1,16 @@
 "use server";
 /**
- * Finance Server Actions: advance a PM Surya Ghar subsidy file, and create or
- * revoke read-only share links for the director's numbers.
+ * Finance Server Actions: advance a PM Surya Ghar subsidy file and keep its
+ * photographed papers, and create or revoke read-only share links (the
+ * director's numbers, or a customer's certificate).
  */
 import { revalidatePath } from "next/cache";
 import type { ActionState } from "@/lib/action-state";
-import { AdvanceSubsidySchema, CreateShareLinkSchema, ShareLinkIdSchema } from "@/lib/validation/finance";
+import { AddSubsidyDocumentSchema, AdvanceSubsidySchema, CreateShareLinkSchema, ShareLinkIdSchema } from "@/lib/validation/finance";
 import { trackServer } from "../analytics";
 import { runAction } from "../lib/action";
 import { parseForm } from "../lib/validate";
-import { advanceSubsidy, createShareLink, revokeShareLink } from "../services/finance";
+import { addSubsidyDocuments, advanceSubsidy, createShareLink, revokeShareLink } from "../services/finance";
 
 export async function advanceSubsidyAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return runAction(["sales"], async (user) => {
@@ -19,6 +20,16 @@ export async function advanceSubsidyAction(_prev: ActionState, formData: FormDat
     revalidatePath(`/orders/${input.orderId}`);
     revalidatePath("/dashboard");
     return { ok: true, message: `${result.number}: subsidy updated` };
+  });
+}
+
+export async function addSubsidyDocumentAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return runAction(["sales"], async (user) => {
+    const input = parseForm(AddSubsidyDocumentSchema, formData);
+    const result = await addSubsidyDocuments(input, user);
+    revalidatePath("/subsidy");
+    revalidatePath(`/orders/${input.orderId}`);
+    return { ok: true, message: `${result.number}: document saved to the subsidy file` };
   });
 }
 
