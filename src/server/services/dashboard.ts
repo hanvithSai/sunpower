@@ -292,3 +292,34 @@ export async function getDashboard(range: RangeKey, now: Date, opts: { masked?: 
   };
 }
 export type DashboardData = Awaited<ReturnType<typeof getDashboard>>;
+
+/* ------------------------------------------------------------------ */
+/* Lifecycle pipeline                                                   */
+/* ------------------------------------------------------------------ */
+
+export type PipelineStage = { key: string; label: string; count: number; note: string; href: string };
+
+/**
+ * Where every open project sits right now, from enquiry to commissioning
+ * (the dashboard's top strip). Counts current statuses only — nothing is
+ * estimated. Commissioned counts the last 30 days.
+ */
+export async function getPipeline(now: Date): Promise<PipelineStage[]> {
+  await connectDB();
+  const [leads, orders, commissioned] = await Promise.all([
+    Lead.aggregate<{ _id: string; n: number }>([{ $group: { _id: "$status", n: { $sum: 1 } } }]),
+    Order.aggregate<{ _id: string; n: number }>([{ $group: { _id: "$status", n: { $sum: 1 } } }]),
+    Order.countDocuments({ commissionedAt: { $gte: new Date(now.getTime() - 30 * DAY_MS) } }),
+  ]);
+  const lead = (...s: string[]) => leads.filter((r) => s.includes(r._id)).reduce((t, r) => t + r.n, 0);
+  const order = (...s: string[]) => orders.filter((r) => s.includes(r._id)).reduce((t, r) => t + r.n, 0);
+  return [
+    { key: "enquiry", label: "Enquiry", count: lead("new", "contacted", "qualified"), note: "being called and qualified", href: "/leads" },
+    { key: "survey", label: "Survey", count: lead("survey_scheduled", "survey_completed"), note: "booked or awaiting review", href: "/surveys" },
+    { key: "quote", label: "Quote", count: lead("survey_approved", "quoted"), note: "ready to quote or with the customer", href: "/quotes" },
+    { key: "order", label: "Order", count: order("pending_payment", "confirmed"), note: "awaiting payment or packing", href: "/orders" },
+    { key: "dispatch", label: "Dispatch", count: order("ready_to_dispatch", "dispatched"), note: "packed or on the road", href: "/dispatch" },
+    { key: "install", label: "Installation", count: order("delivered", "installing"), note: "delivered or on the roof", href: "/jobs" },
+    { key: "commissioned", label: "Commissioned", count: commissioned, note: "in the last 30 days", href: "/orders" },
+  ];
+}

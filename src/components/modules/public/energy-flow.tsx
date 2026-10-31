@@ -245,7 +245,7 @@ export function EnergyFlow({ className }: { className?: string }) {
               <span
                 className={cn(
                   "grid size-11 place-items-center rounded-full ring-1 transition-all duration-200 sm:size-14",
-                  id === "sun" && moment !== "evening" ? "bg-sun text-forest ring-sun/40" : "bg-forest text-current ring-white/15",
+                  id === "sun" && moment !== "evening" ? "bg-sun text-forest ring-sun/40" : "bg-forest text-volt ring-white/15",
                   isOff && "opacity-45",
                   picked === id ? "ring-2 ring-sun" : "group-hover:ring-white/40",
                 )}
