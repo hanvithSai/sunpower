@@ -4,22 +4,23 @@
  *
  * The first payment on an order CONFIRMS it, in the same transaction:
  *   - the warehouse pick list is built from the order lines, and
- *   - the installation job is booked with the three least-loaded installers,
+ *   - the installation job is booked about four days out with three
+ *     installers who are free that day (core/crew.ts),
  * so "the warehouse knows what to pack and the crew sees the job" without
  * anyone phoning anyone.
  */
-import { Types, type ClientSession } from "mongoose";
 import { PAYMENT_MODE_LABELS, PAYMENT_TYPE_LABELS, SYSTEM_TYPE_LABELS, type PaymentMode, type PaymentType } from "@/lib/constants";
-import { addDays, addHours, startOfDayIST } from "@/lib/dates";
+import { addDays } from "@/lib/dates";
 import { formatDateTime } from "@/lib/format";
 import { formatINR } from "@/lib/money";
 import { ORDER_FLOW } from "@/lib/workflows";
 import { connectDB, withTransaction } from "../db";
 import { AppError, assertTransition, notFoundError } from "../errors";
 import { actorRef, toObjectId, type Actor } from "../lib/actor";
-import { Invoice, Job, Order, Payment, User } from "../models";
+import { Invoice, Job, Order, Payment } from "../models";
 import { logActivity } from "./core/activity";
 import { nextNumber } from "./core/counters";
+import { pickCrew } from "./core/crew";
 import { invoiceStatusFor } from "./core/invoicing";
 
 export type RecordPaymentArgs = {
@@ -42,22 +43,6 @@ export type RecordPaymentResult = {
   jobNumber?: string;
 };
 
-const CREW_SIZE = 3;
-
-/** Installers with the lightest current workload (scheduled + in-progress jobs). */
-async function pickCrew(session: ClientSession): Promise<{ _id: Types.ObjectId; name: string }[]> {
-  const installers = await User.find({ role: "technician", active: true, skills: "installation" }).select("name").session(session).lean();
-  if (installers.length === 0) return [];
-  const loads = await Job.aggregate<{ _id: Types.ObjectId; n: number }>([
-    { $match: { status: { $in: ["scheduled", "in_progress"] }, technicianIds: { $in: installers.map((i) => i._id) } } },
-    { $unwind: "$technicianIds" },
-    { $group: { _id: "$technicianIds", n: { $sum: 1 } } },
-  ]).session(session);
-  const load = new Map(loads.map((l) => [String(l._id), l.n]));
-  return [...installers]
-    .sort((a, b) => (load.get(String(a._id)) ?? 0) - (load.get(String(b._id)) ?? 0) || a.name.localeCompare(b.name))
-    .slice(0, CREW_SIZE);
-}
 
 export async function recordPayment(input: RecordPaymentArgs, actor: Actor): Promise<RecordPaymentResult> {
   if (!Number.isSafeInteger(input.amountPaise) || input.amountPaise <= 0) {
@@ -126,8 +111,8 @@ export async function recordPayment(input: RecordPaymentArgs, actor: Actor): Pro
           .filter((l) => l.category !== "service")
           .map((l) => ({ productId: l.productId, sku: l.sku, name: l.name, qty: l.qty, isSerialized: l.isSerialized, serials: [], picked: false }));
 
-        const crew = await pickCrew(session);
-        const scheduledFor = addHours(addDays(startOfDayIST(now), 4), 9.5); // 09:30 IST, four days out
+        // Four days out leaves time to pack, dispatch and deliver; the crew must be free that day.
+        const { crew, scheduledFor } = await pickCrew(addDays(now, 4), session);
         jobNumber = await nextNumber("job", session);
         const [job] = await Job.create(
           [

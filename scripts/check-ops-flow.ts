@@ -9,10 +9,11 @@
  */
 import { loadEnvConfig } from "@next/env";
 import mongoose from "mongoose";
+import { startOfDayIST } from "@/lib/dates";
 import { addMonths } from "@/lib/warranty";
 import { connectDB } from "@/server/db";
 import { AppError } from "@/server/errors";
-import { Invoice, Order, Product, Purchase, SerialUnit } from "@/server/models";
+import { Invoice, Job, Order, Product, Purchase, SerialUnit } from "@/server/models";
 import { deliverOrder, dispatchOrder, getDispatchDetail, scanSerial, setBulkPicked, unscanSerial } from "@/server/services/dispatch";
 import { receiveGoods } from "@/server/services/inventory";
 import { recordPayment } from "@/server/services/payments";
@@ -86,6 +87,22 @@ async function main() {
 
   const other = await makeConfirmedOrder({ kw: 3, systemType: "on_grid", name: "Second Flow Customer" });
   await expectError("a unit packed for another order is refused", "CONFLICT", () => scanSerial(other.orderId, scanned[0]!, warehouse));
+
+  /* ---- Crew booking (BR-07): nobody is double-booked on a day ---- */
+  const jobs = await Job.find({ status: { $in: ["scheduled", "in_progress"] } }).select("scheduledFor technicianIds").lean();
+  const perDay = new Map<string, string[]>();
+  for (const j of jobs) {
+    const day = startOfDayIST(j.scheduledFor).toISOString();
+    perDay.set(day, [...(perDay.get(day) ?? []), ...j.technicianIds.map(String)]);
+  }
+  const clashes = [...perDay.values()].filter((ids) => new Set(ids).size !== ids.length).length;
+  check("auto-booked crews never share a technician on the same day", clashes === 0, `${jobs.length} open jobs over ${perDay.size} days`);
+  const [jobA, jobB] = await Promise.all([Job.findOne({ orderId }).lean(), Job.findOne({ orderId: other.orderId }).lean()]);
+  check(
+    "orders confirmed together get different crews or different days",
+    startOfDayIST(jobA!.scheduledFor).getTime() !== startOfDayIST(jobB!.scheduledFor).getTime() ||
+      !jobA!.technicianIds.some((t) => jobB!.technicianIds.some((u) => u.equals(t))),
+  );
 
   await unscanSerial(orderId, scanned[0]!, warehouse);
   check("un-scan releases the unit to stock", (await SerialUnit.findOne({ serial: scanned[0] }).lean())?.status === "in_stock");
