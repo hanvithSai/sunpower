@@ -363,7 +363,7 @@ export async function resolveTicket(input: ResolveTicketInput, actor: TicketActo
       if (ticket.orderId) {
         await Order.updateOne(
           { _id: ticket.orderId },
-          { $push: { extraCosts: { label: `Warranty repair ${ticket.number} (${RESOLUTION_TYPE_LABELS[input.type].toLowerCase()})`, amountPaise: costPaise, at: now } } },
+          { $push: { extraCosts: { label: `Warranty repair ${ticket.number} (${RESOLUTION_TYPE_LABELS[input.type].toLowerCase()})`, kind: "warranty", amountPaise: costPaise, at: now } } },
           { session },
         );
       }

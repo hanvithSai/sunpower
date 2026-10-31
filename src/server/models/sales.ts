@@ -132,6 +132,8 @@ export interface ISubsidyInfo {
 
 export interface IExtraCost {
   label: string;
+  /** site = extra material or costs on the installation; warranty = a free repair we absorbed later. */
+  kind: "site" | "warranty";
   amountPaise: number;
   at: Date;
 }
@@ -249,6 +251,7 @@ const OrderSchema = new Schema<IOrder>(
         new Schema<IExtraCost>(
           {
             label: { type: String, required: true },
+            kind: { type: String, enum: ["site", "warranty"], default: "site" },
             amountPaise: { type: Number, required: true, min: 0 },
             at: { type: Date, required: true },
           },
