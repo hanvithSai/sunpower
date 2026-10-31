@@ -23,7 +23,7 @@ Live at https://www.sunpowersolutions.me. Where this spec and the code differ, `
 | Feature | Status | Notes |
 |---|---|---|
 | F01 Sign-in and roles | ✅ Shipped | Auth.js v5; role landing pages; proxy + per-page + per-action checks |
-| F02 App shell and ⌘K | ✅ Shipped | ⌘K page navigation and quick actions work; record search arrives with F13 |
+| F02 App shell and ⌘K | ✅ Shipped | ⌘K page navigation, quick actions and record search (customers, leads, quotes, orders, serials with warranty badge, tickets, invoices) |
 | F03 Public enquiry form | ✅ Shipped | `/enquiry` + `POST /api/v1/enquiries`; rate limit, honeypot, dedupe |
 | F04 Lead pipeline | ✅ Shipped | Board and table, SLA badges, auto-assignment, timeline |
 | F05 Qualification checklist | ✅ Shipped | Live "fits about N kW" hint (≈100 sq ft per kW) |
@@ -35,7 +35,13 @@ Live at https://www.sunpowersolutions.me. Where this spec and the code differ, `
 | F10 Inventory, serials and purchases | ✅ Shipped | Stock (on hand, reserved, available, value at GRN cost), serial register, GRN with serials by camera, typing or paste; stock adjustment UI pending |
 | F11 Dispatch and serial scanning | ✅ Shipped | Packing bench (camera + manual), wrong-product / already-packed / not-in-stock refusals, auto "Packed", dispatch gate (BR-02), sale invoice at dispatch (BR-18), delivery starts warranties (BR-03) |
 | F12 Installation jobs | ✅ Shipped | Auto-crew free that day (BR-07), My work, crew calendar, Start gate, completion with times, kW, generation test, kit check, extras, photos, signature (BR-14), time logs, certificate |
-| F13–F18, F20, F22, F23 | 🗓️ Planned | Phases 3–4 in Plan.md. F16–F18 promoted to P0-lite and F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
+| F13 Service desk, search and warranty | ✅ Shipped | Warranty per serial + 5-year workmanship warranty for no-serial faults (BR-04); visit on the technician's calendar; ₹0 in warranty with the cost charged to the order; auto service invoice out of warranty; same-product replacements inherit cover (BR-15); billing override with reason; close only after the customer confirms (BR-06) |
+| F14 Invoices and job costing | ✅ Shipped | Sale invoice at dispatch (BR-18), service invoices from tickets, printable GST invoice with amount in words; costing from actuals (GRN cost per serial, crew hours × rate, site extras, warranty repairs) on every order |
+| F15 Director dashboard | ✅ Shipped | Today / week / month KPIs incl. advances held, stock purchased and hours; validated 12-month chart; profit per job worst first with cost drivers; unfinished steps per customer; open repairs by age; subsidy pipeline |
+| F16 Subsidy tracker | ✅ P0-lite | Stage stepper on the order and `/subsidy` board (application number and amount required at the right stages); document uploads still P1 |
+| F17 Share link and CSV | ✅ P0-lite + revoke | Expiring read-only `/share/[token]` with names masked, revoke, view count; profit CSV (also via the token) and payroll CSV |
+| F18 Technician hours and payouts | ✅ P0-lite | `/team` monthly hours (installation and service) × rate with CSV; editing logs and closing a month still P1 |
+| F20, F22, F23 | 🗓️ Planned | Public warranty lookup and the customer certificate link are Phase 3b; offline drafts P2. F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
 
 ## Route access
 
@@ -91,7 +97,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 - **Key fields:** name, mobile, email (optional), address, area or city, pincode, customer type (`home`, `business`), system type (`on_grid`, `off_grid`, `not_sure`), capacity (1–5 kW or not sure), monthly bill (₹), subsidy interest, preferred call time, consent.
 - **Actions:** submit; or WhatsApp the company through a `wa.me` link.
 - **Validations:** name 2–80 characters; mobile `^[6-9]\d{9}$` after removing +91, a leading 0 and spaces; pincode `^[1-9]\d{5}$`; bill ₹0–₹10,00,000; consent required; hidden honeypot field; 5 submissions per IP per hour.
-- **Automations:** creates or reuses the customer and creates a lead with source `web` (or a `?source=` campaign value such as `whatsapp` or `qr`); an open lead with the same mobile gets an activity instead of a duplicate (BR-10); the first-response clock starts; events `enquiry_submitted`, `lead_created`.
+- **Automations:** creates or reuses the customer and creates a lead with source `website` (or a `?source=` campaign value such as `whatsapp` or `qr`); an open lead with the same mobile gets an activity instead of a duplicate (BR-10); the first-response clock starts; events `enquiry_submitted`, `lead_created`.
 - **Access:** public.
 
 ### F04 Lead pipeline (P0)
@@ -153,10 +159,10 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 - **Purpose:** one acceptance and one payment start the warehouse and the crew, with no phone calls.
 - **Screens:** `/orders` (number, customer, kW, total, paid, balance, stage), `/orders/[id]` (summary, payments, pick list, job, invoices, subsidy, costing, timeline).
 - **Key fields:** order number (SP-O-0099), accepted quote version, customer, locked lines, total, paid, balance, stage. Payment: type (`advance`, `balance`, `full`), mode (`upi`, `bank_transfer` (NEFT, RTGS, IMPS), `cash`, `cheque`, `card`), amount, date, reference (UTR or cheque number), received by.
-- **Statuses:** `pending_payment` → `confirmed` → `dispatched` → `delivered` → `installing` → `commissioned`; `cancelled` (admin, before dispatch, with a reason).
+- **Statuses:** `pending_payment` → `confirmed` → `ready_to_dispatch` (packed) → `dispatched` → `delivered` → `installing` → `commissioned` → `closed`; `cancelled` (admin, before dispatch and before any payment, with a reason).
 - **Actions:** accept a quote (creates the order), record a payment, print a receipt, issue an invoice (F14), cancel.
 - **Validations:** BR-08 (amount > 0 and ≤ balance; date not in the future; reference except for cash); type `full` only when it clears the balance.
-- **Automations:** the first payment confirms the order and creates the pick list and an installation job in "To schedule" in one transaction (BR-07); eligible orders get a subsidy record (F16); events `payment_recorded`, `order_confirmed`.
+- **Automations:** the first payment confirms the order and creates the pick list and an installation job about four days out with three installers free that day, in one transaction (BR-07); eligible orders get a subsidy record (F16); events `payment_recorded`, `order_confirmed`.
 - **Access:** admin and sales full; warehouse and support view.
 
 ### F10 Inventory, serials and purchases (P0)
@@ -184,7 +190,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 - **Purpose:** schedule the crew and capture proof of every installation from the roof.
 - **Screens:** `/jobs` (week calendar by technician with a "To schedule" lane; list view), `/jobs/[id]` (detail, mobile completion form, certificate print view), `/my-work`.
 - **Key fields:** job number (SP-J-0087), order, customer, address with a map link, date, lead technician, helpers, status, started at, finished at, confirmed kW, generation test passed, kit check (all items received, or which were missing), photos, signature image and signer name, installed serials, extras (extra cable in m, extra hours, other cost in ₹ with a note), time logs.
-- **Statuses:** `to_schedule` → `scheduled` → `in_progress` → `completed`; `cancelled`.
+- **Statuses:** `scheduled` (booked automatically at confirmation) → `in_progress` → `completed`; `cancelled`.
 - **Actions:** schedule or reassign (admin, sales), Start and Complete (technician), print the certificate.
 - **Validations:** date today or later; warning when a technician is double-booked; Start only after the order is Delivered; finish after start; confirmed kW 0.5–10 with a reason if it differs from the order; at least 1 photo; signature not empty; generation test ticked (BR-14).
 - **Automations:** Start moves the order to Installing; Complete marks serials Installed, moves the order to Commissioned, writes a time log for each crew member (F18), updates costing and creates the certificate; events `job_started`, `job_completed`.
@@ -194,7 +200,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 
 - **Purpose:** find the customer and serial in seconds, apply the warranty rules, and track every complaint until the customer confirms the fix.
 - **Screens:** ⌘K palette (all staff), `/service` (tickets by status, with age), `/service/new` (prefilled from a search result), `/service/[id]` (ticket, warranty card, parts, billing, timeline).
-- **Key fields:** ticket number (SP-T-0310), customer, order, serial (optional), category (`inverter_fault`, `no_generation`, `low_generation`, `battery`, `wiring_earthing`, `panel_damage`, `net_meter`, `other`), fault code and description, priority (low, normal, high), technician, warranty state (`in_warranty`, `out_of_warranty`, `not_applicable`; set at creation), parts used, labour hours, resolution type (`repair`, `replacement`, `remote_fix`, `no_fault_found`), billable, override reason, customer confirmation (who, channel, when), invoice.
+- **Key fields:** ticket number (SP-T-0310), customer, order, serial (optional), category (`no_power`, `fault_code`, `low_generation`, `physical_damage`, `battery`, `wiring_earthing`, `structure`, `billing`, `other`), fault code and description, priority (low, medium, high, urgent → SLA 72/48/24/4 h), technician, warranty state (`in_warranty`, `out_of_warranty`, `no_serial`) and basis (`serial`, `workmanship`, `none`), both set at creation, parts used, labour hours, resolution type (`repair`, `replacement`, `no_fault`, `advice`), billable, override reason, customer confirmation (who, channel, when), invoice.
 - **Search:** mobile (full or last 4+ digits), name (partial, any case), serial (full or last 4+ characters) and document numbers; results grouped as Customers, Serials, Leads, Quotes, Orders, Tickets and Invoices; under 1 s.
 - **Statuses:** `open` → `assigned` → `in_progress` → `resolved` → `customer_confirmed` → `closed`; "Not fixed" returns a Resolved ticket to In progress.
 - **Actions:** create a ticket from a result, assign, start, add parts and hours, replace a serial, resolve, record the customer's confirmation, close.
