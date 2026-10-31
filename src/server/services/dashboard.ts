@@ -112,7 +112,7 @@ async function unfinishedSteps(now: Date, masked: boolean): Promise<UnfinishedSt
     Order.countDocuments({ status: { $in: ["confirmed", "ready_to_dispatch"] } }),
     Order.find({ status: { $in: ["delivered", "installing"] } }).sort({ "dispatch.deliveredAt": 1 }).limit(take).select("number title customerId dispatch.deliveredAt").lean(),
     Order.countDocuments({ status: { $in: ["delivered", "installing"] } }),
-    Order.find({ status: { $in: ["commissioned", "closed"] }, $expr: { $lt: ["$paidPaise", "$totalPaise"] } }).sort({ commissionedAt: 1 }).select("number title customerId commissionedAt totalPaise paidPaise").lean(),
+    Order.find({ status: { $in: ["commissioned", "closed"] }, $expr: { $lt: ["$paidPaise", "$totalPaise"] } }).sort({ commissionedAt: 1 }).select("number title customerId commissionedAt closedAt totalPaise paidPaise").lean(),
     Order.find({ "subsidy.applicable": true, "subsidy.status": { $nin: ["disbursed", "not_applicable"] }, status: { $in: ["commissioned", "closed"] } }).sort({ commissionedAt: 1 }).limit(take).select("number customerId subsidy commissionedAt").lean(),
     Order.countDocuments({ "subsidy.applicable": true, "subsidy.status": { $nin: ["disbursed", "not_applicable"] }, status: { $in: ["commissioned", "closed"] } }),
     Ticket.find({ status: "resolved" }).sort({ updatedAt: 1 }).limit(take).select("number customerId updatedAt").lean(),
@@ -166,11 +166,11 @@ async function unfinishedSteps(now: Date, masked: boolean): Promise<UnfinishedSt
     },
     {
       key: "balance_due",
-      label: "Installed, balance unpaid",
+      label: "Completed, balance unpaid",
       owner: "Accounts",
       count: balance.length,
       href: "/invoices?status=open",
-      items: balance.slice(0, take).map((o) => ({ id: String(o._id), title: name(who(o.customerId)?.name), subtitle: `${o.number} · ₹${Math.round((o.totalPaise - o.paidPaise) / 100).toLocaleString("en-IN")} due`, href: `/orders/${o._id}`, since: o.commissionedAt ?? now })),
+      items: balance.slice(0, take).map((o) => ({ id: String(o._id), title: name(who(o.customerId)?.name), subtitle: `${o.number} · ₹${Math.round((o.totalPaise - o.paidPaise) / 100).toLocaleString("en-IN")} due`, href: `/orders/${o._id}`, since: o.commissionedAt ?? o.closedAt ?? now })),
     },
     {
       key: "subsidy",

@@ -111,46 +111,62 @@ export async function recordPayment(input: RecordPaymentArgs, actor: Actor): Pro
           .filter((l) => l.category !== "service")
           .map((l) => ({ productId: l.productId, sku: l.sku, name: l.name, qty: l.qty, isSerialized: l.isSerialized, serials: [], picked: false }));
 
-        // Four days out leaves time to pack, dispatch and deliver; the crew must be free that day.
-        const { crew, scheduledFor } = await pickCrew(addDays(now, 4), session);
-        jobNumber = await nextNumber("job", session);
-        const [job] = await Job.create(
-          [
-            {
-              number: jobNumber,
-              type: "installation",
-              orderId: order._id,
-              customerId,
-              title: `${order.capacityKw} kW ${SYSTEM_TYPE_LABELS[order.systemType]} installation`,
-              siteAddress: order.siteAddress,
-              scheduledFor,
-              estimatedHours: 4 + 1.5 * order.capacityKw,
-              technicianIds: crew.map((c) => c._id),
-              leadTechnicianId: crew[0]?._id,
-              status: "scheduled",
-            },
-          ],
-          { session },
-        );
-        order.installationJobId = job._id;
         confirmedOrder = true;
 
-        const crewNames = crew.map((c) => c.name).join(", ") || "crew to be assigned";
-        await logActivity(
-          {
-            entityType: "order",
-            entityId: order._id,
-            customerId,
-            action: "confirmed",
-            message: `Order confirmed — pick list of ${order.pickList.length} items sent to the warehouse; installation ${jobNumber} booked for ${formatDateTime(scheduledFor)} with ${crewNames}`,
-            actor,
-          },
-          session,
-        );
-        await logActivity(
-          { entityType: "job", entityId: job._id, customerId, action: "scheduled", message: `Installation booked automatically for ${formatDateTime(scheduledFor)} (${crewNames})`, actor },
-          session,
-        );
+        // Installation is sold as a service line; a hardware-only Panel Set has none, so no crew is booked.
+        if (order.lines.some((l) => l.category === "service")) {
+          // Four days out leaves time to pack, dispatch and deliver; the crew must be free that day.
+          const { crew, scheduledFor } = await pickCrew(addDays(now, 4), session);
+          jobNumber = await nextNumber("job", session);
+          const [job] = await Job.create(
+            [
+              {
+                number: jobNumber,
+                type: "installation",
+                orderId: order._id,
+                customerId,
+                title: `${order.capacityKw} kW ${SYSTEM_TYPE_LABELS[order.systemType]} installation`,
+                siteAddress: order.siteAddress,
+                scheduledFor,
+                estimatedHours: 4 + 1.5 * order.capacityKw,
+                technicianIds: crew.map((c) => c._id),
+                leadTechnicianId: crew[0]?._id,
+                status: "scheduled",
+              },
+            ],
+            { session },
+          );
+          order.installationJobId = job._id;
+
+          const crewNames = crew.map((c) => c.name).join(", ") || "crew to be assigned";
+          await logActivity(
+            {
+              entityType: "order",
+              entityId: order._id,
+              customerId,
+              action: "confirmed",
+              message: `Order confirmed — pick list of ${order.pickList.length} items sent to the warehouse; installation ${jobNumber} booked for ${formatDateTime(scheduledFor)} with ${crewNames}`,
+              actor,
+            },
+            session,
+          );
+          await logActivity(
+            { entityType: "job", entityId: job._id, customerId, action: "scheduled", message: `Installation booked automatically for ${formatDateTime(scheduledFor)} (${crewNames})`, actor },
+            session,
+          );
+        } else {
+          await logActivity(
+            {
+              entityType: "order",
+              entityId: order._id,
+              customerId,
+              action: "confirmed",
+              message: `Order confirmed — pick list of ${order.pickList.length} items sent to the warehouse; hardware only, so no installation is booked`,
+              actor,
+            },
+            session,
+          );
+        }
       }
       await order.save({ session });
       await logActivity({ entityType: "order", entityId: order._id, customerId, action: "payment_recorded", message: label, actor }, session);

@@ -2,7 +2,7 @@
  * Catalog reads: priced packages for the quote builder and landing page, and
  * the product list (with stock and margin) for the catalog screen.
  */
-import { PRODUCT_CATEGORIES, type ProductCategory, type SystemType } from "@/lib/constants";
+import { PRODUCT_CATEGORIES, SYSTEM_TYPES, type ProductCategory, type SystemType } from "@/lib/constants";
 import { escapeRegex } from "@/lib/format";
 import { expandPackage, quoteTotals, type CatalogProduct } from "@/lib/quote-calc";
 import { connectDB } from "../db";
@@ -39,11 +39,12 @@ export async function getActiveCatalog(): Promise<{ products: CatalogProduct[]; 
   await connectDB();
   const [products, packages] = await Promise.all([
     Product.find({ active: true }).sort({ category: 1, name: 1 }).lean(),
-    Package.find({ active: true }).sort({ systemType: -1, capacityKw: 1 }).lean(),
+    Package.find({ active: true }).sort({ capacityKw: 1 }).lean(),
   ]);
   return {
     products: products.map(toCatalogProduct),
-    packages: packages.map((pkg) => ({
+    // On-Grid, then Off-Grid, then the hardware-only Panel Sets.
+    packages: packages.sort((a, b) => SYSTEM_TYPES.indexOf(a.systemType) - SYSTEM_TYPES.indexOf(b.systemType)).map((pkg) => ({
       id: String(pkg._id),
       code: pkg.code,
       name: pkg.name,

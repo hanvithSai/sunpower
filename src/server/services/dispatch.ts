@@ -84,7 +84,7 @@ export type DispatchTab = "to_pack" | "in_transit" | "delivered";
 const TAB_STATUSES: Record<DispatchTab, OrderStatus[]> = {
   to_pack: ["confirmed", "ready_to_dispatch"],
   in_transit: ["dispatched"],
-  delivered: ["delivered", "installing", "commissioned"],
+  delivered: ["delivered", "installing", "commissioned", "closed"],
 };
 
 export async function listDispatchQueue(tab: DispatchTab = "to_pack") {
@@ -442,7 +442,14 @@ export async function deliverOrder(input: DeliverOrderInput, actor: Actor, opts:
       );
     }
 
+    // Nothing to install (a hardware-only Panel Set): delivery completes the order.
+    const hardwareOnly = !order.installationJobId;
     order.status = "delivered";
+    if (hardwareOnly) {
+      assertTransition("order", ORDER_FLOW, "delivered", "closed");
+      order.status = "closed";
+      order.closedAt = now;
+    }
     order.dispatch = {
       ...(order.dispatch ?? {}),
       deliveredAt: now,
@@ -467,7 +474,7 @@ export async function deliverOrder(input: DeliverOrderInput, actor: Actor, opts:
         entityId: order._id,
         customerId: order.customerId,
         action: "delivered",
-        message: `Delivered, received by ${input.receivedBy}. Warranties started: ${summary || "no serial-tracked items"}`,
+        message: `Delivered, received by ${input.receivedBy}. Warranties started: ${summary || "no serial-tracked items"}${hardwareOnly ? ". Hardware only, so the order is complete" : ""}`,
         actor,
         at: now,
       },
