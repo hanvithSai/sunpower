@@ -30,7 +30,6 @@ import { CommandPalette } from "@/components/shell/command-palette";
 import { MobileNav } from "@/components/shell/mobile-nav";
 import { SidebarNav } from "@/components/shell/sidebar-nav";
 import { AccountMenu } from "@/components/shell/user-menu";
-import { PageTransition } from "@/components/shared/page-transition";
 import type { SessionUser } from "@/server/auth/session";
 
 export type AppShellProps = {
@@ -129,7 +128,7 @@ export function AppShell({ user, children }: AppShellProps) {
         </header>
 
         <main id="main-content" data-app-main tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 outline-none sm:px-6">
-          <PageTransition>{children}</PageTransition>
+          {children}
         </main>
       </div>
 

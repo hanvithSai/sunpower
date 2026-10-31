@@ -5,8 +5,11 @@
  * one fades in while rising 8 px (React's <ViewTransition> on the browser's
  * View Transitions API; the animations are in src/app/globals.css, "Page transitions").
  *
- * Layouts persist across navigations, so the transition is keyed by the
- * pathname: each route change is an exit/enter pair sharing the name "page".
+ * It is rendered by the route groups' template.tsx files: Next.js gives a
+ * template a new key whenever its segment changes (/leads → /orders), so each
+ * such navigation is an exit/enter pair sharing the name "page". Reading the
+ * pathname here instead would break prerendering of dynamic public routes
+ * (/share/[token]) under Cache Components.
  * Browsers without the API swap pages instantly, as before. Reduced motion
  * keeps a plain crossfade.
  *
@@ -16,7 +19,6 @@
  * and React swaps the page without asking for a transition.
  */
 import { ViewTransition, useSyncExternalStore, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
 
 function subscribeVisibility(callback: () => void) {
   document.addEventListener("visibilitychange", callback);
@@ -24,7 +26,6 @@ function subscribeVisibility(callback: () => void) {
 }
 
 export function PageTransition({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
   const hidden = useSyncExternalStore(
     subscribeVisibility,
     () => document.visibilityState === "hidden",
@@ -32,7 +33,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
   );
   const cls = hidden ? "none" : "page";
   return (
-    <ViewTransition key={pathname} name="page" share={cls} enter={cls} exit={cls} default="none">
+    <ViewTransition name="page" share={cls} enter={cls} exit={cls} default="none">
       {children}
     </ViewTransition>
   );

@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/logo";
 import { cta } from "@/lib/analytics";
 import { CookieSettingsButton } from "@/components/shared/consent-banner";
-import { PageTransition } from "@/components/shared/page-transition";
 
 const navLink =
   "inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-forest-foreground/80 transition-colors duration-150 hover:bg-white/8 hover:text-white pointer-coarse:h-11";
@@ -62,9 +61,7 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
         </div>
       </header>
 
-      <main className="flex-1">
-        <PageTransition>{children}</PageTransition>
-      </main>
+      <main className="flex-1">{children}</main>
 
       <footer data-print-hide className="bg-forest text-forest-muted">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr_1.2fr]">
