@@ -8,6 +8,7 @@ import { REQUESTED_SYSTEM_TYPE_LABELS } from "@/lib/constants";
 import { formatRelative } from "@/lib/format";
 import type { LeadRow } from "@/server/services/leads";
 import { SlaBadge, SourceLabel } from "./lead-badges";
+import { ScrollColumn } from "@/components/shared/scroll-column";
 
 export type BoardColumn = { key: string; title: string; total: number; items: LeadRow[] };
 
@@ -23,11 +24,15 @@ export function LeadBoard({ columns, now }: { columns: BoardColumn[]; now: Date 
               </h2>
               <span className="rounded-full bg-secondary px-2 py-0.5 text-xs tabular-nums text-muted-foreground">{column.total}</span>
             </header>
-            <div className="min-h-28 space-y-2 rounded-2xl bg-secondary/70 p-2">
+            <div className="min-h-28 rounded-2xl bg-secondary/70 p-2">
               {column.items.length === 0 ? (
                 <p className="px-2 py-8 text-center text-xs text-muted-foreground">Nothing here</p>
               ) : (
-                column.items.map((lead) => <LeadCard key={lead.id} lead={lead} now={now} showStatus={column.key === "survey"} />)
+                <ScrollColumn label={`${column.title} leads`}>
+                  {column.items.map((lead) => (
+                    <LeadCard key={lead.id} lead={lead} now={now} showStatus={column.key === "survey"} />
+                  ))}
+                </ScrollColumn>
               )}
               {column.total > column.items.length ? (
                 <p className="px-2 py-1 text-center text-xs text-muted-foreground">
