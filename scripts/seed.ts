@@ -8,8 +8,10 @@
  * catalog — products (by SKU), the ten 1–5 kW packages (by code) and opening
  * stock for bulk items that have never moved (with matching ledger entries) —
  * and goods receipts with serial numbers (skipped when the supplier invoice is
- * already on file). Later phases add customers, pipeline, orders, service and
- * finance data described in Plan.md §6.
+ * already on file). Then, once each (marker counters): 14 months of finished
+ * installations with their GRNs, invoices, payments, warranties, time logs,
+ * subsidy stages and loss-makers (seed/history.ts), and today's live pipeline
+ * and service tickets through the real services (seed/pipeline.ts).
  */
 import { loadEnvConfig } from "@next/env";
 import bcrypt from "bcryptjs";
@@ -22,6 +24,7 @@ import { Package, Product, Purchase, StockMove, User } from "@/server/models";
 import { receiveGoods } from "@/server/services/inventory";
 import { PACKAGES, PRODUCTS } from "./seed/catalog";
 import { seedHistory } from "./seed/history";
+import { seedPipeline } from "./seed/pipeline";
 import { GRNS, grnSerials } from "./seed/inventory";
 import { DEMO_PASSWORD, STAFF } from "./seed/users";
 
@@ -72,6 +75,7 @@ async function main() {
   await seedCatalog();
   await seedPurchases();
   console.log(await seedHistory());
+  console.log(await seedPipeline());
 
   const byRole = await User.aggregate<{ _id: string; count: number }>([
     { $group: { _id: "$role", count: { $sum: 1 } } },
