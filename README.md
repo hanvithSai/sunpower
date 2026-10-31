@@ -20,8 +20,8 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
 | Production | ✅ Live at [www.sunpowersolutions.me](https://www.sunpowersolutions.me), served from Mumbai (`bom1`); [health](https://www.sunpowersolutions.me/api/v1/health) shows database, version and region |
 | Phase 0: foundation (auth, data model, design system, CI/CD) | ✅ Done |
 | Phase 1: leads → surveys → quotes → orders & payments | ✅ Done, verified end to end on Atlas |
-| Phase 2: inventory & serials, dispatch scanning, delivery → warranties, installation jobs | ⏸️ Next, on hold until the go-ahead |
-| Phase 3: service desk, invoices, director dashboard, full demo seed | 🗓️ Planned |
+| Phase 2: inventory & serials, dispatch scanning, delivery → warranties, installation jobs | ✅ Done, operations flow check 46/46 |
+| Phase 3: service desk, invoices, director dashboard, full demo seed | 🗓️ Next |
 | Phase 4–5: tests, analytics, polish, demo | 🗓️ Planned |
 
 ## Highlights
@@ -29,7 +29,7 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
 - **Enquiries never vanish:** web, WhatsApp, call and walk-in leads land in one pipeline with a 2-hour response SLA.
 - **Process gates:** no quote before survey approval, no dispatch until every serial is scanned, no ticket closed until the customer confirms.
 - **Kit that's always right:** 1–5 kW On-Grid/Off-Grid templates expand into the full bill of materials, with GST (CGST/SGST) and the PM Surya Ghar subsidy calculated automatically.
-- **Automations:** a payment creates the pick list and the crew's job; delivery starts every warranty clock and issues the GST invoice.
+- **Automations:** a payment creates the pick list and books a crew that is free that day; dispatch issues the GST invoice; delivery starts every warranty clock.
 - **Support in seconds:** ⌘K search by phone, name or serial, with live warranty status. Out-of-warranty repairs are billed automatically.
 - **Director's view:** today/week/month KPIs, profit per job, open repairs, unfinished work and a shareable read-only link.
 
@@ -43,7 +43,7 @@ Next.js 16 (App Router, Cache Components) · TypeScript · MongoDB Atlas + Mongo
 git clone https://github.com/hanvithSai/sunpower.git && cd sunpower
 npm install
 cp .env.example .env.local      # set MONGODB_URI and AUTH_SECRET
-npm run seed -- --yes           # staff accounts + catalog (30 products, 10 packages)
+npm run seed -- --yes           # staff, catalog (30 products, 10 packages), 4 goods receipts (181 serials)
 npm run dev                     # http://localhost:3000
 ```
 
@@ -51,7 +51,7 @@ The full Windows and macOS guide is in [Setup.md](Setup.md). No Atlas yet? Run `
 
 Demo logins (password `SunPower@2026`): `director@`, `sales@`, `tech@`, `warehouse@`, `support@` with the domain `sunpower.demo`.
 
-Flow smoke checks against a real database: `npx tsx scripts/check-lead-flow.ts <lead-number>` and `npx tsx scripts/check-sale-flow.ts <lead-number>` (see [Setup.md](Setup.md#flow-smoke-checks-real-database)).
+Flow smoke checks against a real database: `npx tsx scripts/check-lead-flow.ts <lead-number>`, `npx tsx scripts/check-sale-flow.ts <lead-number>` and `npx tsx scripts/check-ops-flow.ts` (see [Setup.md](Setup.md#flow-smoke-checks-real-database)).
 
 ## Documentation
 
@@ -60,6 +60,7 @@ Flow smoke checks against a real database: `npx tsx scripts/check-lead-flow.ts <
 | [Plan.md](Plan.md) | Single source of truth: phases, owners, status, ETA |
 | [product/](product/) | PRD, features, personas, analytics plan, style guide, requirements matrix |
 | [engineering/](engineering/) | Engineering decisions, API, DB schema, architecture diagrams |
+| [engineering/Codebase.md](engineering/Codebase.md) | The code from the top down: one order end to end, modules, files, key functions, who built what |
 | [Setup.md](Setup.md) | Environment setup for Windows and macOS, deployment, troubleshooting |
 | [Human_Tasks.md](Human_Tasks.md) | Actions that need a person (credentials, accounts, approvals) |
 | [Agent_Content.md](Agent_Content.md) | Working context and handoff log for parallel contributors |
@@ -72,8 +73,9 @@ src/
   components/     ui primitives, shared building blocks, app shell, feature modules
   lib/            pure business rules: GST, subsidy, warranty, state machines, validation
   server/         models, auth, services (business logic), server actions
-scripts/          local MongoDB, demo data seeder
-engineering/      technical documentation
+scripts/          local MongoDB, demo data seeder, end-to-end flow checks
+tests/            unit tests (Vitest)
+engineering/      technical documentation (code walkthrough: Codebase.md)
 product/          product documentation
 ```
 
