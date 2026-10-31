@@ -584,3 +584,32 @@ export async function getTicketDetail(id: string, now: Date) {
     replacements: replacements.map((r) => r.serial),
   };
 }
+
+/** Every ticket matching the /service filters, flattened for the CSV export (F17). */
+export async function exportTickets(filter: { status?: string; assignedTo?: string }, now: Date) {
+  await connectDB();
+  const query: Record<string, unknown> = {};
+  if (!filter.status || filter.status === "open_all") query.status = { $nin: ["closed"] };
+  else if ((TICKET_STATUSES as readonly string[]).includes(filter.status)) query.status = filter.status;
+  if (filter.assignedTo && Types.ObjectId.isValid(filter.assignedTo)) query["assignedTo.id"] = toObjectId(filter.assignedTo);
+  const rows = await Ticket.find(query).sort({ createdAt: -1 }).limit(5000).lean();
+  const customers = await Customer.find({ _id: { $in: rows.map((t) => t.customerId) } }).select("name address.city").lean();
+  const byId = new Map(customers.map((c) => [String(c._id), c]));
+  return rows.map((t) => ({
+    number: t.number,
+    createdAt: t.createdAt,
+    status: t.status,
+    priority: t.priority,
+    category: t.category,
+    customer: byId.get(String(t.customerId))?.name ?? "",
+    city: byId.get(String(t.customerId))?.address.city ?? "",
+    serial: t.serial,
+    product: t.productName,
+    warranty: t.warranty.state,
+    basis: t.warranty.basis,
+    billable: t.billable,
+    technician: t.assignedTo?.name,
+    ageDays: Math.floor((now.getTime() - t.createdAt.getTime()) / 86_400_000),
+    overdue: !["resolved", "customer_confirmed", "closed"].includes(t.status) && t.slaDueAt.getTime() < now.getTime(),
+  }));
+}
