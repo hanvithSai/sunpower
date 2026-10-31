@@ -33,7 +33,9 @@ The UI uses the Server Actions `loginAction(prev, formData)` and `logoutAction()
 
 `GET /api/v1/health` (public). Returns `200 { status: "ok", db: "up", latencyMs, time, version }`, or `503 { status: "degraded", db: "down" }`. Use it for uptime monitors and post-deploy smoke tests.
 
-## Media (GridFS) 🟨 Phase 0–2
+## Media (GridFS) ✅
+
+Verified end to end against Atlas (31 Oct): auth required (401), one-shot upload + byte-identical read-back, `Range` → 206, mislabelled content rejected (422), chunked session → piece → complete → ranged read.
 
 | Method | Path | Body | Response |
 |---|---|---|---|
