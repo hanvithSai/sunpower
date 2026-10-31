@@ -58,7 +58,7 @@ Every sentence of the brief was checked against this plan, `product/Requirements
 | Share these numbers | P1 | ⬜ | Explicit in the brief and in demo step 7 but could be cut → **P0-lite** (F17) |
 | Today / this week / this month; profit per job; open repairs | ✅ | ⬜ | None |
 
-**Doc drift to clean up in 5.2 (code is the source of truth):** ticket priorities (`low/medium/high/urgent` in code vs `low/normal/high` in Features.md), lead source `website` (not `web`), order statuses `ready_to_dispatch` and `closed` missing from Features.md F09, job status `to_schedule` in Features.md (code auto-schedules instead), and the collections list in section 5 (fixed below).
+**Doc drift (code is the source of truth) — ✅ cleaned up 31 Oct, 19:30 in Features.md, DB.md and this file:** ticket priorities (`low/medium/high/urgent` in code vs `low/normal/high` in Features.md), lead source `website` (not `web`), order statuses `ready_to_dispatch` and `closed` missing from Features.md F09, job status `to_schedule` in Features.md (code auto-schedules instead), and the collections list in section 5 (fixed below).
 
 ---
 
@@ -243,8 +243,8 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 ### Phase 4: Hardening (02:30 → 04:00)
 | # | Task | Owner | Branch | Status |
 |---|---|---|---|---|
-| 4.1 | Unit tests (Vitest): quote calc, state machines (incl. `customer_confirmed`), warranty dates + workmanship, costing (incl. warranty repair), crew availability. 6 tests already in CI | Vamshi | `test/core` | ⬜ |
-| 4.2 | Flow checks instead of Playwright: extend `scripts/check-*-flow.ts` with `check-ops-flow.ts` (GRN → dispatch → invoice → delivery → warranties → job complete) and `check-service-flow.ts` (in/out of warranty, no-serial, confirmation gate), run against Atlas. Playwright E2E ✂️ | Vamshi | `test/flows` | ⬜ |
+| 4.1 | Unit tests (Vitest): quote calc, state machines (incl. `customer_confirmed`), warranty dates + workmanship, costing (incl. warranty repair), crew availability | Vamshi | `test/core` | 🟨 33 tests in CI (form schemas, packing gate, ticket confirmation gate, DB errors); quote calc, warranty dates and costing still to add |
+| 4.2 | Flow checks instead of Playwright: `check-ops-flow.ts` and `check-service-flow.ts` (+ `check-finance-flow.ts`), run on development databases. Playwright E2E ✂️ | Vamshi | `feat/jobs-api`, `feat/service-api`, `feat/finance-api` | ✅ ops 46/46 · service 29/29 · finance 21/21 (built during Phases 2–3) |
 | 4.3 | PostHog: only if the key arrives (Requirements Q4); server events already flow through `trackServer`. Otherwise ✂️ | Hanvith | `feat/analytics` | ⬜ |
 | 4.4 | UX polish: 360 px pass on technician screens, empty states, a11y, loading skeletons; F23 local draft if time allows | Hanvith | `feat/ui-polish` | ⬜ |
 
@@ -270,6 +270,17 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 5. The technician opens **My work** on a phone and completes the job: times, photos, the extra cable used, **customer signature**. The certificate lists every installed serial.
 6. "Eighteen months later": support types the last 4 digits of the inverter serial in ⌘K, sees "In warranty, 6 months left" and raises a ₹0 ticket. Resolving it doesn't close it; it waits for the **customer's confirmation**. Then show the 28-month-old project, where the inverter is out of warranty and the **invoice is generated automatically**.
 7. The director opens the dashboard: **profit per job** with losers highlighted and their causes, unfinished steps per customer, advances held, open repairs, subsidy stages and technician payouts, then **shares a read-only link**.
+
+**Records to use on production (seeded 31 Oct; logins `<role>@sunpower.demo`, password `SunPower@2026`):**
+
+| Step | Record |
+|---|---|
+| 1 | Submit `/enquiry` live on a phone; two seeded enquiries (Mahender Goud, Swathi Reddy) are already past the 2-hour SLA |
+| 2 | Kavitha Sharma's survey is waiting for approval; Naresh Yadav is approved and ready to quote |
+| 3–4 | Dispatch shows the confirmed orders to pack (Divya Prasad, Krishna Rao, Manjula Devi); in-stock serials to scan or type include `WAA545-2610-0001`…, `GRW3K-2610-0001`, `LUMCC40-2609-0005` (Human_Tasks #16 for printed labels) |
+| 5 | `tech@` (Ravi) has his visits in My work. For the completion form use `director@` → Installations → Usha Rani's job (in progress); director can act for any crew |
+| 6 | ⌘K `GRW3K-H2504` → **Venkata Ramana Rao**, inverter `GRW3K-H2504-0001`, "In warranty · 6 mo left" (no ticket yet; raise it live). Out of warranty: **Padmavathi Devi**, `GRW3K-H2406-0001`, "Expired 4 mo ago" (a past lightning repair was billed automatically). Workmanship: **Lakshmi Prasanna**'s open wiring ticket at ₹0 |
+| 7 | Loss-makers: SP-O-0092 (re-wiring after a failed DISCOM inspection), SP-O-0063 (wrong inverter sent back), SP-O-0038 (roof-leak rework). Note: "Haritha Chowdary" is both a past job and a live order (two customers with the same name) |
 
 ---
 
@@ -329,4 +340,5 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 | 31 Oct, 15:10 | Hanvith | **Brief re-audit** (section 1b): coverage complete on paper; 13 fixes to *how* problems are solved (workmanship warranty, customer-confirmed status, invoice at dispatch, crew availability, real costing, warranty cost to order, unfinished-steps board, advances/purchases KPIs, panel-set packages, My work first, GRN seed earlier, certificate to customer). F16–F18 → P0-lite; F21 cut; Playwright → flow checks; timeline re-baselined to clock times |
 | 31 Oct, 16:55 | Both | **Phase 2 complete** (inventory, dispatch, installation), merged and pushed with commits from both developers. Ops flow check 46/46 and 22 unit tests on local MongoDB; production build green. GRNs (4 receipts, 181 serials) seed through the real service. Atlas needs `npm run seed -- --yes` for the GRNs before the dispatch demo |
 | 31 Oct, 18:40 | Both | **Phase 3 complete (local, not pushed)**: ⌘K search, service desk (warranty per serial + workmanship, ₹0 repairs charged to the installation, auto service invoice, confirm-before-close), costing from actuals, dashboard with unfinished steps and validated trend chart, masked share links + CSV, invoices, subsidy board, payroll, full demo seed. Flow checks: ops 46/46, service 29/29, finance 21/21; 33 unit tests |
-| Next | Both | Push when approved; seed Atlas (`npm run seed -- --yes`). Phase 3b extras (certificate link, public warranty lookup, subsidy documents), Panel Set packages, `/customers` page; then hardening |
+| 31 Oct, 19:30 | Both | Pushed; Vercel deployed `2620e01` (health `db: up`, `bom1`). **Atlas seeded** and verified on production: ⌘K finds the 18-month inverter "In warranty · 6 mo left", 12-month trend filled, three loss-makers, 10 orders to pack. All docs synced with Phases 2–3 (README, Setup, API, DB, Architecture, Engineering incidents 5–7, Features, Human_Tasks, Agent_Content) and the 1b doc drift cleaned up |
+| Next | Both | Phase 3b (3.6 certificate link, 3.7 public warranty lookup — ⌘K's "Check warranty" points there — 3.8 subsidy documents), Panel Set packages, `/customers` page; 4.1 remaining unit tests; PostHog key in Vercel (Human_Tasks #8); 4.4 polish; then the 5.x bug bash and demo video |
