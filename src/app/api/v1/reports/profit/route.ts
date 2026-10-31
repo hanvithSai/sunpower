@@ -21,7 +21,8 @@ export const GET = apiHandler(async (request) => {
   let masked = false;
   if (token) {
     const link = await openShareLink(token, now);
-    if (!link.ok) throw new AppError("FORBIDDEN", "This share link is no longer valid.");
+    // Only a dashboard link opens the numbers; a customer's certificate link never does.
+    if (!link.ok || link.scope !== "dashboard") throw new AppError("FORBIDDEN", "This share link is no longer valid.");
     masked = true;
   } else {
     await requireApiUser(["admin"]);

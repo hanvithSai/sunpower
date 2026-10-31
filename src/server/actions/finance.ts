@@ -37,6 +37,7 @@ export async function revokeShareLinkAction(_prev: ActionState, formData: FormDa
     const { shareLinkId } = parseForm(ShareLinkIdSchema, formData);
     await revokeShareLink(shareLinkId, user);
     revalidatePath("/dashboard");
+    revalidatePath("/jobs/[id]", "page"); // certificate links are revoked from their job
     return { ok: true, message: "Link revoked — it stops working immediately" };
   });
 }

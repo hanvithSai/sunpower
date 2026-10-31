@@ -95,7 +95,9 @@ export interface IShareLink {
   _id: Types.ObjectId;
   /** Random URL-safe token used in /share/[token]. */
   token: string;
-  scope: "dashboard";
+  /** dashboard = the director's numbers; certificate = one installation's certificate for its customer. */
+  scope: "dashboard" | "certificate";
+  jobId?: Types.ObjectId;
   label?: string;
   createdBy: IActorRef;
   expiresAt: Date;
@@ -109,7 +111,8 @@ export interface IShareLink {
 const ShareLinkSchema = new Schema<IShareLink>(
   {
     token: { type: String, required: true, unique: true },
-    scope: { type: String, enum: ["dashboard"], default: "dashboard" },
+    scope: { type: String, enum: ["dashboard", "certificate"], default: "dashboard" },
+    jobId: { type: Schema.Types.ObjectId, ref: "Job", index: true },
     label: String,
     createdBy: { type: ActorRefSchema, required: true },
     expiresAt: { type: Date, required: true },

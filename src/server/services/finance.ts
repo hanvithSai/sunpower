@@ -229,9 +229,58 @@ export async function revokeShareLink(id: string, actor: Actor) {
   await logActivity({ entityType: "share", entityId: link._id, action: "revoked", message: "Share link revoked", actor });
 }
 
+/** How long a customer's certificate link works (F22). */
+const CERTIFICATE_LINK_DAYS = 90;
+
+/**
+ * F22-lite: a read-only link to one installation's certificate, sent to the
+ * customer on WhatsApp after completion. Reuses the job's active link so the
+ * customer never gets two; revocable from the job page like any share link.
+ */
+export async function certificateLink(jobId: string, actor: Actor, now: Date = new Date()): Promise<{ token: string; expiresAt: Date; created: boolean }> {
+  await connectDB();
+  if (!Types.ObjectId.isValid(jobId)) throw notFoundError("Job");
+  const job = await Job.findById(jobId).select("number type status customerId").lean();
+  if (!job) throw notFoundError("Job");
+  if (job.type !== "installation" || job.status !== "completed") throw new AppError("INVALID_STATE", "The certificate is ready once the installation is completed.");
+  const active = await ShareLink.findOne({ scope: "certificate", jobId: job._id, revokedAt: { $exists: false }, expiresAt: { $gt: now } }).lean();
+  if (active) return { token: active.token, expiresAt: active.expiresAt, created: false };
+
+  const token = randomBytes(24).toString("base64url");
+  const expiresAt = addDays(now, CERTIFICATE_LINK_DAYS);
+  await ShareLink.create({ token, scope: "certificate", jobId: job._id, label: `Certificate ${job.number}`, createdBy: actorRef(actor), expiresAt });
+  await logActivity({
+    entityType: "job",
+    entityId: job._id,
+    customerId: job.customerId,
+    action: "certificate_link",
+    message: `Certificate link for the customer created, valid ${CERTIFICATE_LINK_DAYS} days`,
+    actor,
+  });
+  return { token, expiresAt, created: true };
+}
+
+/** The job's active certificate link, if any (no side effects). */
+export async function activeCertificateLink(jobId: string, now: Date) {
+  await connectDB();
+  if (!Types.ObjectId.isValid(jobId)) return null;
+  const link = await ShareLink.findOne({ scope: "certificate", jobId, revokedAt: { $exists: false }, expiresAt: { $gt: now } }).lean();
+  return link ? { id: String(link._id), token: link.token, expiresAt: link.expiresAt, viewCount: link.viewCount } : null;
+}
+
+/** May a signed-out viewer of this share link see this file? Only the certified job's own photos. */
+export async function shareLinkAllowsFile(token: string, fileId: string, now: Date): Promise<boolean> {
+  await connectDB();
+  if (!/^[A-Za-z0-9_-]{20,64}$/.test(token)) return false;
+  const link = await ShareLink.findOne({ token, scope: "certificate" }).lean();
+  if (!link?.jobId || link.revokedAt || link.expiresAt.getTime() < now.getTime()) return false;
+  return Boolean(await Job.exists({ _id: link.jobId, photos: fileId }));
+}
+
 export async function listShareLinks(now: Date) {
   await connectDB();
-  const links = await ShareLink.find().sort({ createdAt: -1 }).limit(20).lean();
+  // Certificate links live on their job; this list is the director's dashboard links.
+  const links = await ShareLink.find({ scope: { $ne: "certificate" } }).sort({ createdAt: -1 }).limit(20).lean();
   return links.map((l) => ({
     id: String(l._id),
     token: l.token,
@@ -246,7 +295,10 @@ export async function listShareLinks(now: Date) {
 }
 
 /** Validate a shared token and count the view. Returns why it can't be shown, if it can't. */
-export async function openShareLink(token: string, now: Date): Promise<{ ok: true; expiresAt: Date; label?: string } | { ok: false; reason: "unknown" | "expired" | "revoked" }> {
+export async function openShareLink(
+  token: string,
+  now: Date,
+): Promise<{ ok: true; expiresAt: Date; label?: string; scope: "dashboard" | "certificate"; jobId?: string } | { ok: false; reason: "unknown" | "expired" | "revoked" }> {
   await connectDB();
   if (!/^[A-Za-z0-9_-]{20,64}$/.test(token)) return { ok: false, reason: "unknown" };
   const link = await ShareLink.findOne({ token }).lean();
@@ -254,7 +306,7 @@ export async function openShareLink(token: string, now: Date): Promise<{ ok: tru
   if (link.revokedAt) return { ok: false, reason: "revoked" };
   if (link.expiresAt.getTime() < now.getTime()) return { ok: false, reason: "expired" };
   await ShareLink.updateOne({ _id: link._id }, { $inc: { viewCount: 1 }, $set: { lastViewedAt: now } });
-  return { ok: true, expiresAt: link.expiresAt, label: link.label };
+  return { ok: true, expiresAt: link.expiresAt, label: link.label, scope: link.scope ?? "dashboard", jobId: link.jobId ? String(link.jobId) : undefined };
 }
 
 export type InvoiceListStatus = InvoiceStatus | "open" | "overdue";

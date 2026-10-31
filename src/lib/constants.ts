@@ -514,5 +514,6 @@ export const ANALYTICS_EVENTS = [
   "search_performed",
   "search_result_opened",
   "warranty_lookup",
+  "certificate_shared",
 ] as const;
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];

@@ -1,7 +1,8 @@
 /**
  * GET/HEAD /api/v1/files/{id}: stream a stored photo or video out of GridFS.
  *
- * - Signed-in users only. The session is read before any I/O, as Cache
+ * - Signed-in users, or a customer holding a certificate link (?share=token)
+ *   for that installation's own photos. The session is read before any I/O, as Cache
  *   Components requires.
  * - Streams chunk by chunk (Node GridFS stream -> web ReadableStream), so a
  *   50 MB video never sits in server memory, and stops reading (and frees the
@@ -17,8 +18,11 @@
  *   uploaded bytes can never be rendered as HTML on our origin.
  */
 import { AppError } from "@/server/errors";
-import { apiHandler, requireApiUser, type HandlerContext } from "@/server/lib/api";
+import { getCurrentUser } from "@/server/auth/session";
+import { connectDB } from "@/server/db";
+import { apiHandler, type HandlerContext } from "@/server/lib/api";
 import { getFileInfo, isAllowedType, openFileStream, type FileInfo } from "@/server/services/core/files";
+import { shareLinkAllowsFile } from "@/server/services/finance";
 
 type Params = { id: string };
 type ByteRange = { start: number; end: number };
@@ -31,8 +35,14 @@ export const GET = apiHandler<Params>((request, context) => serveFile(request, c
 export const HEAD = apiHandler<Params>((request, context) => serveFile(request, context, false));
 
 async function serveFile(request: Request, { params }: HandlerContext<Params>, withBody: boolean): Promise<Response> {
-  await requireApiUser(); // request data (cookies) first, then I/O
+  const user = await getCurrentUser(); // request data (cookies) first, then I/O
   const { id } = await params;
+  if (!user) {
+    // A customer's certificate link (?share=token) may show that installation's own photos, nothing else.
+    const token = new URL(request.url).searchParams.get("share");
+    if (!token || !(await shareLinkAllowsFile(token, id, new Date()))) throw new AppError("UNAUTHORIZED", "Sign in required");
+  }
+  await connectDB();
 
   const info = await getFileInfo(id);
   if (!info) throw new AppError("NOT_FOUND", "File not found");
