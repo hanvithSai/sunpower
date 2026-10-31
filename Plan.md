@@ -123,6 +123,8 @@ Every sentence of the brief was checked against this plan, `product/Requirements
 
 ## 5. Architecture (summary, full detail in `engineering/Architecture.md`)
 
+A walkthrough of the code itself (modules, files, key functions, who built what) is in `engineering/Codebase.md`.
+
 ```
 Browser (desktop + technician mobile)
    │  RSC pages (reads) · Server Actions (mutations) · /api/v1 (public + integrations)
@@ -328,4 +330,5 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 | 31 Oct, 15:00 | Both | Functions moved to Mumbai (`bom1`); health check now reports failure `reason`, `version` and `region`; first unit tests (Vitest, 6) in CI |
 | 31 Oct, 15:10 | Hanvith | **Brief re-audit** (section 1b): coverage complete on paper; 13 fixes to *how* problems are solved (workmanship warranty, customer-confirmed status, invoice at dispatch, crew availability, real costing, warranty cost to order, unfinished-steps board, advances/purchases KPIs, panel-set packages, My work first, GRN seed earlier, certificate to customer). F16–F18 → P0-lite; F21 cut; Playwright → flow checks; timeline re-baselined to clock times |
 | 31 Oct, 16:55 | Both | **Phase 2 complete** (inventory, dispatch, installation), merged and pushed with commits from both developers. Ops flow check 46/46 and 22 unit tests on local MongoDB; production build green. GRNs (4 receipts, 181 serials) seed through the real service. Atlas needs `npm run seed -- --yes` for the GRNs before the dispatch demo |
+| 31 Oct, 17:40 | Hanvith | Code walkthrough added: `engineering/Codebase.md` (one order end to end, modules, files, key functions, who built what) at `b799ac3`; README status synced with Phase 2 |
 | Next | Both | Phase 3: service desk (⌘K search, tickets with `customer_confirmed`, workmanship warranty, out-of-warranty invoice), finance (costing from actuals, dashboard, subsidy, share link, payroll) and the full seed |
