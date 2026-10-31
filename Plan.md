@@ -176,9 +176,9 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 |---|---|---|---|---|
 | 1.1 | Schemas + services: lead, customer, qualification, survey (state machine) | Vamshi | `feat/leads-api` | ✅ (flow check: scripts/check-lead-flow.ts) |
 | 1.2 | Public enquiry form, pipeline kanban/table, lead detail + timeline, qualification UI, survey mobile form + review | Hanvith | `feat/leads-ui` | ✅ |
-| 1.3 | Schemas + services: products, packages/BOM, quote (calc engine: subsidy, GST, paise), order, payments + automations | Vamshi | `feat/quotes-api` | ⬜ |
-| 1.4 | Survey mobile form, quote builder (template → BOM), printable quote, order + payment UI | Hanvith | `feat/quotes-ui` | ⬜ |
-| 1.5 | Seed v1: users, catalog, packages, leads at all stages | Vamshi | `feat/seed` | ⬜ |
+| 1.3 | Schemas + services: products, packages/BOM, quote (calc engine: subsidy, GST, paise), order, payments + automations | Vamshi | `feat/catalog-quotes-api` | ✅ (flow check: scripts/check-sale-flow.ts, 15/15) |
+| 1.4 | Survey mobile form, quote builder (template → BOM), printable quote, order + payment UI, catalog | Hanvith | `feat/leads-ui`, `feat/quotes-ui` | ✅ |
+| 1.5 | Seed v1: users, catalog (30 products, 10 packages, opening stock) — leads/orders at all stages come with the full seed (3.5) | Vamshi | `feat/catalog-quotes-api` | ✅ users + catalog · ⬜ pipeline data |
 
 ### Phase 2: Operations (T+4:00 → T+7:00), golden path part 2
 | # | Task | Owner | Branch | Status |
@@ -263,4 +263,5 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 | 31 Oct, 12:30 | Both | **Phase 0 complete:** lint, typecheck, build green; WCAG contrast fixes; self-hosted Inter; pushed for review |
 | 31 Oct, 13:00 | Both | Domains live (www.sunpowersolutions.me, sunpowersolutions.vercel.app). Both currently return Vercel `NOT_FOUND` because Vercel has no Git deployment of `main`. Added `vercel.json` (framework pin) + `metadataBase`; fix steps in Human_Tasks #6 |
 | 31 Oct, 14:00 | Both | Phase 1a done: enquiries (web form + API, dedupe, auto-assign), pipeline board/table with SLA, qualification, survey booking, mobile survey form with photos, review gate → quote unlocked. Verified end to end on Atlas |
-| Next | Both | Phase 1b: catalog → quotes (BOM auto-expansion) → orders/payments. Media pipeline (GridFS uploads, signature, scanner) is drafted and gets finished and verified in Phase 2 |
+| 31 Oct, 15:30 | Both | Phase 1b done: catalog seed, quote builder (package → full BOM, live GST/subsidy/margin), quote detail/print/WhatsApp, accept → order, payments (first payment confirms → pick list + installation job with least-loaded crew). Verified on Atlas |
+| Next | Both | Phase 2: inventory (GRN + serials) → dispatch scanning → delivery/warranty → installation jobs & technician app. Media pipeline (GridFS uploads, signature, scanner) is drafted and gets finished and verified in Phase 2 |
