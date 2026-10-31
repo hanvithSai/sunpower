@@ -16,7 +16,7 @@ import { Section } from "@/components/shared/section";
 import { StatCard } from "@/components/shared/stat-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
-import { CUSTOMER_TYPE_LABELS } from "@/lib/constants";
+import { CUSTOMER_TYPE_LABELS, PRODUCT_CATEGORY_LABELS } from "@/lib/constants";
 import { formatDate, formatDateTime, formatPhone, waLink } from "@/lib/format";
 import { formatINR, formatPercent } from "@/lib/money";
 import { requireUser } from "@/server/auth/session";
@@ -36,6 +36,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
   const { quote, lead, customer, order } = detail;
   const activity = await listActivity("quote", quote.id);
 
+  const missingText = quote.missing.map((c) => PRODUCT_CATEGORY_LABELS[c].toLowerCase()).join(", ");
   const open = quote.status === "draft" || quote.status === "sent";
   const expired = open && new Date(quote.validUntil) < now;
   const shareText = `Namaste ${(customer?.name ?? lead?.name ?? "").split(" ")[0]} garu! Your SunPower quotation ${quote.number} for a ${quote.title}: ${formatINR(quote.totalPaise)} incl. GST${quote.subsidyPaise ? `, about ${formatINR(quote.netCostPaise)} after the PM Surya Ghar subsidy` : ""}. Valid till ${formatDate(quote.validUntil)}.`;
@@ -70,7 +71,17 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
               </Link>
             </Button>
             {quote.status === "draft" ? (
-              <ActionButton action={markQuoteSentAction} hiddenFields={{ quoteId: quote.id }} variant="outline">
+              <ActionButton
+                action={markQuoteSentAction}
+                variant="outline"
+                // R-24: a gap in the parts list needs an explicit OK, which the timeline records.
+                hiddenFields={missingText ? { quoteId: quote.id, sendWithMissing: "on" } : { quoteId: quote.id }}
+                confirm={
+                  missingText
+                    ? { title: "Send without the missing parts?", description: `This quote has no ${missingText}. Revise it to add them, or send it as it is.`, confirmText: "Send anyway" }
+                    : undefined
+                }
+              >
                 <Send aria-hidden="true" />
                 Mark sent
               </ActionButton>
@@ -113,6 +124,11 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
       {expired ? (
         <p className="mb-6 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning-foreground">
           This quote expired on {formatDate(quote.validUntil)}. Revise it to send updated prices.
+        </p>
+      ) : null}
+      {missingText && open ? (
+        <p className="mb-6 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning-foreground">
+          This {quote.title.replace(/ system$/, "")} quote has no {missingText}. Revise it to add {quote.missing.length === 1 ? "it" : "them"} before the customer accepts.
         </p>
       ) : null}
       {quote.rejectedReason ? (
