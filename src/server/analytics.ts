@@ -12,16 +12,19 @@ import { scrubUrl, type AnalyticsProps, type ServerEvent } from "@/lib/analytics
 
 let client: PostHog | null | undefined;
 
-function getClient(): PostHog | null {
-  if (client !== undefined) return client;
+function newClient(): PostHog | null {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  client = key
+  return key
     ? new PostHog(key, {
         host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
         flushAt: 1,
         flushInterval: 0,
       })
     : null;
+}
+
+function getClient(): PostHog | null {
+  if (client === undefined) client = newClient();
   return client;
 }
 
@@ -33,14 +36,15 @@ export function trackServer<E extends ServerEvent>(event: E, properties: Analyti
   const posthog = getClient();
   if (!posthog) return;
 
+  // captureImmediate resolves only once the event is sent, so after() keeps a
+  // serverless function alive until then (capture + flush can return early).
   const send = async () => {
     try {
-      posthog.capture({
+      await posthog.captureImmediate({
         distinctId,
         event,
         properties: distinctId === "system" ? { ...properties, $process_person_profile: false } : properties,
       });
-      await posthog.flush();
     } catch (error) {
       console.warn("[analytics] capture failed", error);
     }
@@ -57,16 +61,18 @@ export function trackServer<E extends ServerEvent>(event: E, properties: Analyti
 /**
  * Report an unhandled server error as `$exception` (called from
  * onRequestError in src/instrumentation.ts). The path is scrubbed like every
- * other URL; awaited because the request is already over.
+ * other URL. posthog-node's captureExceptionImmediate resolves before the
+ * event is sent, so a short-lived client is shut down instead: shutdown()
+ * waits until everything queued has gone.
  */
 export async function captureServerError(
   error: unknown,
   where: { path: string; method: string; routePath: string; routeType: string },
 ): Promise<void> {
-  const posthog = getClient();
+  const posthog = newClient();
   if (!posthog) return;
   try {
-    await posthog.captureExceptionImmediate(error, "system", {
+    posthog.captureException(error, "system", {
       $process_person_profile: false,
       path: scrubUrl(where.path),
       method: where.method,
@@ -74,6 +80,7 @@ export async function captureServerError(
       routeType: where.routeType,
       digest: typeof error === "object" && error !== null && "digest" in error ? String(error.digest) : undefined,
     });
+    await posthog.shutdown();
   } catch (reportError) {
     console.warn("[analytics] exception capture failed", reportError);
   }
