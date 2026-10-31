@@ -294,6 +294,7 @@ export async function createLead(
         pincode: input.pincode,
         addressLine: input.addressLine,
         customerType: input.customerType,
+        gstin: input.gstin,
       },
       session,
     );

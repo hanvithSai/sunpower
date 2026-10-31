@@ -2,8 +2,10 @@
 
 /**
  * Enquiry fields shared by the public website form and the sales team's
- * "New enquiry" dialog, so both validate and look the same.
+ * "New enquiry" dialog, so both validate and look the same. Businesses also
+ * give their GSTIN, which is printed on their tax invoice.
  */
+import { useState } from "react";
 import { FormField } from "@/components/shared/form-field";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -23,6 +25,7 @@ export type LeadFieldDefaults = { capacityKw?: number; systemType?: string };
 export function LeadFields({ withSource = false, defaults = {} }: { withSource?: boolean; defaults?: LeadFieldDefaults }) {
   const capacity = CAPACITY_OPTIONS.includes(defaults.capacityKw ?? 0) ? defaults.capacityKw : 3;
   const systemType = defaults.systemType && defaults.systemType in REQUESTED_SYSTEM_TYPE_LABELS ? defaults.systemType : "on_grid";
+  const [business, setBusiness] = useState(false);
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -45,7 +48,7 @@ export function LeadFields({ withSource = false, defaults = {} }: { withSource?:
         <Input id="email" name="email" type="email" autoComplete="email" />
       </FormField>
       <FormField label="Property" name="customerType">
-        <Select id="customerType" name="customerType" defaultValue="residential">
+        <Select id="customerType" name="customerType" defaultValue="residential" onChange={(e) => setBusiness(e.target.value === "commercial")}>
           {options(CUSTOMER_TYPE_LABELS).map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
@@ -53,6 +56,11 @@ export function LeadFields({ withSource = false, defaults = {} }: { withSource?:
           ))}
         </Select>
       </FormField>
+      {business ? (
+        <FormField label="GSTIN" name="gstin" className="sm:col-span-2" hint="Optional. Printed on your tax invoice so you can claim input credit.">
+          <Input id="gstin" name="gstin" autoCapitalize="characters" spellCheck={false} maxLength={15} placeholder="36AAKFS4421M1Z3" className="font-mono uppercase" />
+        </FormField>
+      ) : null}
       <FormField label="Address" name="addressLine" className="sm:col-span-2">
         <Input id="addressLine" name="addressLine" autoComplete="street-address" maxLength={200} placeholder="House no., street, colony" />
       </FormField>

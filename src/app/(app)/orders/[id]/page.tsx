@@ -6,6 +6,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarClock, MessageCircle, Phone, Users } from "lucide-react";
+import { SubsidyAdvanceDialog } from "@/components/modules/finance/subsidy-advance-dialog";
+import { SubsidyDocumentDialog } from "@/components/modules/finance/subsidy-document-dialog";
 import { CancelOrderDialog } from "@/components/modules/orders/cancel-order-dialog";
 import { OrderStepper } from "@/components/modules/orders/order-stepper";
 import { RecordPaymentDialog } from "@/components/modules/orders/record-payment-dialog";
@@ -18,14 +20,30 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { Timeline } from "@/components/shared/timeline";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PAYMENT_MODE_LABELS, PAYMENT_TYPE_LABELS } from "@/lib/constants";
+import { PAYMENT_MODE_LABELS, PAYMENT_TYPE_LABELS, SUBSIDY_DOC_LABELS, statusMeta, type SubsidyDocKind, type SubsidyStatus } from "@/lib/constants";
 import { formatDate, formatDateTime, formatPhone, telLink, toDateInputValue, waLink } from "@/lib/format";
 import { formatINR } from "@/lib/money";
+import { feasibilityPending } from "@/lib/subsidy";
+import { cn } from "@/lib/utils";
+import { SUBSIDY_STEPS } from "@/lib/workflows";
 import { requireUser } from "@/server/auth/session";
 import { listActivity } from "@/server/services/core/activity";
+import { costOrder } from "@/server/services/costing";
 import { getOrderDetail } from "@/server/services/orders";
 
 export const metadata: Metadata = { title: "Order" };
+
+/** The paper that usually arrives next, preselected in "Add paper". */
+const NEXT_PAPER: Record<SubsidyStatus, SubsidyDocKind> = {
+  not_applicable: "other",
+  not_applied: "application",
+  applied: "feasibility_letter",
+  feasibility_approved: "net_meter_photo",
+  net_meter_installed: "inspection_report",
+  inspected: "disbursement_proof",
+  disbursed: "other",
+  rejected: "application",
+};
 
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser(["sales", "warehouse", "support"]);
@@ -34,11 +52,14 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const detail = await getOrderDetail(id);
   if (!detail) notFound();
   const { order, customer, lead, quote, job, invoice, payments } = detail;
-  const activity = await listActivity("order", order.id);
+  const seesMoney = user.role === "admin" || user.role === "sales";
+  const [activity, costing] = await Promise.all([listActivity("order", order.id), seesMoney ? costOrder(order.id) : Promise.resolve(null)]);
 
   const canTakePayment = (user.role === "sales" || user.role === "admin") && order.status !== "cancelled" && order.outstandingPaise > 0;
   const canCancel = user.role === "admin" && (order.status === "pending_payment" || order.status === "confirmed") && order.paidPaise === 0;
   const canPack = user.role === "warehouse" || user.role === "admin";
+  // Installation is sold as a service line; without it (a bare Panel Set) the order ends at delivery.
+  const hardwareOnly = !order.lines.some((l) => l.category === "service");
   const serialUnits = order.pickList.filter((l) => l.isSerialized).reduce((n, l) => n + l.qty, 0);
   const scanned = order.pickList.reduce((n, l) => n + l.serials.length, 0);
 
@@ -73,7 +94,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       />
 
       <div className="mb-6">
-        <OrderStepper status={order.status} />
+        <OrderStepper status={order.status} hardwareOnly={hardwareOnly} />
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -94,6 +115,44 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          {costing ? (
+            <Section
+              title="Job costing"
+              description={costing.estimated ? "Material is the quote estimate until the kit is dispatched." : "Actual cost of every serial dispatched, crew hours and anything absorbed later."}
+            >
+              <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
+                {[
+                  { label: "Revenue (excl. GST)", value: costing.revenuePaise },
+                  { label: "Material", value: -costing.materialPaise },
+                  { label: `Labour · ${costing.labourHours} h`, value: -costing.labourPaise },
+                  { label: "Site extras", value: -costing.sitePaise },
+                  { label: "Warranty repairs", value: -costing.warrantyPaise },
+                ].map((row) => (
+                  <div key={row.label}>
+                    <dt className="text-xs text-muted-foreground">{row.label}</dt>
+                    <dd className="tabular-nums">{formatINR(row.value)}</dd>
+                  </div>
+                ))}
+                <div>
+                  <dt className="text-xs text-muted-foreground">Profit</dt>
+                  <dd className={cn("font-semibold tabular-nums", costing.profitPaise < 0 ? "text-danger-foreground" : costing.marginPct < 15 ? "text-warning-foreground" : "text-success-foreground")}>
+                    {formatINR(costing.profitPaise)} · {costing.marginPct}%
+                  </dd>
+                </div>
+              </dl>
+              {order.extraCosts.length ? (
+                <ul className="mt-3 space-y-1 border-t border-border pt-3 text-xs text-muted-foreground">
+                  {order.extraCosts.map((e, i) => (
+                    <li key={i} className="flex justify-between gap-2">
+                      <span>{e.label}</span>
+                      <span className="tabular-nums">{formatINR(e.amountPaise)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </Section>
+          ) : null}
+
           <Section title="Bill of materials" contentClassName="p-0">
             <QuoteLines lines={order.lines} totals={order} />
           </Section>
@@ -142,7 +201,13 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           {customer ? (
             <Section title="Customer">
               <div className="space-y-3 text-sm">
-                <p className="font-medium">{customer.name}</p>
+                {user.role === "warehouse" ? (
+                  <p className="font-medium">{customer.name}</p>
+                ) : (
+                  <Link href={`/customers/${customer.id}`} className="font-medium text-foreground hover:text-primary">
+                    {customer.name}
+                  </Link>
+                )}
                 <p className="text-muted-foreground">
                   {[order.siteAddress.line1, order.siteAddress.city, order.siteAddress.pincode].filter(Boolean).join(", ")}
                   {customer.discom ? ` · ${customer.discom}` : ""}
@@ -189,6 +254,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                   </Button>
                 ) : null}
               </div>
+            ) : hardwareOnly ? (
+              <p className="text-sm text-muted-foreground">Hardware only: no installation was sold, so no crew is booked and the order completes at delivery.</p>
             ) : (
               <p className="text-sm text-muted-foreground">Booked automatically when the first payment arrives.</p>
             )}
@@ -217,6 +284,64 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               />
             )}
           </Section>
+
+          {order.subsidy.applicable ? (
+            <Section
+              title="PM Surya Ghar subsidy"
+              description={`${formatINR(order.subsidy.expectedPaise)} expected${order.subsidy.applicationNo ? ` · ${order.subsidy.applicationNo}` : ""}`}
+              actions={seesMoney && order.status !== "cancelled" ? <SubsidyAdvanceDialog orderId={order.id} status={order.subsidy.status} expectedPaise={order.subsidy.expectedPaise} /> : null}
+            >
+              <ol className="space-y-1.5 text-sm">
+                {SUBSIDY_STEPS.map((step) => {
+                  const reached = order.subsidy.history.find((h) => h.status === step);
+                  const current = order.subsidy.status === step;
+                  return (
+                    <li key={step} className="flex items-center justify-between gap-2">
+                      <span className={cn("flex items-center gap-2", reached || current ? "text-foreground" : "text-muted-foreground")}>
+                        <span className={cn("size-2 rounded-full", current ? "bg-primary" : reached ? "bg-success" : "bg-border")} aria-hidden="true" />
+                        {statusMeta("subsidy", step).label}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{reached ? formatDate(reached.at) : current ? "now" : ""}</span>
+                    </li>
+                  );
+                })}
+              </ol>
+              {order.subsidy.status === "disbursed" ? <p className="mt-2 text-xs text-success-foreground">{formatINR(order.subsidy.disbursedPaise)} credited to the customer</p> : null}
+              {order.subsidy.status === "rejected" ? <p className="mt-2 text-xs text-danger-foreground">Rejected — reapply after fixing the documents</p> : null}
+              {feasibilityPending(order.subsidy) && job && job.status === "scheduled" ? (
+                <p className="mt-3 rounded-lg bg-warning/12 px-3 py-2 text-xs text-warning-foreground">
+                  Installation is booked for {formatDate(job.scheduledFor)} but the DISCOM hasn&apos;t approved feasibility. Installing first can cost the customer the subsidy.
+                </p>
+              ) : null}
+              <div className="mt-4 border-t border-border pt-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Papers on file</p>
+                  {seesMoney && order.status !== "cancelled" ? <SubsidyDocumentDialog orderId={order.id} suggested={NEXT_PAPER[order.subsidy.status]} /> : null}
+                </div>
+                {order.subsidy.documents.length === 0 ? (
+                  <p className="mt-1 text-xs text-muted-foreground">None yet. Photograph each letter as it arrives.</p>
+                ) : (
+                  <ul className="mt-2 space-y-2">
+                    {order.subsidy.documents.map((d) => (
+                      <li key={d.fileId} className="flex items-center gap-3 text-sm">
+                        <a href={`/api/v1/files/${d.fileId}`} target="_blank" rel="noreferrer" className="shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- session-protected GridFS photo */}
+                          <img src={`/api/v1/files/${d.fileId}`} alt={SUBSIDY_DOC_LABELS[d.kind]} className="size-10 rounded-md border border-border object-cover" />
+                        </a>
+                        <div className="min-w-0">
+                          <p className="truncate">{SUBSIDY_DOC_LABELS[d.kind]}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {formatDate(d.at)} · {d.by}
+                            {d.note ? ` · ${d.note}` : ""}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </Section>
+          ) : null}
 
           <Section title="Linked records">
             <DetailList

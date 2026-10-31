@@ -11,6 +11,7 @@ import {
   enumOf,
   objectId,
   optionalEmail,
+  optionalGstin,
   optionalNumber,
   optionalText,
   phone,
@@ -30,6 +31,8 @@ const enquiryShape = {
   pincode,
   addressLine: optionalText(200),
   customerType: z.preprocess((v) => v || "residential", enumOf(CUSTOMER_TYPES, "property type")),
+  /** Businesses only: printed on their GST invoice so they can claim input credit. */
+  gstin: optionalGstin,
   capacityKw,
   systemType: enumOf(REQUESTED_SYSTEM_TYPES, "system type"),
   wantsSubsidy: checkbox,

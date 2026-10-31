@@ -93,3 +93,21 @@ export function quoteTotals(
     marginPaise: tax.taxablePaise - costPaise,
   };
 }
+
+/**
+ * The parts every package must carry, from the brief: a Panel Set is panels,
+ * connectors and wires; On-Grid adds the inverter, wiring boxes, charge
+ * controller, earthing, stands, lightning protection, the net meter and the
+ * installation line; Off-Grid swaps the net meter for a battery bank.
+ */
+export const REQUIRED_COMPONENTS: Record<SystemType, ProductCategory[]> = {
+  on_grid: ["panel", "inverter", "charge_controller", "structure", "acdb", "dcdb", "cable", "connector", "earthing", "lightning_arrestor", "meter", "service"],
+  off_grid: ["panel", "inverter", "charge_controller", "battery", "structure", "acdb", "dcdb", "cable", "connector", "earthing", "lightning_arrestor", "service"],
+  panel_set: ["panel", "connector", "cable"],
+};
+
+/** Categories a quote of this type should have but doesn't (warn before sending, R-24). */
+export function missingComponents(systemType: SystemType, lines: Pick<QuoteLine, "category" | "qty">[]): ProductCategory[] {
+  const present = new Set(lines.filter((l) => l.qty > 0).map((l) => l.category));
+  return REQUIRED_COMPONENTS[systemType].filter((c) => !present.has(c));
+}

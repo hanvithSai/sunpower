@@ -1,16 +1,21 @@
 /**
- * Build a confirmed order from nothing for flow checks: a fresh enquiry (random
- * mobile, so re-runs never dedupe), qualification, an approved survey with a
- * real photo in GridFS, a quote from the package, acceptance and the advance.
- * Uses the same services the screens call.
+ * Build orders from nothing for flow checks, through the same services the
+ * screens call: a fresh enquiry (random mobile, so re-runs never dedupe),
+ * qualification, an approved survey with a real photo in GridFS, a quote from
+ * the package, acceptance and the advance (makeConfirmedOrder) — and on to
+ * packed, dispatched, delivered and commissioned (makeCommissionedOrder),
+ * topping up stock through a goods receipt first so checks can be re-run.
  */
 import zlib from "node:zlib";
 import { addDays, addHours, startOfDayIST } from "@/lib/dates";
 import { toDateTimeInputValue } from "@/lib/format";
 import { expandPackage } from "@/lib/quote-calc";
 import type { SystemType } from "@/lib/constants";
-import { Order, User } from "@/server/models";
+import { Job, Order, Product, SerialUnit, User } from "@/server/models";
 import { saveSmallFile } from "@/server/services/core/files";
+import { deliverOrder, dispatchOrder, getDispatchDetail, scanSerial, setBulkPicked } from "@/server/services/dispatch";
+import { receiveGoods } from "@/server/services/inventory";
+import { completeJob, startJob } from "@/server/services/jobs";
 import { createLead, markLeadContacted, qualifyLead, scheduleSurvey } from "@/server/services/leads";
 import { recordPayment } from "@/server/services/payments";
 import { acceptQuote, getQuoteBuilderContext, saveQuote } from "@/server/services/quotes";
@@ -123,4 +128,83 @@ export async function makeConfirmedOrder(opts: { kw?: number; systemType?: Syste
   const advance = Math.round(order!.totalPaise / 2);
   const payment = await recordPayment({ orderId, amountPaise: advance, mode: "upi", type: "advance", reference: "UPI-FLOW-0001" }, sales);
   return { orderId, orderNumber: order!.number, leadNumber: lead.number, jobNumber: payment.jobNumber, totalPaise: order!.totalPaise, advancePaise: advance };
+}
+
+/** Receive whatever this order's pick list is short of, so packing never fails on an empty shelf. */
+export async function topUpStock(orderId: string) {
+  const warehouse = await staff("warehouse@sunpower.demo");
+  const order = await Order.findById(orderId).lean();
+  const tag = Date.now().toString(36).toUpperCase();
+  const lines: { productId: string; qty: number; unitCostRs: number; serials: string[] }[] = [];
+  for (const line of order!.pickList) {
+    const product = await Product.findById(line.productId).lean();
+    if (line.isSerialized) {
+      const free = await SerialUnit.countDocuments({ productId: line.productId, status: "in_stock" });
+      const short = line.qty + 1 - free; // one spare for replacement checks
+      if (short > 0) lines.push({ productId: String(line.productId), qty: short, unitCostRs: product!.costPaise / 100, serials: Array.from({ length: short }, (_, i) => `${line.sku}-CHK${tag}-${i + 1}`) });
+    } else if (product!.stockQty < line.qty) {
+      lines.push({ productId: String(line.productId), qty: line.qty * 3, unitCostRs: product!.costPaise / 100, serials: [] });
+    }
+  }
+  if (lines.length) {
+    await receiveGoods({ supplierName: "Sri Venkateswara Solar Distributors", supplierGstin: "36ABCFS7214K1Z8", invoiceNo: `SVSD/TOP/${tag}`, invoiceDate: toDateTimeInputValue(new Date()).slice(0, 10), notes: undefined, lines }, warehouse);
+  }
+}
+
+/** Confirmed → packed (every serial scanned, bulk lines ticked) → dispatched → delivered. */
+export async function packAndDeliver(orderId: string, receivedBy: string) {
+  const warehouse = await staff("warehouse@sunpower.demo");
+  await topUpStock(orderId);
+  const detail = (await getDispatchDetail(orderId))!;
+  for (const line of detail.lines) {
+    if (line.isSerialized) {
+      const units = await SerialUnit.find({ productId: line.productId, status: "in_stock" }).sort({ serial: 1 }).limit(line.qty).lean();
+      for (const u of units) await scanSerial(orderId, u.serial, warehouse);
+    } else {
+      await setBulkPicked(orderId, line.productId, true, warehouse);
+    }
+  }
+  await dispatchOrder({ orderId, vehicleNo: "TS09EA1234", driverName: "Raju", driverPhone: undefined }, warehouse);
+  await deliverOrder({ orderId, receivedBy, note: undefined }, warehouse);
+}
+
+/** Confirmed → packed → dispatched → delivered → installed and commissioned, by the booked crew. */
+export async function makeCommissionedOrder(opts: { kw?: number; systemType?: SystemType; name?: string } = {}) {
+  const made = await makeConfirmedOrder(opts);
+  await packAndDeliver(made.orderId, opts.name ?? "Flow Check Customer");
+
+  const job = (await Job.findOne({ orderId: made.orderId }).lean())!;
+  const leadUser = (await User.findById(job.technicianIds[0]).lean())!;
+  const crew: Staff = { id: String(leadUser._id), name: leadUser.name, role: "technician" };
+  await startJob(String(job._id), crew);
+  const now = new Date();
+  await completeJob(
+    {
+      jobId: String(job._id),
+      startedAt: toDateTimeInputValue(new Date(now.getTime() - 5 * 3_600_000)),
+      finishedAt: toDateTimeInputValue(now),
+      confirmedKw: opts.kw ?? 3,
+      kwChangeReason: undefined,
+      generationReadingKw: 2.2,
+      generationTested: true,
+      kitComplete: true,
+      missingItems: undefined,
+      mounting: true,
+      panels: true,
+      wiring: true,
+      earthing: true,
+      inverter: true,
+      photos: [await uploadPhoto(crew.id, "roof-done.png")],
+      photos__uploading: undefined,
+      signature: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+      signedBy: opts.name ?? "Flow Check Customer",
+      customerRemarks: undefined,
+      notes: undefined,
+      extras: [],
+      extraCostRs: undefined,
+      extraCostNote: undefined,
+    },
+    crew,
+  );
+  return { ...made, jobId: String(job._id) };
 }

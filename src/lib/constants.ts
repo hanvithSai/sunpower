@@ -19,6 +19,8 @@ export const COMPANY = {
   stateCode: "36",
   address: "Plot 42, HITEC City Road, Madhapur, Hyderabad, Telangana 500081",
   phone: "+91 40 4520 1200",
+  /** Support WhatsApp (10 digits, for wa.me links). Placeholder until the real business number is set. */
+  whatsapp: "9100045201",
   email: "hello@sunpower.example",
   website: "https://www.sunpowersolutions.me",
 } as const;
@@ -62,19 +64,27 @@ export const CUSTOMER_TYPE_LABELS: Record<CustomerType, string> = {
 export const DISCOMS = ["TSSPDCL", "TSNPDCL"] as const;
 export type Discom = (typeof DISCOMS)[number];
 
-export const SYSTEM_TYPES = ["on_grid", "off_grid"] as const;
+/**
+ * The four packages in the brief: On-Grid and Off-Grid systems, the hardware-
+ * only Panel Set (panels, connectors, wires), and Installation, which is the
+ * service line on a quote. An order books an installation crew only when it
+ * sells that service line, so a bare Panel Set ends at delivery.
+ */
+export const SYSTEM_TYPES = ["on_grid", "off_grid", "panel_set"] as const;
 export type SystemType = (typeof SYSTEM_TYPES)[number];
 export const SYSTEM_TYPE_LABELS: Record<SystemType, string> = {
   on_grid: "On-Grid",
   off_grid: "Off-Grid",
+  panel_set: "Panel Set",
 };
 
 /** What a homeowner can pick on the enquiry form (they may not know yet). */
-export const REQUESTED_SYSTEM_TYPES = ["on_grid", "off_grid", "unsure"] as const;
+export const REQUESTED_SYSTEM_TYPES = ["on_grid", "off_grid", "panel_set", "unsure"] as const;
 export type RequestedSystemType = (typeof REQUESTED_SYSTEM_TYPES)[number];
 export const REQUESTED_SYSTEM_TYPE_LABELS: Record<RequestedSystemType, string> = {
   on_grid: "On-Grid (with net metering)",
   off_grid: "Off-Grid (battery backup)",
+  panel_set: "Panels only (I have my own installer)",
   unsure: "Not sure — advise me",
 };
 
@@ -249,8 +259,18 @@ export type InstallChecklistKey = (typeof INSTALL_CHECKLIST)[number]["key"];
 /* Service                                                             */
 /* ------------------------------------------------------------------ */
 
-export const TICKET_STATUSES = ["open", "assigned", "in_progress", "resolved", "closed"] as const;
+/** A ticket closes only after the customer confirms the fix (BR-06). */
+export const TICKET_STATUSES = ["open", "assigned", "in_progress", "resolved", "customer_confirmed", "closed"] as const;
 export type TicketStatus = (typeof TICKET_STATUSES)[number];
+
+/** How the customer confirmed the fix. */
+export const CONFIRMATION_CHANNELS = ["call", "whatsapp", "on_site"] as const;
+export type ConfirmationChannel = (typeof CONFIRMATION_CHANNELS)[number];
+export const CONFIRMATION_CHANNEL_LABELS: Record<ConfirmationChannel, string> = {
+  call: "Phone call",
+  whatsapp: "WhatsApp",
+  on_site: "On site",
+};
 
 export const TICKET_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
 export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
@@ -269,6 +289,8 @@ export const TICKET_CATEGORIES = [
   "low_generation",
   "physical_damage",
   "battery",
+  "wiring_earthing",
+  "structure",
   "billing",
   "other",
 ] as const;
@@ -279,6 +301,8 @@ export const TICKET_CATEGORY_LABELS: Record<TicketCategory, string> = {
   low_generation: "Low generation",
   physical_damage: "Physical damage",
   battery: "Battery issue",
+  wiring_earthing: "Wiring / earthing",
+  structure: "Structure / roof leak",
   billing: "Billing / net meter",
   other: "Other",
 };
@@ -302,11 +326,23 @@ export const RESOLUTION_TYPE_LABELS: Record<ResolutionType, string> = {
   advice: "Resolved over phone",
 };
 
+/** `no_serial` = no SunPower installation to cover it (nothing to claim against). */
 export const WARRANTY_STATES = ["in_warranty", "out_of_warranty", "no_serial"] as const;
 export type WarrantyState = (typeof WARRANTY_STATES)[number];
 
+/**
+ * What the warranty decision rests on (BR-04): the serial's own warranty, or —
+ * for faults with no serial (wiring, earthing, structure) — our workmanship
+ * warranty from commissioning.
+ */
+export const WARRANTY_BASES = ["serial", "workmanship", "none"] as const;
+export type WarrantyBasis = (typeof WARRANTY_BASES)[number];
+
 /** Labour rate billed on out-of-warranty service visits (₹ per hour). */
 export const SERVICE_LABOUR_RATE_RS = 600;
+/** SAC for maintenance and repair services, billed at 18% GST. */
+export const SERVICE_SAC = "998719";
+export const SERVICE_GST_RATE = 18;
 
 /* ------------------------------------------------------------------ */
 /* Finance                                                             */
@@ -330,6 +366,18 @@ export const SUBSIDY_STATUSES = [
   "rejected",
 ] as const;
 export type SubsidyStatus = (typeof SUBSIDY_STATUSES)[number];
+
+/** Paperwork kept on the subsidy file, photographed by sales or the crew. */
+export const SUBSIDY_DOC_KINDS = ["application", "feasibility_letter", "net_meter_photo", "inspection_report", "disbursement_proof", "other"] as const;
+export type SubsidyDocKind = (typeof SUBSIDY_DOC_KINDS)[number];
+export const SUBSIDY_DOC_LABELS: Record<SubsidyDocKind, string> = {
+  application: "Portal application",
+  feasibility_letter: "DISCOM feasibility letter",
+  net_meter_photo: "Net meter photo",
+  inspection_report: "Inspection / commissioning report",
+  disbursement_proof: "Disbursement proof",
+  other: "Other",
+};
 
 /* ------------------------------------------------------------------ */
 /* Status badges                                                       */
@@ -400,6 +448,7 @@ export const STATUS_META = {
     assigned: { label: "Assigned", tone: "info" },
     in_progress: { label: "In progress", tone: "warning" },
     resolved: { label: "Awaiting confirmation", tone: "brand" },
+    customer_confirmed: { label: "Customer confirmed", tone: "success" },
     closed: { label: "Closed", tone: "success" },
   },
   invoice: {
@@ -421,7 +470,7 @@ export const STATUS_META = {
   warranty: {
     in_warranty: { label: "In warranty", tone: "success" },
     out_of_warranty: { label: "Out of warranty", tone: "danger" },
-    no_serial: { label: "No serial", tone: "neutral" },
+    no_serial: { label: "Not covered", tone: "neutral" },
     not_started: { label: "Not started", tone: "neutral" },
   },
   priority: {
@@ -476,5 +525,7 @@ export const ANALYTICS_EVENTS = [
   "report_exported",
   "search_performed",
   "search_result_opened",
+  "warranty_lookup",
+  "certificate_shared",
 ] as const;
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];

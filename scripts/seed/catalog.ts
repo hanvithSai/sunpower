@@ -120,6 +120,16 @@ function bom(kw: number, systemType: SystemType): { sku: string; qty: number }[]
   return lines;
 }
 
+/** Hardware only, as the brief lists it: panels, connectors and wires. */
+function panelSetBom(kw: number): { sku: string; qty: number }[] {
+  const panels = Math.ceil((kw * 1000) / 545);
+  return [
+    { sku: "PNL-WAA-545", qty: panels },
+    { sku: "MC4-PAIR", qty: Math.ceil(panels / 2) + 1 },
+    { sku: "CBL-DC-4", qty: 20 + 5 * kw },
+  ];
+}
+
 export const PACKAGES: PackageSeed[] = [1, 2, 3, 4, 5].flatMap((kw) => [
   {
     code: `ONG-${kw}`,
@@ -136,5 +146,13 @@ export const PACKAGES: PackageSeed[] = [1, 2, 3, 4, 5].flatMap((kw) => [
     capacityKw: kw,
     description: `${kw} kW system with tubular battery backup for power cuts and areas with weak grid supply.`,
     lines: bom(kw, "off_grid"),
+  },
+  {
+    code: `PNS-${kw}`,
+    name: `${kw} kW Panel Set`,
+    systemType: "panel_set" as const,
+    capacityKw: kw,
+    description: `Hardware only: ${Math.ceil((kw * 1000) / 545)} Waaree 545 Wp panels with MC4 connectors and DC cable, for customers with their own installer. Add the installation line to have our crew fit it.`,
+    lines: panelSetBom(kw),
   },
 ]);

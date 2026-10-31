@@ -36,29 +36,29 @@ Each module is a view of that one record. The system enforces the gates, so they
 
 ### 1b. Brief coverage audit (re-checked 31 Oct, 15:10)
 
-Every sentence of the brief was checked against this plan, `product/Requirements.md`, `product/Features.md`, `engineering/DB.md` and the code on `main` (`8be058d`). **Coverage on paper is complete. The gaps were in *how* some problems were solved**, and scenes 3 to 6 are not built yet.
+Every sentence of the brief was checked against this plan, `product/Requirements.md`, `product/Features.md`, `engineering/DB.md` and the code on `main` (`8be058d`). **Coverage on paper is complete. The gaps were in *how* some problems were solved.** The "Built" column was re-verified against the code on 31 Oct, 20:30: every row is built (Phases 0–3 complete).
 
 | Brief asks | Plan before | Built | Gap found → fix (feature) |
 |---|---|---|---|
 | Enquiries from WhatsApp, calls, web; never vanish; reach sales at once | ✅ | ✅ | None. Dedupe, auto-assignment, SLA badge and no-delete are live |
 | Qualify by phone (roof, bill, grid), survey (direction, tilt, cable), quote only after approval | ✅ | ✅ | Technicians land on `/my-work`, which is still a placeholder; they reach surveys only through `/surveys` → build My work first in 2.4 (F12) |
-| Four packages: Panel Set, On-Grid, Off-Grid, Installation | 🟨 | 🟨 | Only the 10 On/Off-Grid systems are seeded; the hardware-only **Panel Set** (panels, connectors, wires) is missing → seed 5 panel-set packages (F07). Installation is already a service line on every system quote |
+| Four packages: Panel Set, On-Grid, Off-Grid, Installation | 🟨 | ✅ | Only the 10 On/Off-Grid systems are seeded; the hardware-only **Panel Set** (panels, connectors, wires) is missing → seed 5 panel-set packages (F07). Installation is already a service line on every system quote |
 | Quote from template, parts follow on their own | ✅ | ✅ | None. 12–13 BOM lines per system incl. charge controller, earthing, lightning arrestor |
 | Advance or full payment → warehouse knows, crew sees the job | ✅ | ✅ | Crew is picked by overall load, **not by who is free on the install date**, so two jobs on one day can share technicians → pick crew free that day (F09/F12, R-72) |
-| Scan every serial before it leaves; which unit went to which customer | ✅ | ⬜ | Serialized stock enters only through a GRN, and none is seeded yet, so nothing can be dispatched → seed GRNs with serials + printed barcodes (3.5, moved earlier to 2.1) |
-| Warranty clock starts by itself at delivery | ✅ | ⬜ | Faults with no serial (wiring, earthing, structure) were "Not applicable", which **bills a customer for our own workmanship** → 60-month workmanship warranty from commissioning (F13, R-70) |
-| Simple phone form, times, size, photos, signature, clear proof | ✅ | ⬜ | Proof stayed inside the app → certificate lists installed serials + warranty ends and goes to the customer as a link (F12, F22-lite) |
-| Find customer + serial in seconds; in warranty → free; else billed; ticket until customer confirms | ✅ | ⬜ | Code allows `resolved → closed` with no confirmation, contradicting BR-06 → add `customer_confirmed` status (F13). Free repairs had no cost owner → charge parts at cost + labour to the original order's profit (F14, R-71) |
-| Which installations made / lost money | ✅ | ⬜ | Profit would equal the quote margin unless real costs are captured → GRN cost per serial, time logs × rate, site extras as stock moves, warranty repairs (F14) |
-| What is still unfinished | 🟨 | ⬜ | "No stage change for 7 days" misses customers waiting on a step → count and list each pending step (F15) |
-| Advance payments, stock purchases, technician hours scattered | 🟨 | ⬜ | Not on the dashboard → KPIs for advances held, purchases this period, hours logged (F15) |
-| Invoices to send | ✅ | ⬜ | Sale invoice was planned at delivery; GST needs it at or before removal of goods → **issue at dispatch** (F14, R-73) |
-| Subsidy paperwork to track | P1 | 🟨 data model only | Explicit in the brief but could be cut → **P0-lite** (F16) |
-| Technicians to pay | P1 | ⬜ | Explicit in the brief but could be cut → **P0-lite** (F18) |
-| Share these numbers | P1 | ⬜ | Explicit in the brief and in demo step 7 but could be cut → **P0-lite** (F17) |
-| Today / this week / this month; profit per job; open repairs | ✅ | ⬜ | None |
+| Scan every serial before it leaves; which unit went to which customer | ✅ | ✅ | Serialized stock enters only through a GRN, and none is seeded yet, so nothing can be dispatched → seed GRNs with serials + printed barcodes (3.5, moved earlier to 2.1) |
+| Warranty clock starts by itself at delivery | ✅ | ✅ | Faults with no serial (wiring, earthing, structure) were "Not applicable", which **bills a customer for our own workmanship** → 60-month workmanship warranty from commissioning (F13, R-70) |
+| Simple phone form, times, size, photos, signature, clear proof | ✅ | ✅ | Proof stayed inside the app → certificate lists installed serials + warranty ends and goes to the customer as a link (F12, F22-lite) |
+| Find customer + serial in seconds; in warranty → free; else billed; ticket until customer confirms | ✅ | ✅ | Code allows `resolved → closed` with no confirmation, contradicting BR-06 → add `customer_confirmed` status (F13). Free repairs had no cost owner → charge parts at cost + labour to the original order's profit (F14, R-71) |
+| Which installations made / lost money | ✅ | ✅ | Profit would equal the quote margin unless real costs are captured → GRN cost per serial, time logs × rate, site extras as stock moves, warranty repairs (F14) |
+| What is still unfinished | 🟨 | ✅ | "No stage change for 7 days" misses customers waiting on a step → count and list each pending step (F15) |
+| Advance payments, stock purchases, technician hours scattered | 🟨 | ✅ | Not on the dashboard → KPIs for advances held, purchases this period, hours logged (F15) |
+| Invoices to send | ✅ | ✅ | Sale invoice was planned at delivery; GST needs it at or before removal of goods → **issue at dispatch** (F14, R-73) |
+| Subsidy paperwork to track | P1 | ✅ stages + papers | Explicit in the brief but could be cut → **P0-lite** (F16) |
+| Technicians to pay | P1 | ✅ | Explicit in the brief but could be cut → **P0-lite** (F18) |
+| Share these numbers | P1 | ✅ | Explicit in the brief and in demo step 7 but could be cut → **P0-lite** (F17) |
+| Today / this week / this month; profit per job; open repairs | ✅ | ✅ | None |
 
-**Doc drift to clean up in 5.2 (code is the source of truth):** ticket priorities (`low/medium/high/urgent` in code vs `low/normal/high` in Features.md), lead source `website` (not `web`), order statuses `ready_to_dispatch` and `closed` missing from Features.md F09, job status `to_schedule` in Features.md (code auto-schedules instead), and the collections list in section 5 (fixed below).
+**Doc drift (code is the source of truth) — ✅ cleaned up 31 Oct, 19:30 in Features.md, DB.md and this file:** ticket priorities (`low/medium/high/urgent` in code vs `low/normal/high` in Features.md), lead source `website` (not `web`), order statuses `ready_to_dispatch` and `closed` missing from Features.md F09, job status `to_schedule` in Features.md (code auto-schedules instead), and the collections list in section 5 (fixed below).
 
 ---
 
@@ -216,7 +216,7 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 | 1.2 | Public enquiry form, pipeline kanban/table, lead detail + timeline, qualification UI, survey mobile form + review | Hanvith | `feat/leads-ui` | ✅ |
 | 1.3 | Schemas + services: products, packages/BOM, quote (calc engine: subsidy, GST, paise), order, payments + automations | Vamshi | `feat/catalog-quotes-api` | ✅ (flow check: scripts/check-sale-flow.ts, 15/15) |
 | 1.4 | Survey mobile form, quote builder (template → BOM), printable quote, order + payment UI, catalog | Hanvith | `feat/leads-ui`, `feat/quotes-ui` | ✅ |
-| 1.5 | Seed v1: users, catalog (30 products, 10 packages, opening stock) — leads/orders at all stages come with the full seed (3.5) | Vamshi | `feat/catalog-quotes-api` | ✅ users + catalog · ⬜ pipeline data |
+| 1.5 | Seed v1: users, catalog (30 products, 10 packages, opening stock) — leads/orders at all stages come with the full seed (3.5) | Vamshi | `feat/catalog-quotes-api`, `feat/panel-sets` | ✅ users + catalog; pipeline data landed with 3.5; 5 Panel Set packages added 31 Oct, 20:00 (15 packages) |
 
 ### Phase 2: Operations (15:30 → 19:30), golden path part 2
 | # | Task | Owner | Branch | Status |
@@ -229,24 +229,25 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 ### Phase 3: Service, finance, insight (19:30 → 00:30)
 | # | Task | Owner | Branch | Status |
 |---|---|---|---|---|
-| 3.1 | Global search (phone with +91/spaces normalised, last-4 of serial or phone, names, document numbers), ticket state machine **with `customer_confirmed`** (close only from it; "Not fixed" reopens), warranty per serial + **workmanship warranty for no-serial faults**, billability override with reason, out-of-warranty auto invoice, **in-warranty cost charged to the order**, serial replacement (BR-15) | Vamshi | `feat/service-api` | ⬜ |
-| 3.2 | ⌘K record search, ticket list/detail, warranty card, confirmation dialog (who, channel, when) | Hanvith | `feat/service-ui` | ⬜ |
-| 3.3 | Invoices, **costing from actuals** (GRN cost, time logs × rate, extras, warranty repairs), dashboard aggregations (today/week/month, advances held, purchases, hours, **unfinished steps**), subsidy stage action, share links (create + expiry) + profit CSV, payroll summary + CSV | Vamshi | `feat/finance-api` | ⬜ |
-| 3.4 | Director dashboard (KPIs, revenue trend, P&L table with cost breakdown, unfinished-steps board, open repairs), invoices, subsidy board + order stepper, `/share/[token]` view, `/team` payouts | Hanvith | `feat/dashboard-ui` | ⬜ |
-| 3.5 | Seed v2 (22:30 → 01:30): full history plus the section 6 must-haves (18-month and 28-month projects, no-serial ticket, panel sets, loss-makers with causes, every pending step) | Vamshi | `feat/seed` | ⬜ |
+| 3.1 | Global search (phone with +91/spaces normalised, last-4 of serial or phone, names, document numbers), ticket state machine **with `customer_confirmed`** (close only from it; "Not fixed" reopens), warranty per serial + **workmanship warranty for no-serial faults**, billability override with reason, out-of-warranty auto invoice, **in-warranty cost charged to the order**, serial replacement (BR-15) | Vamshi | `feat/service-api` | ✅ (flow check: scripts/check-service-flow.ts, 29/29: 18- and 28-month installs, workmanship, ₹0 replacement charged to the order, auto invoice, override, confirm-before-close) |
+| 3.2 | ⌘K record search, ticket list/detail, warranty card, confirmation dialog (who, channel, when) | Hanvith | `feat/service-ui` | ✅ ⌘K search wired, ticket list (SLA, cover), raise-ticket lookup with warranty-first card, ticket page with book / start / resolve / override / confirm / close / not fixed |
+| 3.3 | Invoices, **costing from actuals** (GRN cost, time logs × rate, extras, warranty repairs), dashboard aggregations (today/week/month, advances held, purchases, hours, **unfinished steps**), subsidy stage action, share links (create + expiry) + profit CSV, payroll summary + CSV | Vamshi | `feat/finance-api` | ✅ (flow check: scripts/check-finance-flow.ts, 21/21: costing from actuals, unfinished steps, advances held, masked share view, subsidy stages, expiring / revocable links, payroll; profit + payroll CSV) |
+| 3.4 | Director dashboard (KPIs, revenue trend, P&L table with cost breakdown, unfinished-steps board, open repairs), invoices, subsidy board + order stepper, `/share/[token]` view, `/team` payouts | Hanvith | `feat/dashboard-ui` | ✅ dashboard (8 KPIs, validated 12-month chart, profit per job with cost drivers, unfinished-steps board, repairs, subsidy), masked `/share/[token]` + CSV, invoices + printable GST invoice, subsidy board + order stepper, job costing card, team payroll |
+| 3.5 | Seed v2 (22:30 → 01:30): full history plus the section 6 must-haves (18-month and 28-month projects, no-serial ticket, panel sets, loss-makers with causes, every pending step) | Vamshi | `feat/seed` | ✅ 121 installations over 14 months + 18/25/28-month projects (1,103 serials, 17 monthly GRNs, invoices, payments, subsidy stages, 3 loss-makers with causes, 2 warranty repairs) and today's pipeline via services (11 leads at every stage, 8 live orders, 6 tickets); idempotent, ~15 s locally |
 
 ### Phase 3b: Brief-complete extras (00:30 → 02:30, only after the golden path passes on production)
 | # | Task | Owner | Branch | Status |
 |---|---|---|---|---|
-| 3.6 | Certificate link by `wa.me` on job completion (F22-lite, reuses share tokens) | Vamshi / Hanvith | `feat/certificate-link` | ⬜ |
-| 3.7 | Public warranty lookup (F20) | Vamshi / Hanvith | `feat/warranty-lookup` | ⬜ |
-| 3.8 | Subsidy documents upload, share-link revoke, invoice/ticket CSVs (F16/F17 full) | Vamshi / Hanvith | `feat/finance-extras` | ⬜ |
+| 3.6 | Certificate link by `wa.me` on job completion (F22-lite, reuses share tokens) | Vamshi / Hanvith | `feat/certificate-link` | ✅ 90-day `certificate` share link created at completion (or from the job); Send on WhatsApp + copy + revoke; public certificate without the phone; photos through the token only; profit CSV refuses it (finance flow check) |
+| 3.7 | Public warranty lookup (F20) | Vamshi / Hanvith | `feat/warranty-lookup` | ✅ `/warranty` + `POST /api/v1/warranty`: serial, or mobile + last 4; masked name, units, workmanship; 10/IP/hour; one answer for every miss. Fixes the 404 behind ⌘K's "Check warranty" and the public header |
+| 3.8 | Subsidy documents upload, share-link revoke, invoice/ticket CSVs (F16/F17 full) | Vamshi / Hanvith | `feat/finance-extras` | ✅ photographed subsidy papers on the order (PDF ✂️: staff photograph them), feasibility warning on job, order and reschedule; invoice + ticket CSVs (formula-safe); revoke was already live |
+| 3.9 | Gaps found in the 31 Oct, 20:00 verification of Phases 0–3 against Requirements.md | Vamshi / Hanvith | `feat/customers`, `feat/panel-sets`, `feat/quote-checks`, `feat/stock-adjust` | ✅ Customer 360 (`/customers`, R-01; replaced the last placeholder route), Panel Sets (R-08/R-09), missing-parts gate before sending a quote (R-24), business GSTIN on the enquiry (R-03), technician filter on `/service` (R-07), stock correction + serial write-off + serial history (F10) |
 
 ### Phase 4: Hardening (02:30 → 04:00)
 | # | Task | Owner | Branch | Status |
 |---|---|---|---|---|
-| 4.1 | Unit tests (Vitest): quote calc, state machines (incl. `customer_confirmed`), warranty dates + workmanship, costing (incl. warranty repair), crew availability. 6 tests already in CI | Vamshi | `test/core` | ⬜ |
-| 4.2 | Flow checks instead of Playwright: extend `scripts/check-*-flow.ts` with `check-ops-flow.ts` (GRN → dispatch → invoice → delivery → warranties → job complete) and `check-service-flow.ts` (in/out of warranty, no-serial, confirmation gate), run against Atlas. Playwright E2E ✂️ | Vamshi | `test/flows` | ⬜ |
+| 4.1 | Unit tests (Vitest): quote calc, state machines (incl. `customer_confirmed`), warranty dates + workmanship, costing (incl. warranty repair), crew availability | Vamshi | `test/core` | 🟨 55 tests in CI (form schemas, packing gate, ticket confirmation gate, missing quote parts, Panel Set flow, CSV guard, feasibility, warranty lookup form, DB errors); GST maths, warranty dates and costing still to add |
+| 4.2 | Flow checks instead of Playwright: `check-ops-flow.ts` and `check-service-flow.ts` (+ `check-finance-flow.ts`), run on development databases. Playwright E2E ✂️ | Vamshi | `feat/jobs-api`, `feat/service-api`, `feat/finance-api` | ✅ lead 10/10 · sale 18/18 · ops 55/55 · service 29/29 · finance 36/36 (148 checks, re-run 31 Oct, 20:25) |
 | 4.3 | PostHog: only if the key arrives (Requirements Q4); server events already flow through `trackServer`. Otherwise ✂️ | Hanvith | `feat/analytics` | ⬜ |
 | 4.4 | UX polish: 360 px pass on technician screens, empty states, a11y, loading skeletons; F23 local draft if time allows | Hanvith | `feat/ui-polish` | ⬜ |
 
@@ -272,6 +273,18 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 5. The technician opens **My work** on a phone and completes the job: times, photos, the extra cable used, **customer signature**. The certificate lists every installed serial.
 6. "Eighteen months later": support types the last 4 digits of the inverter serial in ⌘K, sees "In warranty, 6 months left" and raises a ₹0 ticket. Resolving it doesn't close it; it waits for the **customer's confirmation**. Then show the 28-month-old project, where the inverter is out of warranty and the **invoice is generated automatically**.
 7. The director opens the dashboard: **profit per job** with losers highlighted and their causes, unfinished steps per customer, advances held, open repairs, subsidy stages and technician payouts, then **shares a read-only link**.
+
+**Records to use on production (seeded 31 Oct; logins `<role>@sunpower.demo`, password `SunPower@2026`):**
+
+| Step | Record |
+|---|---|
+| 1 | Submit `/enquiry` live on a phone; two seeded enquiries (Mahender Goud, Swathi Reddy) are already past the 2-hour SLA |
+| 2 | Kavitha Sharma's survey is waiting for approval; Naresh Yadav is approved and ready to quote |
+| 3–4 | Dispatch shows the confirmed orders to pack (Divya Prasad, Krishna Rao, Manjula Devi); in-stock serials to scan or type include `WAA545-2610-0001`…, `GRW3K-2610-0001`, `LUMCC40-2609-0005` (Human_Tasks #16 for printed labels) |
+| 5 | `tech@` (Ravi) has his visits in My work. For the completion form use `director@` → Installations → Usha Rani's job (in progress); director can act for any crew |
+| 6 | ⌘K `GRW3K-H2504` → **Venkata Ramana Rao**, inverter `GRW3K-H2504-0001`, "In warranty · 6 mo left" (no ticket yet; raise it live). Out of warranty: **Padmavathi Devi**, `GRW3K-H2406-0001`, "Expired 4 mo ago" (a past lightning repair was billed automatically). Workmanship: **Lakshmi Prasanna**'s open wiring ticket at ₹0 |
+| Extras | Public `/warranty`: serial `GRW3K-H2504-0001`. Customer 360: ⌘K "Venkata Ramana Rao" → customer. Panel Sets: Catalog, or Venu Gopal Reddy's order (closed at delivery, after Human_Tasks #18). Certificate link: any completed installation → "Send on WhatsApp" |
+| 7 | Loss-makers: SP-O-0092 (re-wiring after a failed DISCOM inspection), SP-O-0063 (wrong inverter sent back), SP-O-0038 (roof-leak rework). Note: "Haritha Chowdary" is both a past job and a live order (two customers with the same name) |
 
 ---
 
@@ -330,5 +343,8 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 | 31 Oct, 15:00 | Both | Functions moved to Mumbai (`bom1`); health check now reports failure `reason`, `version` and `region`; first unit tests (Vitest, 6) in CI |
 | 31 Oct, 15:10 | Hanvith | **Brief re-audit** (section 1b): coverage complete on paper; 13 fixes to *how* problems are solved (workmanship warranty, customer-confirmed status, invoice at dispatch, crew availability, real costing, warranty cost to order, unfinished-steps board, advances/purchases KPIs, panel-set packages, My work first, GRN seed earlier, certificate to customer). F16–F18 → P0-lite; F21 cut; Playwright → flow checks; timeline re-baselined to clock times |
 | 31 Oct, 16:55 | Both | **Phase 2 complete** (inventory, dispatch, installation), merged and pushed with commits from both developers. Ops flow check 46/46 and 22 unit tests on local MongoDB; production build green. GRNs (4 receipts, 181 serials) seed through the real service. Atlas needs `npm run seed -- --yes` for the GRNs before the dispatch demo |
-| 31 Oct, 17:40 | Hanvith | Code walkthrough added: `engineering/Codebase.md` (one order end to end, modules, files, key functions, who built what) at `b799ac3`; README status synced with Phase 2 |
-| Next | Both | Phase 3: service desk (⌘K search, tickets with `customer_confirmed`, workmanship warranty, out-of-warranty invoice), finance (costing from actuals, dashboard, subsidy, share link, payroll) and the full seed |
+| 31 Oct, 17:40 | Hanvith | Code walkthrough added: `engineering/Codebase.md` (one order end to end, modules, files, key functions, who built what) at `b799ac3`; README status synced with Phase 2 (snapshot; Phase 3 not yet in it) |
+| 31 Oct, 18:40 | Both | **Phase 3 complete (local, not pushed)**: ⌘K search, service desk (warranty per serial + workmanship, ₹0 repairs charged to the installation, auto service invoice, confirm-before-close), costing from actuals, dashboard with unfinished steps and validated trend chart, masked share links + CSV, invoices, subsidy board, payroll, full demo seed. Flow checks: ops 46/46, service 29/29, finance 21/21; 33 unit tests |
+| 31 Oct, 19:30 | Both | Pushed; Vercel deployed `2620e01` (health `db: up`, `bom1`). **Atlas seeded** and verified on production: ⌘K finds the 18-month inverter "In warranty · 6 mo left", 12-month trend filled, three loss-makers, 10 orders to pack. All docs synced with Phases 2–3 (README, Setup, API, DB, Architecture, Engineering incidents 5–7, Features, Human_Tasks, Agent_Content) and the 1b doc drift cleaned up |
+| 31 Oct, 20:30 | Both | **Phases 0–3 verified and finished (local, not pushed).** Checked every requirement (R-01…R-73) and every plan row against the code. Built what was missing: public warranty lookup (fixes a 404 linked from five places), Customer 360, Panel Sets end to end (no crew unless installation is sold; closes at delivery), missing-parts gate on quotes, business GSTIN, certificate link on WhatsApp, subsidy papers + feasibility warning, invoice/ticket CSVs (formula-safe), technician filter, stock correction and serial write-off + history. 148 flow checks and 55 unit tests pass; production build rendered every page per role on local data |
+| Next | Both | Push `main`, re-run the seed on Atlas for Panel Sets (Human_Tasks #18), real WhatsApp number (#19), PostHog key in Vercel (#8); 4.1 remaining unit tests; 4.4 polish; then the 5.x bug bash and demo video |

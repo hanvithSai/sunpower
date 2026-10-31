@@ -6,7 +6,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ActionState } from "@/lib/action-state";
-import { QuoteIdSchema, RejectQuoteSchema, SaveQuoteSchema } from "@/lib/validation/quotes";
+import { MarkQuoteSentSchema, QuoteIdSchema, RejectQuoteSchema, SaveQuoteSchema } from "@/lib/validation/quotes";
 import { trackServer } from "../analytics";
 import { runAction } from "../lib/action";
 import { parseForm, parseInput } from "../lib/validate";
@@ -41,8 +41,8 @@ export async function saveQuoteAction(input: unknown): Promise<ActionState> {
 
 export async function markQuoteSentAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return runAction(["sales"], async (user) => {
-    const { quoteId } = parseForm(QuoteIdSchema, formData);
-    await markQuoteSent(quoteId, user);
+    const { quoteId, sendWithMissing } = parseForm(MarkQuoteSentSchema, formData);
+    await markQuoteSent(quoteId, user, { sendWithMissing });
     refreshQuote(quoteId);
     trackServer("quote_sent", {}, user.id);
     return { ok: true, message: "Marked as sent" };

@@ -100,9 +100,11 @@ Money and cycle-time KPIs appear on the in-app dashboard (F15), computed from Mo
 | `ticket_closed` | none | A ticket is closed after the customer confirms | Server | F13 |
 | `invoice_issued` | `type` (`order`, `service`) | An invoice is issued by hand or automatically | Server | F14 |
 | `share_link_created` | none | The director creates a read-only share link | Server | F17 |
-| `report_exported` | none | A CSV export download starts | Client | F17 |
+| `report_exported` | `report` (`invoices`, `tickets`), `rows` (integer) | An invoice or ticket CSV is generated | Server | F17 |
 | `search_performed` | `resultCount` (integer) | A search settles (300 ms after typing stops, at least 2 characters); the query text is never sent | Client | F02, F13 |
 | `search_result_opened` | `type` (`customer`, `serial`, `order`, `ticket`, `lead`, `quote`, `invoice`) | A search result is opened | Client | F13 |
+| `warranty_lookup` | `by` (`serial`, `phone`), `found` (boolean) | A public warranty check is answered (the serial and phone are never sent) | Server | F20 |
+| `certificate_shared` | none | A customer certificate link is created from the job page | Server | F22 |
 | `$pageview` | Automatic (URL sanitised by `before_send`) | Every route change | Client | All |
 | `$exception` | Automatic (type, message, stack) | An unhandled client error; server errors via `onRequestError` | Client, Server | All |
 

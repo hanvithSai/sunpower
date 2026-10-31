@@ -51,7 +51,8 @@ export const ORDER_FLOW: Flow<OrderStatus> = {
   confirmed: ["ready_to_dispatch", "cancelled"],
   ready_to_dispatch: ["dispatched", "confirmed"],
   dispatched: ["delivered"],
-  delivered: ["installing", "commissioned"],
+  // Hardware-only orders (a Panel Set without the installation line) close at delivery.
+  delivered: ["installing", "commissioned", "closed"],
   installing: ["commissioned"],
   commissioned: ["closed"],
   closed: [],
@@ -65,12 +66,17 @@ export const JOB_FLOW: Flow<JobStatus> = {
   cancelled: [],
 };
 
+/**
+ * BR-06: resolving never closes a ticket. The customer's confirmation (who, how,
+ * when) comes first; only then can it close. "Not fixed" sends it back to
+ * in_progress from resolved, confirmed or even closed.
+ */
 export const TICKET_FLOW: Flow<TicketStatus> = {
   open: ["assigned", "in_progress", "resolved"],
-  assigned: ["in_progress", "open", "resolved"],
-  in_progress: ["resolved"],
-  // Customer says it still does not work -> back to in_progress.
-  resolved: ["closed", "in_progress"],
+  assigned: ["assigned", "in_progress", "open", "resolved"],
+  in_progress: ["assigned", "resolved"],
+  resolved: ["customer_confirmed", "in_progress"],
+  customer_confirmed: ["closed", "in_progress"],
   closed: ["in_progress"],
 };
 

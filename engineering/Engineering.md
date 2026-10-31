@@ -49,7 +49,9 @@ Each decision below records **what** we chose, **why**, and **how it helps** lat
 - Role checks in the proxy, on pages and on every mutation (defence in depth).
 - Rate limiting and a honeypot on public endpoints. Privacy masking on the public warranty lookup.
 - No PII in analytics. `poweredByHeader` disabled.
-- Uploads: type allow-list, size caps, server-side validation, auth required for read and write.
+- Uploads: type allow-list, size caps, server-side validation, auth required for read and write (the only exception: a valid certificate link reads that job's own photos).
+- Public warranty lookup: POST only, 10 per IP per hour, the same answer for every miss, and the last 4 of a serial as a second factor for phone lookups.
+- CSV exports prefix text that would start a spreadsheet formula (`=`, `+`, `-`, `@`), because names come from the public form.
 
 ## Performance
 
@@ -63,11 +65,11 @@ Each decision below records **what** we chose, **why**, and **how it helps** lat
 
 | Layer | Tool | Scope |
 |---|---|---|
-| Unit | Vitest | `src/lib` rules: GST splits, subsidy slabs, warranty dates, IST ranges, state machines, validators |
-| Integration | Vitest + mongodb-memory-server (replica set) | services: counters, invoicing, stock ledger, payment → order confirmation, dispatch gate, delivery → warranties, ticket billing |
-| End-to-end | Playwright (planned) | golden path smoke test on the preview URL |
-| Unit ✅ (started) | Vitest (`npm test`, runs in CI) | `tests/unit/db-errors.test.ts`: database failure classification (6 tests) |
-| Flow smoke checks ✅ | `scripts/check-lead-flow.ts`, `scripts/check-sale-flow.ts` (tsx, real database) | lead → survey → approval gate (10 checks) and quote → order → payment → pick list + job (15 checks), including every guard |
+| Unit ✅ | Vitest (`npm test`, runs in CI) — 55 tests | database failure classification; the forms exactly as the browser posts them (FormData → Zod: completion form, GRN, scans, stock corrections, tickets, overrides, confirmations, warranty lookup, GSTIN, subsidy papers); the packing gate (BR-02); the ticket confirmation gate (BR-06); missing quote parts (R-24); Panel Set subsidy and closing; the subsidy feasibility rule; the CSV writer's quoting and formula guard |
+| Flow smoke checks ✅ | `scripts/check-*-flow.ts` (tsx, real database; replace an integration suite) — 148 checks | lead → survey gate (10), quote (missing-parts gate) → order → payment (18), **ops** GRN → crew booking → packing guards → dispatch + invoice → warranties → installation proof → stock corrections → Panel Set closes at delivery (55), **service** search → warranty per serial / workmanship → ₹0 replacement charged to the order → auto invoice → confirm-before-close (29), **finance** costing from actuals → dashboard → subsidy stages, papers and feasibility warning → CSV exports → share and certificate links → payroll (36). The last three build their own orders and top up stock, so they re-run safely on any development database |
+| Seed verification ✅ | ad-hoc against a fresh database | stock equals the ledger for every product; serialized stock equals in-stock units; warranty dates of the backdated scenes; invoice numbering per financial year; idempotent re-run |
+| Rendering checks ✅ | signed-in `curl` of every page per role against `next build && next start`, plus content assertions | every page renders with real data (no error boundary); each new feature appears in the HTML; public routes checked signed out (warranty answers, certificate link without a phone, photo access only with that job's token, profit CSV refuses a certificate token) |
+| End-to-end ✂️ | Playwright | cut on 31 Oct in favour of the flow checks above (Plan.md decision 8); browser interaction (camera, signature, form submits) is checked by hand |
 
 CI (`.github/workflows/ci.yml`) runs lint → typecheck → test → build on every PR and every push to `main`.
 
@@ -79,6 +81,10 @@ CI (`.github/workflows/ci.yml`) runs lint → typecheck → test → build on ev
 | 2 | Dev server reported "uncached data … outside of <Suspense>" | Pages read the session without a route-level Suspense boundary (Partial Prefetching) | `loading.tsx` in every `(app)` route folder | Rule documented in Architecture §3 and Agent_Content |
 | 3 | ⌘K palette threw "Cannot read properties of undefined (reading toLowerCase)" | Browser autofill fires synthetic `keydown` events without a `key` | Guard `typeof event.key === "string"` | Never assume optional DOM event fields exist |
 | 4 | **Production sign-in failed** ("We couldn't sign you in right now") | The `MONGODB_URI` set in Vercel had credentials Atlas rejected. `/api/v1/health` failed in about 2 s every time: a missing variable fails instantly and an IP block hangs for the 30 s timeout, so Atlas was reachable but refused the login | Updated the variable in Vercel and redeployed; health `db: up` on `681cea0` | Env-var checklist in Setup §8 (no quotes or placeholders; redeploy after edits; verify health `db` and `version`); the health response now reports a safe failure `reason` (`auth_failed`, `uri_invalid`, `uri_missing`, `dns`, `timeout`) plus `version` and `region` |
+| 5 | `next dev` kept serving an old version of a service after it was edited (the certificate missed its workmanship row) | Turbopack kept a stale server module for `services/jobs.ts` even after the file changed; a production build of the same code was correct | Verified with `next build && next start` on another port | When dev output disagrees with a direct service call, restart `npm run dev` before debugging (Setup §10) |
+| 6 | Production looked empty after "seeding" | `.env.local` pointed at the local database, so `npm run seed -- --yes` seeded local; `--yes` only confirms, it does not choose the database | Re-ran with `MONGODB_URI` set to Vercel's string for that one command; checked the `Connected to … / sunpower` line | Setup §6 shows how to target Atlas; always read the `Connected to` line before a remote seed |
+| 7 | Seed pipeline stopped half-way on a busy development database | Earlier flow-check runs had used up the in-stock panels and controllers, so packing came up short | Pipeline tops up stock with a goods receipt before packing and resumes per customer on re-run | Seeds must not assume an empty database; flow checks top up stock too |
+| 8 | A new page (`/customers/[id]`) failed with `getCustomer360 is not a function` on `next dev` | Turbopack kept the old `services/customers.ts` module after new exports were added (same cause as #5) | Verified on `next build && next start`, where it rendered | Already in Setup §10; verify new server exports on a production build before chasing a bug |
 
 ## Standards
 

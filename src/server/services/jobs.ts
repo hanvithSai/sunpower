@@ -15,6 +15,7 @@ import { SYSTEM_TYPE_LABELS, type Role } from "@/lib/constants";
 import { addDays, getRange, startOfDayIST } from "@/lib/dates";
 import { formatDateTime, fromISTInput } from "@/lib/format";
 import { formatINR } from "@/lib/money";
+import { feasibilityPending } from "@/lib/subsidy";
 import type { CompleteJobInput, RescheduleJobInput } from "@/lib/validation/jobs";
 import { JOB_FLOW, ORDER_FLOW } from "@/lib/workflows";
 import { connectDB, withTransaction } from "../db";
@@ -155,7 +156,8 @@ export async function getMyWork(userId: string, now: Date) {
       return {
         kind: j.type,
         id: String(j._id),
-        href: `/jobs/${j._id}`,
+        // Service visits are worked from their ticket; installations from the job.
+        href: j.type === "service" && j.ticketId ? `/service/${j.ticketId}` : `/jobs/${j._id}`,
         number: j.number,
         title: j.title,
         at: j.scheduledFor,
@@ -187,7 +189,7 @@ export async function getJobDetail(jobId: string) {
 
   const [customer, order, crew, serials, materials] = await Promise.all([
     Customer.findById(job.customerId).select("name phone email address discom consumerNumber").lean(),
-    job.orderId ? Order.findById(job.orderId).select("number status capacityKw systemType lines pickList dispatch commissionedAt").lean() : null,
+    job.orderId ? Order.findById(job.orderId).select("number status capacityKw systemType lines pickList dispatch commissionedAt subsidy.applicable subsidy.status").lean() : null,
     User.find({ _id: { $in: job.technicianIds } }).select("name phone").lean(),
     job.orderId ? SerialUnit.find({ orderId: job.orderId }).select("serial productName category status warrantyStartAt warrantyEndAt").sort({ category: 1, serial: 1 }).lean() : [],
     Product.find({ active: true, isSerialized: false, category: { $nin: ["service"] } }).select("sku name unit costPaise").sort({ name: 1 }).lean(),
@@ -219,6 +221,7 @@ export async function getJobDetail(jobId: string) {
       materialsUsed: job.materialsUsed.map((m) => ({ ...m, productId: String(m.productId) })),
       crew: job.technicianIds.map((id) => ({ id: String(id), name: crewById.get(String(id))?.name ?? "—", phone: crewById.get(String(id))?.phone, lead: Boolean(job.leadTechnicianId?.equals(id)) })),
       technicianIds: job.technicianIds.map(String),
+      ticketId: job.ticketId ? String(job.ticketId) : undefined,
     },
     customer: customer
       ? { id: String(customer._id), name: customer.name, phone: customer.phone, email: customer.email, address: customer.address, discom: customer.discom, consumerNumber: customer.consumerNumber }
@@ -236,6 +239,8 @@ export async function getJobDetail(jobId: string) {
           lines: order.lines.filter((l) => l.category !== "service").map((l) => ({ sku: l.sku, name: l.name, qty: l.qty, unit: l.unit })),
           /** Workmanship warranty sold with the installation service line (BR-04), from commissioning. */
           workmanshipMonths: Math.max(0, ...order.lines.filter((l) => l.category === "service").map((l) => l.warrantyMonths)),
+          /** PM Surya Ghar: the DISCOM hasn't approved feasibility yet, so installing now risks the subsidy (F16). */
+          feasibilityPending: feasibilityPending(order.subsidy),
         }
       : null,
     serials: serials.map((s) => ({ serial: s.serial, productName: s.productName, category: s.category, status: s.status, warrantyStartAt: s.warrantyStartAt, warrantyEndAt: s.warrantyEndAt })),
@@ -261,8 +266,12 @@ export async function rescheduleJob(input: RescheduleJobInput, actor: Actor): Pr
   if (technicians.length !== ids.length) throw new AppError("VALIDATION", "Pick active technicians only.", { technicianIds: "Pick active technicians only" });
   const lead = input.leadTechnicianId && ids.includes(input.leadTechnicianId) ? input.leadTechnicianId : ids[0]!;
 
-  const busy = await busyTechnicianIds(startOfDayIST(scheduledFor), undefined, job._id);
+  const [busy, order] = await Promise.all([
+    busyTechnicianIds(startOfDayIST(scheduledFor), undefined, job._id),
+    job.orderId ? Order.findById(job.orderId).select("subsidy.applicable subsidy.status").lean() : null,
+  ]);
   const warnings = technicians.filter((t) => busy.has(String(t._id))).map((t) => `${t.name} already has a job that day`);
+  if (order && feasibilityPending(order.subsidy)) warnings.push("DISCOM feasibility isn't approved yet, so installing now can cost the customer the subsidy");
 
   job.scheduledFor = scheduledFor;
   job.technicianIds = ids.map((id) => new Types.ObjectId(id));
@@ -379,8 +388,8 @@ export async function completeJob(input: CompleteJobInput, actor: JobActor, opts
       );
       serialCount = installed.modifiedCount;
 
-      for (const m of materialsUsed) order.extraCosts.push({ label: `Extra ${m.qty} ${m.unit} ${m.name} (${job.number})`, amountPaise: m.costPaise, at: finishedAt });
-      if (input.extraCostRs) order.extraCosts.push({ label: `${input.extraCostNote} (${job.number})`, amountPaise: Math.round(input.extraCostRs * 100), at: finishedAt });
+      for (const m of materialsUsed) order.extraCosts.push({ label: `Extra ${m.qty} ${m.unit} ${m.name} (${job.number})`, kind: "site", amountPaise: m.costPaise, at: finishedAt });
+      if (input.extraCostRs) order.extraCosts.push({ label: `${input.extraCostNote} (${job.number})`, kind: "site", amountPaise: Math.round(input.extraCostRs * 100), at: finishedAt });
       assertTransition("order", ORDER_FLOW, order.status, "commissioned");
       order.status = "commissioned";
       order.commissionedAt = finishedAt;

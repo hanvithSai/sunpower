@@ -139,6 +139,13 @@ export function initials(name: string): string {
     .join("");
 }
 
+/** "Lakshmi Narayana" -> "L. N****": shared views and the public warranty page never show full names. */
+export function maskName(name: string): string {
+  const [first, ...rest] = name.trim().split(/\s+/);
+  if (!first) return "—";
+  return rest.length ? `${first[0]}. ${rest.at(-1)![0]}****` : `${first[0]}****`;
+}
+
 export function escapeRegex(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

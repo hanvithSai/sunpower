@@ -4,7 +4,7 @@
  */
 import { z } from "zod";
 import { PAYMENT_MODES, PAYMENT_TYPES, SYSTEM_TYPES } from "../constants";
-import { enumOf, objectId, optionalText, requiredNumber, requiredText, rupeesAsPaise } from "./common";
+import { checkbox, enumOf, objectId, optionalText, requiredNumber, requiredText, rupeesAsPaise } from "./common";
 
 export const QuoteLineInputSchema = z.object({
   productId: objectId,
@@ -20,10 +20,14 @@ export const SaveQuoteSchema = z.object({
   lines: z.array(QuoteLineInputSchema).min(1, "Add at least one item").max(60, "Too many items"),
   notes: optionalText(1000),
   send: z.boolean().default(false),
+  /** The salesperson saw the missing-parts warning and is sending anyway (R-24). */
+  sendWithMissing: z.boolean().default(false),
 });
 export type SaveQuoteInput = z.output<typeof SaveQuoteSchema>;
 
 export const QuoteIdSchema = z.object({ quoteId: objectId });
+
+export const MarkQuoteSentSchema = z.object({ quoteId: objectId, sendWithMissing: checkbox });
 
 export const RejectQuoteSchema = z.object({
   quoteId: objectId,

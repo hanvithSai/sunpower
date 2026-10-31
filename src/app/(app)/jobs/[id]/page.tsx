@@ -2,16 +2,19 @@
  * One installation job. For the crew on a phone: who, where, the kit and its
  * serials, Start (once delivered) and the completion form with photos and the
  * customer's signature. For the office: reschedule / change crew. Once
- * completed it shows the proof and links to the printable certificate.
+ * completed it shows the proof, the printable certificate and the customer's
+ * certificate link to send on WhatsApp.
  */
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Award, CalendarClock, MapPin, MessageCircle, Phone, Play, Users } from "lucide-react";
 import { CompleteJobForm } from "@/components/modules/jobs/complete-job-form";
 import { RescheduleJobDialog } from "@/components/modules/jobs/reschedule-job-dialog";
 import { mapsLink } from "@/components/modules/jobs/work-card";
 import { ActionButton } from "@/components/shared/action-button";
+import { CopyButton } from "@/components/shared/copy-button";
 import { DetailList } from "@/components/shared/detail-list";
 import { MediaGallery } from "@/components/shared/media-gallery";
 import { PageHeader } from "@/components/shared/page-header";
@@ -24,9 +27,11 @@ import { formatDate, formatDateTime, formatPhone, telLink, toDateInputValue, toD
 import { formatINR } from "@/lib/money";
 import { requireUser } from "@/server/auth/session";
 import { listActivity } from "@/server/services/core/activity";
+import { activeCertificateLink } from "@/server/services/finance";
 import { getJobDetail } from "@/server/services/jobs";
 import { listStaff } from "@/server/services/users";
-import { startJobAction } from "@/server/actions/jobs";
+import { revokeShareLinkAction } from "@/server/actions/finance";
+import { certificateLinkAction, startJobAction } from "@/server/actions/jobs";
 
 export const metadata: Metadata = { title: "Installation" };
 
@@ -37,16 +42,23 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   const detail = await getJobDetail(id);
   if (!detail) notFound();
   const { job, customer, order, serials, extraProducts } = detail;
+  // Service visits are worked from their ticket.
+  if (job.type === "service" && job.ticketId) redirect(`/service/${job.ticketId}`);
 
   const onCrew = job.technicianIds.includes(user.id);
   if (user.role === "technician" && !onCrew) notFound();
   const crewCanAct = onCrew || user.role === "admin";
   const canReschedule = (user.role === "sales" || user.role === "admin") && job.status === "scheduled";
   const delivered = !order || order.status === "delivered";
-  const [activity, technicians] = await Promise.all([
+  const [activity, technicians, certLink, requestHeaders] = await Promise.all([
     listActivity("job", job.id),
     canReschedule ? listStaff({ roles: ["technician"] }) : Promise.resolve([]),
+    job.status === "completed" ? activeCertificateLink(job.id, now) : Promise.resolve(null),
+    headers(),
   ]);
+  // The link must open on the host the customer can reach (production domain, preview or local).
+  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const certUrl = certLink && host ? `${requestHeaders.get("x-forwarded-proto") ?? "https"}://${host}/share/${certLink.token}` : null;
   const address = [job.siteAddress.line1, job.siteAddress.city, job.siteAddress.pincode].filter(Boolean).join(", ");
   const extrasPaise = job.materialsUsed.reduce((s, m) => s + m.costPaise, 0);
 
@@ -91,6 +103,11 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          {job.status === "scheduled" && order?.feasibilityPending ? (
+            <p role="status" className="rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning-foreground">
+              PM Surya Ghar: the DISCOM hasn&apos;t approved feasibility for this site yet. Installing first can cost the customer the subsidy, so check with sales before going.
+            </p>
+          ) : null}
           {job.status === "scheduled" && crewCanAct ? (
             <Section title="On site">
               {delivered ? (
@@ -209,6 +226,44 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
         </div>
 
         <aside className="space-y-6">
+          {customer && job.status === "completed" && job.type === "installation" && user.role !== "warehouse" ? (
+            <Section title="Customer's certificate" description="A read-only link with every serial and warranty date. No login needed.">
+              {certLink && certUrl ? (
+                <div className="space-y-3 text-sm">
+                  <Button asChild className="w-full">
+                    <a
+                      href={waLink(
+                        customer.phone,
+                        `Namaste ${customer.name.split(" ")[0]} garu, thank you for choosing SunPower. Your installation certificate with every serial number and warranty date: ${certUrl}`,
+                      )}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <MessageCircle aria-hidden="true" />
+                      Send on WhatsApp
+                    </a>
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    <CopyButton value={certUrl} label="Copy link" />
+                    {user.role === "admin" ? (
+                      <ActionButton action={revokeShareLinkAction} hiddenFields={{ shareLinkId: certLink.id }} variant="ghost" size="sm">
+                        Turn off link
+                      </ActionButton>
+                    ) : null}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Works until {formatDate(certLink.expiresAt)} · opened {certLink.viewCount} time{certLink.viewCount === 1 ? "" : "s"}
+                  </p>
+                </div>
+              ) : (
+                <ActionButton action={certificateLinkAction} hiddenFields={{ jobId: job.id }} variant="outline" className="w-full">
+                  <Award aria-hidden="true" />
+                  Create customer link
+                </ActionButton>
+              )}
+            </Section>
+          ) : null}
+
           {customer ? (
             <Section title="Customer">
               <div className="space-y-3 text-sm">

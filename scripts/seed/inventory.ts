@@ -14,7 +14,8 @@ export type GrnSeed = {
   invoiceNo: string;
   /** Days before today the goods arrived (the invoice is dated a day earlier). */
   daysAgo: number;
-  lines: { sku: string; qty: number; unitCostRs: number; serialPrefix: string }[];
+  /** serialPrefix only for serial-tracked items. */
+  lines: { sku: string; qty: number; unitCostRs: number; serialPrefix?: string }[];
 };
 
 export const GRNS: GrnSeed[] = [
@@ -68,6 +69,25 @@ export const GRNS: GrnSeed[] = [
       { sku: "PNL-TPS-540", qty: 24, unitCostRs: 12_250, serialPrefix: "TPS540-2610" },
       { sku: "PNL-ADN-550", qty: 12, unitCostRs: 12_750, serialPrefix: "ADN550-2610" },
       { sku: "INV-GRW-3K", qty: 4, unitCostRs: 23_600, serialPrefix: "GRW3K-2610" },
+    ],
+  },
+  {
+    // Consumables for the live pipeline (bulk, counted not scanned). The spares
+    // (fuses, SPDs, fans) stay near their reorder level so low stock shows.
+    supplierName: "Hyderabad Electricals & Cables",
+    supplierGstin: "36AADFH5518Q1ZK",
+    invoiceNo: "HEC/26-27/2214",
+    daysAgo: 3,
+    lines: [
+      { sku: "LA-CU-1M", qty: 20, unitCostRs: 2_600 },
+      { sku: "EARTH-KIT", qty: 30, unitCostRs: 3_050 },
+      { sku: "STR-GI-1KW", qty: 30, unitCostRs: 5_150 },
+      { sku: "ACDB-1PH", qty: 10, unitCostRs: 2_600 },
+      { sku: "DCDB-2IN", qty: 10, unitCostRs: 2_900 },
+      { sku: "MTR-NET-1PH", qty: 8, unitCostRs: 3_800 },
+      { sku: "MC4-PAIR", qty: 60, unitCostRs: 118 },
+      { sku: "CBL-DC-4", qty: 500, unitCostRs: 52 },
+      { sku: "CBL-AC-6", qty: 300, unitCostRs: 94 },
     ],
   },
 ];

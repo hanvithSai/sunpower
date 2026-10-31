@@ -15,15 +15,15 @@ import { startOfDayIST } from "@/lib/dates";
 import { addMonths } from "@/lib/warranty";
 import { connectDB } from "@/server/db";
 import { AppError } from "@/server/errors";
-import { Invoice, Job, Order, Product, Purchase, SerialUnit, User } from "@/server/models";
+import { Invoice, Job, Order, Product, Purchase, SerialUnit, StockMove, User } from "@/server/models";
 import { deliverOrder, dispatchOrder, getDispatchDetail, scanSerial, setBulkPicked, unscanSerial } from "@/server/services/dispatch";
-import { receiveGoods } from "@/server/services/inventory";
+import { adjustStock, receiveGoods, writeOffSerial } from "@/server/services/inventory";
 import { completeJob, startJob } from "@/server/services/jobs";
 import { recordPayment } from "@/server/services/payments";
 import { toDateTimeInputValue } from "@/lib/format";
 import { formatINR } from "@/lib/money";
 import type { CompleteJobInput } from "@/lib/validation/jobs";
-import { makeConfirmedOrder, staff, uploadPhoto } from "./flows/order";
+import { makeConfirmedOrder, packAndDeliver, staff, topUpStock, uploadPhoto } from "./flows/order";
 
 loadEnvConfig(process.cwd());
 
@@ -63,6 +63,7 @@ async function main() {
   /* ---- Packing ---- */
   const made = await makeConfirmedOrder({ kw: 3, systemType: "on_grid" });
   const { orderId } = made;
+  await topUpStock(orderId); // a busy development database may be short of panels
   console.log(`\nOrder ${made.orderNumber} (${formatINR(made.totalPaise)}, advance ${formatINR(made.advancePaise)})\n`);
   let detail = (await getDispatchDetail(orderId))!;
   check("pick list ready for packing", detail.canPack && detail.lines.length === 12, `${detail.lines.length} lines`);
@@ -222,6 +223,42 @@ async function main() {
     formatINR(commissioned.extraCosts.reduce((s, e) => s + e.amountPaise, 0)),
   );
   await expectError("can't complete twice", "INVALID_STATE", () => completeJob(proof, crewMember));
+
+  /* ---- Stock corrections (director, with a reason on the ledger) ---- */
+  const director = await staff("director@sunpower.demo");
+  const mc4 = (await Product.findOne({ sku: "MC4-PAIR" }).lean())!;
+  const counted = await adjustStock({ productId: String(mc4._id), delta: -2, reason: "Count: 2 pairs cracked" }, director);
+  check("a count correction moves bulk stock through the ledger", counted.after === counted.before - 2 && (await StockMove.exists({ productId: mc4._id, type: "adjustment", note: "Count: 2 pairs cracked" })) !== null, `${counted.before} → ${counted.after}`);
+  await expectError("a correction can't take stock below zero", "INSUFFICIENT_STOCK", () => adjustStock({ productId: String(mc4._id), delta: -(counted.after + 1), reason: "Typo" }, director));
+  await expectError("serial-tracked items aren't adjusted in bulk", "VALIDATION", () => adjustStock({ productId: String(panel!._id), delta: 1, reason: "Found one" }, director));
+  const spare = (await SerialUnit.findOne({ productId: panel!._id, status: "in_stock" }).lean())!;
+  const panelsBefore = (await Product.findById(panel!._id).lean())!.stockQty;
+  await writeOffSerial({ serial: spare.serial, reason: "Glass cracked while unloading" }, director);
+  const writtenOff = (await SerialUnit.findById(spare._id).lean())!;
+  check(
+    "a damaged unit is written off as Faulty and leaves stock",
+    writtenOff.status === "faulty" && writtenOff.history.at(-1)?.note?.includes("cracked") === true && (await Product.findById(panel!._id).lean())!.stockQty === panelsBefore - 1,
+  );
+  await expectError("an installed unit can't be written off", "INVALID_STATE", () => writeOffSerial({ serial: scanned[0]!, reason: "Mistake" }, director));
+
+  /* ---- Panel Set: hardware only, no crew booked, complete at delivery ---- */
+  const kit = await makeConfirmedOrder({ kw: 2, systemType: "panel_set", name: "Panel Set Customer" });
+  const kitOrder = (await Order.findById(kit.orderId).lean())!;
+  check(
+    "panel set: panels, connectors and cable only",
+    kitOrder.lines.length === 3 && kitOrder.lines.every((l) => ["panel", "connector", "cable"].includes(l.category)),
+    kitOrder.lines.map((l) => `${l.qty} ${l.sku}`).join(", "),
+  );
+  check("panel set: no subsidy and no installation booked", !kitOrder.subsidy.applicable && !kitOrder.installationJobId && !kit.jobNumber && !(await Job.exists({ orderId: kit.orderId })));
+  await packAndDeliver(kit.orderId, "Panel Set Customer");
+  const kitDone = (await Order.findById(kit.orderId).lean())!;
+  check("panel set: delivery completes the order", kitDone.status === "closed" && Boolean(kitDone.closedAt) && Boolean(kitDone.invoiceId), kitDone.status);
+  const kitPanels = await SerialUnit.find({ orderId: kit.orderId }).lean();
+  check(
+    "panel set: 20-year warranty started on every panel",
+    kitPanels.length === 4 && kitPanels.every((u) => u.warrantyMonths === 240 && sameDay(u.warrantyStartAt, kitDone.dispatch.deliveredAt)),
+    `${kitPanels.length} panels`,
+  );
 
   console.log(`\n${failures === 0 ? "All checks passed" : `${failures} check(s) failed`}`);
   await mongoose.disconnect();

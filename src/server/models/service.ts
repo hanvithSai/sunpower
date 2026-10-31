@@ -8,17 +8,21 @@
  */
 import { Schema, model, models, type Model, type Types } from "mongoose";
 import {
+  CONFIRMATION_CHANNELS,
   RESOLUTION_TYPES,
   TICKET_CATEGORIES,
   TICKET_CHANNELS,
   TICKET_PRIORITIES,
   TICKET_STATUSES,
+  WARRANTY_BASES,
   WARRANTY_STATES,
+  type ConfirmationChannel,
   type ResolutionType,
   type TicketCategory,
   type TicketChannel,
   type TicketPriority,
   type TicketStatus,
+  type WarrantyBasis,
   type WarrantyState,
 } from "@/lib/constants";
 import { ActorRefSchema, type IActorRef } from "./shared";
@@ -59,13 +63,20 @@ export interface ITicket {
   priority: TicketPriority;
   channel: TicketChannel;
   status: TicketStatus;
-  warranty: { state: WarrantyState; endsAt?: Date; checkedAt: Date };
+  /** Decided at creation from the serial, or from the workmanship warranty when there is no serial. */
+  warranty: { state: WarrantyState; basis: WarrantyBasis; endsAt?: Date; checkedAt: Date };
   /** True when out of warranty — parts + labour are invoiced on resolution. */
   billable: boolean;
+  /** Support/admin changed billability (e.g. physical damage) — always with a reason. */
+  billingOverride?: { billable: boolean; reason: string; by: IActorRef; at: Date };
   assignedTo?: IActorRef;
   jobId?: Types.ObjectId;
   resolution?: ITicketResolution;
   customerConfirmedAt?: Date;
+  confirmation?: { confirmedBy: string; channel: ConfirmationChannel; note?: string; recordedBy: IActorRef; at: Date };
+  /** In-warranty repairs: parts at cost + labour, charged to the original order's profit. */
+  serviceCostPaise: number;
+  reopenCount: number;
   invoiceId?: Types.ObjectId;
   slaDueAt: Date;
   closedAt?: Date;
@@ -104,10 +115,23 @@ const TicketSchema = new Schema<ITicket>(
     status: { type: String, enum: TICKET_STATUSES, default: "open", index: true },
     warranty: {
       state: { type: String, enum: WARRANTY_STATES, required: true },
+      basis: { type: String, enum: WARRANTY_BASES, default: "serial" },
       endsAt: Date,
       checkedAt: { type: Date, required: true },
     },
     billable: { type: Boolean, required: true },
+    billingOverride: {
+      type: new Schema(
+        {
+          billable: { type: Boolean, required: true },
+          reason: { type: String, required: true },
+          by: { type: ActorRefSchema, required: true },
+          at: { type: Date, required: true },
+        },
+        { _id: false },
+      ),
+      required: false,
+    },
     assignedTo: ActorRefSchema,
     jobId: { type: Schema.Types.ObjectId, ref: "Job" },
     resolution: {
@@ -127,6 +151,21 @@ const TicketSchema = new Schema<ITicket>(
       required: false,
     },
     customerConfirmedAt: Date,
+    confirmation: {
+      type: new Schema(
+        {
+          confirmedBy: { type: String, required: true },
+          channel: { type: String, enum: CONFIRMATION_CHANNELS, required: true },
+          note: String,
+          recordedBy: { type: ActorRefSchema, required: true },
+          at: { type: Date, required: true },
+        },
+        { _id: false },
+      ),
+      required: false,
+    },
+    serviceCostPaise: { type: Number, default: 0, min: 0 },
+    reopenCount: { type: Number, default: 0 },
     invoiceId: { type: Schema.Types.ObjectId, ref: "Invoice" },
     slaDueAt: { type: Date, required: true },
     closedAt: Date,
