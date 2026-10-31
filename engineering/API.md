@@ -76,7 +76,7 @@ Each action has the signature `(prev: ActionState, formData: FormData) => Promis
 | Module | Actions | Phase |
 |---|---|---|
 | Auth | `loginAction`, `logoutAction` | ✅ 0 |
-| Leads & surveys | create enquiry, mark contacted, qualify, mark lost, assign, schedule survey, submit survey, approve / re-survey / not feasible | 🗓️ 1 |
+| Leads & surveys | create enquiry (+ public `submitEnquiryAction`), mark contacted, qualify, mark lost, reopen, assign, schedule survey, submit survey (photos must exist in GridFS), approve / re-survey / not feasible | ✅ 1 |
 | Quotes & orders | save quote (draft/sent), mark sent, accept → order, reject, revise, record payment (confirms the order → pick list + installation job), cancel | 🗓️ 1 |
 | Inventory & dispatch | goods receipt with serials, stock adjustment, allocate/remove serial, mark picked, dispatch (gate: all serials scanned), deliver (→ warranties + sale invoice) | 🗓️ 2 |
 | Jobs | reschedule, reassign crew, start (gate: delivered), complete (photos + signature + time logs → commissioned) | 🗓️ 2 |
