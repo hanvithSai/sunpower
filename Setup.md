@@ -85,8 +85,8 @@ Open `.env.local` and set:
 |---|---|---|
 | `MONGODB_URI` | yes | Atlas: `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/sunpower?retryWrites=true&w=majority`. Local: `mongodb://127.0.0.1:27017/sunpower?directConnection=true` |
 | `AUTH_SECRET` | yes | A random 32+ byte string. Generate with `npx auth secret`, or `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` (works on Windows and macOS) |
-| `NEXT_PUBLIC_POSTHOG_KEY` | no | PostHog project API key. Analytics are disabled when empty |
-| `NEXT_PUBLIC_POSTHOG_HOST` | no | `https://us.i.posthog.com` |
+| `NEXT_PUBLIC_POSTHOG_KEY` | no | PostHog project API key. Analytics and the cookie banner are off when empty. With a key, analytics start only after you click **Accept analytics** in the banner (reopen it from **Cookie settings** in the footer). Use a test project or a dummy key locally so development clicks don't reach production analytics |
+| `NEXT_PUBLIC_POSTHOG_HOST` | no | `https://us.i.posthog.com` (server events; the browser sends through the `/ingest` proxy) |
 
 `.env.local` is git-ignored, so never commit real credentials.
 
@@ -177,7 +177,7 @@ Health check: <http://localhost:3000/api/v1/health> returns `{"status":"ok","db"
 ```bash
 npm run lint        # ESLint (Next.js + TypeScript rules)
 npm run typecheck   # next typegen + tsc --noEmit
-npm test            # Vitest: 121 tests (quote maths, state machines, warranty dates, costing and crews, forms as the browser posts them, gates, CSV guard, analytics privacy, DB errors)
+npm test            # Vitest: 128 tests (quote maths, state machines, warranty dates, costing and crews, forms as the browser posts them, gates, CSV guard, cookie consent, analytics privacy, DB errors)
 npm run build       # production build
 ```
 

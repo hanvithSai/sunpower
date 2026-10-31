@@ -187,6 +187,14 @@ Pill shape, Caption in medium, 2 px × 8 px padding, tinted background with the 
 - Errors say what went wrong and how to fix it: "Scan every serial before dispatch: 1 of 8 left". They stay until dismissed.
 - Announced with `aria-live` (polite for success, assertive for errors).
 
+### Cookie banner
+
+- Fixed to the bottom of the viewport with 12 px insets, up to 672 px wide, card surface with the elevated shadow and a 16 px radius; above the safe area on phones; hidden in print.
+- A non-modal landmark (`section` with a heading): the page stays usable behind it and focus isn't trapped.
+- Cookie icon, Headline title "Cookies on SunPower", one Callout paragraph in secondary text with a "Privacy & cookies" link.
+- **Reject analytics** and **Accept analytics** are the same variant (outline) and size, side by side from `sm`, stacked full width on phones. Never style Accept as the only primary action.
+- Reopened from "Cookie settings", it adds the current state ("Analytics cookies are currently on") and a close button.
+
 ### Command palette (⌘K)
 
 Elevated card about 640 px wide with a 16 px radius; Body-size input; results grouped under Footnote headers (Customers, Serials, Leads, Quotes, Orders, Tickets, Invoices); ↑ and ↓ to move, Enter to open, Esc to close; recent records shown before typing.

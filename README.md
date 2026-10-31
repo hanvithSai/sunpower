@@ -24,6 +24,7 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
 | Phase 3: ⌘K search, service desk, job costing, director dashboard & share link, invoices, subsidy board, payroll, full demo seed | ✅ Done; production seeded and verified |
 | Phase 3b + verification (31 Oct, 20:30): public warranty check, customer certificate link on WhatsApp, subsidy papers, invoice/ticket CSVs, Customer 360, Panel Sets, missing-parts gate on quotes, business GSTIN, stock corrections | ✅ Done and live; Atlas re-seed for Panel Sets pending ([Human_Tasks](Human_Tasks.md) #18) |
 | Phase 4: hardening (121 unit tests, privacy-first PostHog analytics, WCAG AA contrast, 360 px fixes, job-form draft) | ✅ Done and live, analytics on |
+| Analytics and privacy (1 Nov): opt-in cookie banner, `/privacy` notice, masked click capture with named CTAs, heatmaps, rage/dead clicks, Core Web Vitals | ✅ Done locally; push pending |
 | Next: bug bash, final docs pass, demo video | 🗓️ See [Plan.md](Plan.md) |
 
 ## Highlights
@@ -33,6 +34,7 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
 - **Kit that's always right:** the brief's four packages (1–5 kW On-Grid, Off-Grid, hardware-only Panel Set, and Installation as a service line) expand into the full bill of materials, with GST (CGST/SGST) and the PM Surya Ghar subsidy calculated automatically. A quote missing a part its package needs (say, the earthing kit) can't be sent without an explicit OK.
 - **Automations:** a payment creates the pick list and books a crew that's free that day; dispatch issues the GST invoice; delivery starts every serial's warranty clock; completion writes the crew's hours and the certificate, and the customer gets that certificate as a link on WhatsApp.
 - **Support in seconds:** ⌘K by phone, name or the last digits of a serial, with live warranty status. Faults with no serial (wiring, earthing) are covered by a 5-year workmanship warranty. Free repairs cost the customer ₹0 and are charged to that installation's profit; out-of-warranty repairs are invoiced automatically. Customers can check their own cover at `/warranty`, and staff see each customer's whole history on one page.
+- **Privacy by design:** analytics only after an opt-in cookie banner (Accept and Reject equally easy, Global Privacy Control honoured, withdraw anytime), a [privacy notice](https://www.sunpowersolutions.me/privacy) under India's DPDP Act, and masking of phones, emails and GSTINs before anything leaves the browser.
 - **Director's view:** today/week/month KPIs, profit per job from actual costs (losers first, with the cause), every customer still waiting on a step, advances held, open repairs, subsidy pipeline, payroll, and an expiring read-only share link with CSV.
 
 ## Tech stack
@@ -67,7 +69,7 @@ The full Windows and macOS guide is in [Setup.md](Setup.md). No Atlas yet? Run `
 
 Demo logins (password `SunPower@2026`): `director@`, `sales@`, `tech@`, `warehouse@`, `support@` with the domain `sunpower.demo`.
 
-Flow smoke checks against a development database: `check-lead-flow`, `check-sale-flow`, `check-ops-flow` (55 checks), `check-service-flow` (29) and `check-finance-flow` (36) in `scripts/` (148 in all), plus 121 unit tests (`npm test`). See [Setup.md](Setup.md#flow-smoke-checks-real-database).
+Flow smoke checks against a development database: `check-lead-flow`, `check-sale-flow`, `check-ops-flow` (55 checks), `check-service-flow` (29) and `check-finance-flow` (36) in `scripts/` (148 in all), plus 128 unit tests (`npm test`). See [Setup.md](Setup.md#flow-smoke-checks-real-database).
 
 ## Documentation
 
@@ -90,7 +92,7 @@ src/
   lib/            pure business rules: GST, subsidy, warranty, state machines, validation
   server/         models, auth, services (business logic), server actions
 scripts/          local MongoDB, demo data seeder (history + live pipeline), flow smoke checks
-tests/            Vitest unit tests (quote maths, state machines, warranty, costing, crews, forms, analytics privacy)
+tests/            Vitest unit tests (quote maths, state machines, warranty, costing, crews, forms, consent, analytics privacy)
 engineering/      technical documentation (code walkthrough: Codebase.md)
 product/          product documentation
 ```

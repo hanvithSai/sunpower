@@ -45,6 +45,7 @@ Live at https://www.sunpowersolutions.me. Where this spec and the code differ, `
 | F22 Certificate link (lite) | ✅ Shipped | Completing an installation creates a 90-day read-only certificate link; "Send on WhatsApp" and copy on the job page; revocable; photos load through the token, no phone shown. Full project tracking stays P2 |
 | Customer 360 | ✅ Shipped | `/customers` (search by name, city or phone digits) and `/customers/[id]`: orders with dues and workmanship cover, every serial with its warranty, tickets, invoices and payments, enquiries and quotes, timeline (R-01) |
 | F23 (lite) | ✅ Shipped | The job completion form saves a local draft (`localStorage`, per job, every 4 seconds): every field except the signature, including the uploaded photos, comes back after a reload, lost signal or closed tab, with "Restored what you entered at …"; the customer always signs fresh; the draft is cleared on completion. Queued offline submit and the survey form stay P2. F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
+| Privacy & consent | ✅ Shipped (1 Nov) | Opt-in cookie banner on every page (Accept and Reject equal, nothing pre-ticked, Global Privacy Control / Do Not Track honoured, "Cookie settings" in the footer and account menu to withdraw), `/privacy` notice under the DPDP Act 2023 (what we collect and why, cookie table, processors and locations, retention, rights, grievance contact). Analytics adds masked click capture with named CTAs, heatmaps, rage/dead clicks and Core Web Vitals (product/Analytics.md) |
 
 ## Route access
 
