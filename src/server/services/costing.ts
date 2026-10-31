@@ -70,8 +70,10 @@ export async function costOrders(orders: OrderForCosting[]): Promise<Map<string,
     const bulkLines = o.pickList.length ? o.pickList.filter((l) => !l.isSerialized) : o.lines.filter((l) => !l.isSerialized && l.category !== "service");
     const bulkPaise = bulkLines.reduce((s, l) => s + l.qty * (costBySku.get(l.sku) ?? 0), 0);
     const labour = labourByOrder.get(key) ?? { paise: 0, hours: 0 };
-    const sitePaise = o.extraCosts.filter((e) => e.kind !== "warranty").reduce((s, e) => s + e.amountPaise, 0);
-    const warrantyPaise = o.extraCosts.filter((e) => e.kind === "warranty").reduce((s, e) => s + e.amountPaise, 0);
+    // Entries written before `kind` existed are recognised by their label.
+    const isWarranty = (e: (typeof o.extraCosts)[number]) => e.kind === "warranty" || e.label.startsWith("Warranty repair");
+    const sitePaise = o.extraCosts.filter((e) => !isWarranty(e)).reduce((s, e) => s + e.amountPaise, 0);
+    const warrantyPaise = o.extraCosts.filter(isWarranty).reduce((s, e) => s + e.amountPaise, 0);
     const materialPaise = serializedPaise + bulkPaise;
     const costPaise = materialPaise + labour.paise + sitePaise + warrantyPaise;
     const profitPaise = o.taxablePaise - costPaise;
