@@ -93,7 +93,7 @@ Index: `{ technicianId: 1, scheduledFor: 1 }`.
 | `dispatch { vehicleNo, driverName, driverPhone, dispatchedAt/By, deliveredAt/By, deliveryNote }` | |
 | `installationJobId`, `invoiceId` | created automatically |
 | `subsidy { applicable, status, applicationNo, expectedPaise, disbursedPaise, history[] }` | PM Surya Ghar tracker |
-| `extraCosts [{ label, amountPaise, at }]` | site extras that reduce job profit |
+| `extraCosts [{ label, kind, amountPaise, at }]` | costs that reduce the job's profit: `kind: site` (extra material or work on the roof, from job completion) or `warranty` (a free repair absorbed later, from a resolved ticket) |
 Indexes: `{ status: 1, createdAt: -1 }`, `{ "subsidy.status": 1 }`.
 
 ### payments
@@ -114,13 +114,13 @@ Invariant: `products.stockQty` = sum of the ledger. For serialized products it a
 `number` (unique), `type` (installation | service), `orderId?`, `ticketId?`, `customerId`, `title`, `siteAddress`, `scheduledFor` (indexed), `estimatedHours`, `technicianIds[]` (indexed), `leadTechnicianId`, `status` (scheduled → in_progress → completed | cancelled), `startedAt`, `finishedAt`, `confirmedKw`, `kwChangeReason` (required when it differs from the order), `generationReadingKw`, `kitCheck { complete, missing? }`, `checklist { mounting, panels, wiring, earthing, inverter, testing }`, `photos[]` (GridFS ids), `signature { dataUrl (PNG), signedBy, signedAt }`, `timeLogs [{ technicianId, technicianName, hours 0–24, date }]` (labour cost and payroll), `materialsUsed [{ productId, sku, name, unit, qty, costPaise }]` (extra material on site; also posted to stock and to the order's `extraCosts`).
 
 ### tickets
-`number` (unique), `customerId`, `orderId`, `serial` (indexed), `serialUnitId`, `productName`, `category`, `faultCode`, `description`, `priority` (low/medium/high/urgent → SLA 72/48/24/4 h), `channel`, `status` (open → assigned → in_progress → resolved → closed, closing only after the customer confirms), **`warranty { state: in_warranty | out_of_warranty | no_serial, endsAt, checkedAt }`**, `billable` (= out of warranty), `assignedTo`, `jobId`, `resolution { type, notes, partsUsed[], labourHours, labourRatePaise, replacementSerial, resolvedAt, resolvedBy }`, `customerConfirmedAt`, `invoiceId`, `slaDueAt`, `closedAt`.
+`number` (unique), `customerId`, `orderId`, `serial` (indexed), `serialUnitId`, `productName`, `category` (no_power, fault_code, low_generation, physical_damage, battery, wiring_earthing, structure, billing, other), `faultCode`, `description`, `priority` (low/medium/high/urgent → SLA 72/48/24/4 h), `channel`, `status` (TICKET_FLOW: open → assigned → in_progress → resolved → **customer_confirmed** → closed; "Not fixed" returns resolved, confirmed or closed tickets to in_progress), **`warranty { state: in_warranty | out_of_warranty | no_serial, basis: serial | workmanship | none, endsAt, checkedAt }`** (decided at creation, BR-04), `billable` (= not in warranty, unless overridden), `billingOverride { billable, reason, by, at }`, `assignedTo`, `jobId` (the service visit), `resolution { type, notes, partsUsed[], labourHours, labourRatePaise, replacementSerial, resolvedAt, resolvedBy }`, `customerConfirmedAt`, `confirmation { confirmedBy, channel: call | whatsapp | on_site, note, recordedBy, at }`, `serviceCostPaise` (in-warranty cost charged to the order), `reopenCount`, `invoiceId` (out-of-warranty service invoice), `slaDueAt`, `closedAt`.
 
 ### invoices (GST tax invoices)
 `number` (unique, `INV/<FY>/<seq>`), `type` (sale | service), `customerId`, `orderId?`, `ticketId?`, `billTo { name, phone, address, gstin? }`, `lines [{ description, hsn, qty, unitPricePaise, gstRate, taxablePaise, gstPaise, totalPaise }]`, `taxablePaise`, `gstPaise`, `cgstPaise`, `sgstPaise`, `igstPaise` (intra-state Telangana → CGST + SGST), `totalPaise`, `paidPaise`, `status` (issued, partially_paid, paid, void), `issuedAt` (indexed), `dueAt`.
 
 ### sharelinks
-`token` (**unique**, random URL-safe), `scope` (dashboard), `label`, `createdBy`, `expiresAt`, `revokedAt`, `viewCount`, `lastViewedAt`.
+`token` (**unique**, 24 random bytes, base64url), `scope` (dashboard), `label`, `createdBy`, `expiresAt` (1–30 days), `revokedAt`, `viewCount`, `lastViewedAt`. Checked on every view, so revocation is immediate.
 
 ### counters
 `_id` = counter key (`SP-L`, `INV/26-27`, …), `seq`.
@@ -140,12 +140,19 @@ Photos, short videos and survey media. Files are stored in 255 KiB chunks. Brows
 - **Survey photos:** a submission is rejected unless every photo id exists in `media.files`, so half-uploaded files never land on record.
 - **Quotes:** lines snapshot product name, SKU, cost, GST, HSN and warranty at save. The server re-reads products (only quantity and unit price come from the client) and recomputes totals with `src/lib/quote-calc.ts`.
 - **Acceptance:** creates the order (`pending_payment`) with a subsidy tracker (`not_applied` when eligible), wins the lead, and marks the lead's other open quotes `rejected` ("Superseded by …"). Expired quotes cannot be accepted.
-- **First payment:** confirms the order, builds `pickList` from every non-service line, and creates the installation job (09:30 IST, four days out) with the three least-loaded installers.
+- **First payment:** confirms the order, builds `pickList` from every non-service line, and creates the installation job at 09:30 IST about four days out with three installers who have **no other job that day** (least loaded first; Sundays skipped; if fewer than three are free it moves to the next day that has them — `services/core/crew.ts`).
 - **Cancellation:** only before dispatch and before any payment; releases allocated serials and cancels the scheduled job.
+- **Goods receipt:** one unique serial per serialized unit; each unit is created `in_stock` with **its own GRN cost**, and every line posts a `purchase` stock move.
+- **Packing:** a scan allocates the unit to the order (wrong product, a unit packed for another order, or one not in stock is refused with a message naming the problem). When every serial is scanned and every bulk line ticked the order moves to `ready_to_dispatch`; an un-scan moves it back.
+- **Dispatch:** re-checks the pick list inside the transaction (`DISPATCH_INCOMPLETE`), posts `dispatch` stock moves, and **issues the GST sale invoice** with payments so far applied (BR-18). Later order payments also update that invoice.
+- **Delivery:** every serial's `warrantyStartAt` = delivery, `warrantyEndAt` = + the warranty months sold on the order line.
+- **Installation:** starts only after delivery; completion (BR-14) marks serials `installed`, commissions the order, writes one time log per crew member from the recorded start/finish, and posts extra material as stock moves and `extraCosts` (`site`).
+- **Tickets:** in warranty → ₹0, and parts at cost + labour at the technician's rate go to the order's `extraCosts` (`warranty`); out of warranty → a `service` invoice for parts (sell price) + labour (₹600/h) + GST. A replacement unit must be the same product and in stock; it inherits the remaining cover when free, or gets a fresh term when paid (BR-15). Close only from `customer_confirmed`.
+- **Costing (`services/costing.ts`):** revenue excl. GST − material (serial GRN costs, excluding replacement units; bulk at the order's cost snapshot; quote estimate before dispatch) − labour (installation time logs × rate) − site extras − warranty repairs.
 
-## Data in Atlas today (31 Oct)
+## Demo data in Atlas (seeded 31 Oct)
 
-20 staff accounts · 30 products · 10 packages · 12 opening-stock ledger entries · demo chain SP-L-0001 → SP-SV-0001 (approved) → SP-Q-0001 (accepted) → SP-O-0001 (confirmed, fully paid) → SP-J-0001 (scheduled) · 1 survey photo in GridFS. The full demo history arrives with the Phase 3 seed.
+`npm run seed -- --yes` writes, idempotently: 20 staff accounts · 30 products · 10 packages · 5 goods receipts (181 serials + consumables) · **121 finished installations over 14 months** plus three older ones from the brief's scenes (18, 25 and 28 months: Venkata Ramana Rao, Lakshmi Prasanna, Padmavathi Devi) with 1,103 serials, 17 monthly GRNs, sale invoices, 225 payments, crew time logs, subsidy files at every stage, 3 loss-making jobs with their causes and 2 warranty replacements · **today's pipeline** through the services: 11 leads at every stage (two past the call-back SLA), 8 orders from awaiting payment to installing, 6 service tickets. History and pipeline run once each (`seed:history` / `seed:pipeline` counters).
 
 ## Capacity notes
 - Expected volume: about 40 orders/month → about 500 orders, 6,000 serial units and 1,000 tickets per year. That is a small fraction of Atlas M0's 512 MB, except for media. Images are compressed before upload and videos are capped to protect storage.
