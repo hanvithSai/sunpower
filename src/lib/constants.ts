@@ -19,6 +19,8 @@ export const COMPANY = {
   stateCode: "36",
   address: "Plot 42, HITEC City Road, Madhapur, Hyderabad, Telangana 500081",
   phone: "+91 40 4520 1200",
+  /** Support WhatsApp (10 digits, for wa.me links). Placeholder until the real business number is set. */
+  whatsapp: "9100045201",
   email: "hello@sunpower.example",
   website: "https://www.sunpowersolutions.me",
 } as const;
@@ -503,5 +505,6 @@ export const ANALYTICS_EVENTS = [
   "report_exported",
   "search_performed",
   "search_result_opened",
+  "warranty_lookup",
 ] as const;
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];

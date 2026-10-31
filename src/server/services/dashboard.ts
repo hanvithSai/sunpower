@@ -16,6 +16,7 @@
 import type { Types } from "mongoose";
 import { LEAD_FIRST_RESPONSE_SLA_HOURS, type OrderStatus, type SubsidyStatus } from "@/lib/constants";
 import { getPreviousRange, getRange, type RangeKey } from "@/lib/dates";
+import { maskName } from "@/lib/format";
 import { SUBSIDY_STEPS } from "@/lib/workflows";
 import { connectDB } from "../db";
 import { Customer, Invoice, Job, Lead, Order, Payment, Purchase, Quote, Survey, Ticket } from "../models";
@@ -28,10 +29,7 @@ const MONTH_FMT = new Intl.DateTimeFormat("en-IN", { month: "short", year: "2-di
 /** Orders holding customer money for work not finished yet. */
 const UNFINISHED: OrderStatus[] = ["confirmed", "ready_to_dispatch", "dispatched", "delivered", "installing"];
 
-export function maskName(name: string): string {
-  const [first, ...rest] = name.trim().split(/\s+/);
-  return rest.length ? `${first![0]}. ${rest.at(-1)![0]}****` : `${first![0]}****`;
-}
+export { maskName };
 
 type SumRow = { _id: null; total: number; n: number };
 const sumOf = (rows: SumRow[]) => ({ total: rows[0]?.total ?? 0, n: rows[0]?.n ?? 0 });
