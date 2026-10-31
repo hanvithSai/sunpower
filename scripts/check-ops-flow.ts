@@ -15,9 +15,9 @@ import { startOfDayIST } from "@/lib/dates";
 import { addMonths } from "@/lib/warranty";
 import { connectDB } from "@/server/db";
 import { AppError } from "@/server/errors";
-import { Invoice, Job, Order, Product, Purchase, SerialUnit, User } from "@/server/models";
+import { Invoice, Job, Order, Product, Purchase, SerialUnit, StockMove, User } from "@/server/models";
 import { deliverOrder, dispatchOrder, getDispatchDetail, scanSerial, setBulkPicked, unscanSerial } from "@/server/services/dispatch";
-import { receiveGoods } from "@/server/services/inventory";
+import { adjustStock, receiveGoods, writeOffSerial } from "@/server/services/inventory";
 import { completeJob, startJob } from "@/server/services/jobs";
 import { recordPayment } from "@/server/services/payments";
 import { toDateTimeInputValue } from "@/lib/format";
@@ -223,6 +223,23 @@ async function main() {
     formatINR(commissioned.extraCosts.reduce((s, e) => s + e.amountPaise, 0)),
   );
   await expectError("can't complete twice", "INVALID_STATE", () => completeJob(proof, crewMember));
+
+  /* ---- Stock corrections (director, with a reason on the ledger) ---- */
+  const director = await staff("director@sunpower.demo");
+  const mc4 = (await Product.findOne({ sku: "MC4-PAIR" }).lean())!;
+  const counted = await adjustStock({ productId: String(mc4._id), delta: -2, reason: "Count: 2 pairs cracked" }, director);
+  check("a count correction moves bulk stock through the ledger", counted.after === counted.before - 2 && (await StockMove.exists({ productId: mc4._id, type: "adjustment", note: "Count: 2 pairs cracked" })) !== null, `${counted.before} → ${counted.after}`);
+  await expectError("a correction can't take stock below zero", "INSUFFICIENT_STOCK", () => adjustStock({ productId: String(mc4._id), delta: -(counted.after + 1), reason: "Typo" }, director));
+  await expectError("serial-tracked items aren't adjusted in bulk", "VALIDATION", () => adjustStock({ productId: String(panel!._id), delta: 1, reason: "Found one" }, director));
+  const spare = (await SerialUnit.findOne({ productId: panel!._id, status: "in_stock" }).lean())!;
+  const panelsBefore = (await Product.findById(panel!._id).lean())!.stockQty;
+  await writeOffSerial({ serial: spare.serial, reason: "Glass cracked while unloading" }, director);
+  const writtenOff = (await SerialUnit.findById(spare._id).lean())!;
+  check(
+    "a damaged unit is written off as Faulty and leaves stock",
+    writtenOff.status === "faulty" && writtenOff.history.at(-1)?.note?.includes("cracked") === true && (await Product.findById(panel!._id).lean())!.stockQty === panelsBefore - 1,
+  );
+  await expectError("an installed unit can't be written off", "INVALID_STATE", () => writeOffSerial({ serial: scanned[0]!, reason: "Mistake" }, director));
 
   /* ---- Panel Set: hardware only, no crew booked, complete at delivery ---- */
   const kit = await makeConfirmedOrder({ kw: 2, systemType: "panel_set", name: "Panel Set Customer" });

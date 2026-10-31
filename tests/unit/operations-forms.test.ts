@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { CompleteJobSchema, RescheduleJobSchema } from "@/lib/validation/jobs";
-import { DispatchOrderSchema, ReceiveGoodsSchema, ScanSerialSchema, splitSerials } from "@/lib/validation/inventory";
+import { AdjustStockSchema, DispatchOrderSchema, ReceiveGoodsSchema, ScanSerialSchema, splitSerials, WriteOffSerialSchema } from "@/lib/validation/inventory";
 import { formToObject } from "@/server/lib/validate";
 import { packingProgress } from "@/server/services/dispatch";
 
@@ -160,5 +160,23 @@ describe("packingProgress (dispatch gate, BR-02)", () => {
 
   it("is complete when every unit is scanned and every bulk line ticked", () => {
     expect(packingProgress([panel, { ...inverter, serials: ["G"] }, cable]).complete).toBe(true);
+  });
+});
+
+describe("Stock corrections", () => {
+  const ID = "6ae5c5a8e2fde1b3dd16fa7a";
+
+  it("takes a signed whole-number change with a reason", () => {
+    expect(AdjustStockSchema.parse(formToObject(form([["productId", ID], ["delta", "-12"], ["reason", "Count"]]))).delta).toBe(-12);
+  });
+
+  it("refuses zero, fractions and a missing reason", () => {
+    expect(AdjustStockSchema.safeParse(formToObject(form([["productId", ID], ["delta", "0"], ["reason", "Count"]]))).success).toBe(false);
+    expect(AdjustStockSchema.safeParse(formToObject(form([["productId", ID], ["delta", "1.5"], ["reason", "Count"]]))).success).toBe(false);
+    expect(AdjustStockSchema.safeParse(formToObject(form([["productId", ID], ["delta", "3"], ["reason", " "]]))).success).toBe(false);
+  });
+
+  it("normalises the serial being written off", () => {
+    expect(WriteOffSerialSchema.parse(formToObject(form([["serial", " waa545-2610-0001 "], ["reason", "Cracked"]]))).serial).toBe("WAA545-2610-0001");
   });
 });
