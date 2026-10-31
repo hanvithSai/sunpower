@@ -11,6 +11,7 @@
 | **Hard external deadline** | ⚠️ Add evaluator (`gppa-odoo`, `hackathon-odoo`) as GitHub collaborator by **31 Oct, 11:00 AM** |
 | **Team** | Hanvith Sai Alla (`hanvithSai`): Product, Architecture, Frontend · Lagishetty Vamshi (`LV2402`): Backend, DB, Integration, Tests |
 | **Stack** | Next.js 16.4.3 (App Router, TS) · MongoDB Atlas + Mongoose · Tailwind v4 + shadcn/ui · Vercel · GitHub Actions |
+| **Live URLs** | Production: https://www.sunpowersolutions.me (apex `sunpowersolutions.me` redirects to www) · Vercel: https://sunpowersolutions.vercel.app |
 
 ---
 
@@ -167,8 +168,8 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 | 0.2 | Design system: Apple-style tokens, Inter, UI kit (Radix), app shell + sidebar + ⌘K palette, login with demo accounts, module placeholders | Hanvith | `feat/ui-shell` | ✅ |
 | 0.3 | Domain lib (enums, state machines, money, GST, subsidy, warranty, IST dates, validation), Mongo connection + transactions, all 18 models, counters, audit log, invoicing, stock ledger | Vamshi | `feat/domain-lib`, `feat/db-core` | ✅ |
 | 0.4 | Auth.js v5 (Credentials + JWT roles), `proxy.ts` guard, role-based nav, `/api/v1/health`, staff seed (20 accounts in Atlas) | Vamshi | `feat/auth`, `feat/seed-users` | ✅ verified on Atlas: sign-in, role landing pages, role redirects, 404 |
-| 0.5 | CI (lint, typecheck, test, build) on every PR + push to main; Vercel deploy | Vamshi | `chore/ci` | ✅ CI (all green locally) · ⏳ Vercel (Human_Tasks #6) |
-| 0.6 | 👤 Human: evaluator collaborators, Atlas URI, Vercel link, domain | Hanvith / Vamshi | — | ✅ collaborators · ✅ Atlas · ⏳ Vercel/domain |
+| 0.5 | CI (lint, typecheck, test, build) on every PR + push to main; Vercel deploy | Vamshi | `chore/ci`, `chore/deployment-config` | ✅ CI green on GitHub · 🟨 Vercel project + domains live, but the app isn't building from Git yet (Human_Tasks #6) |
+| 0.6 | 👤 Human: evaluator collaborators, Atlas URI, Vercel link, domain | Hanvith / Vamshi | — | ✅ collaborators · ✅ Atlas · ✅ domain · 🟨 Vercel Git connection |
 
 ### Phase 1: Sales core (T+1:30 → T+4:00), golden path part 1
 | # | Task | Owner | Branch | Status |
@@ -260,4 +261,5 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 | 31 Oct, 12:10 | Hanvith | Product docs (PRD, features, personas, analytics, style guide, requirements), engineering docs, Setup guide, design system, app shell, login |
 | 31 Oct, 12:20 | Vamshi | Atlas connected; 20 staff accounts seeded; sign-in and role routing verified. Venue network is slow (DNS 2–7 s per lookup), so the local env uses the standard Atlas string |
 | 31 Oct, 12:30 | Both | **Phase 0 complete:** lint, typecheck, build green; WCAG contrast fixes; self-hosted Inter; pushed for review |
+| 31 Oct, 13:00 | Both | Domains live (www.sunpowersolutions.me, sunpowersolutions.vercel.app). Both currently return Vercel `NOT_FOUND` because Vercel has no Git deployment of `main`. Added `vercel.json` (framework pin) + `metadataBase`; fix steps in Human_Tasks #6 |
 | Next | Both | Phase 1: leads → surveys → quotes → orders/payments (after review). Media pipeline (GridFS uploads, signature, scanner) is drafted and gets finished and verified in Phase 2 |

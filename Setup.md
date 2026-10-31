@@ -163,7 +163,9 @@ npm run build       # production build
 
 ## 8. Deploy (Vercel + Namecheap)
 
-1. Push to GitHub (`main` is production).
+Production: **https://www.sunpowersolutions.me** (Namecheap domain; the apex redirects to `www`). Vercel URL: **https://sunpowersolutions.vercel.app**
+
+1. Push to GitHub (`main` is production). `vercel.json` pins the framework to Next.js.
 2. On <https://vercel.com>: **Add New → Project** → import `hanvithSai/sunpower`. Vercel detects Next.js automatically.
 3. **Environment Variables:** add `MONGODB_URI`, `AUTH_SECRET` (use a *different* secret from local), `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST`, then **Deploy**.
 4. Make sure Atlas **Network Access** includes `0.0.0.0/0`.
@@ -205,3 +207,4 @@ git push -u origin feat/<area>-<short-name> # open a PR, the other developer rev
 | PowerShell won't run npm scripts | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
 | `db:local` is slow the first time | It is downloading MongoDB (~780 MB) once. Atlas avoids this |
 | Type errors about `PageProps`/`LayoutProps` | Run `npx next typegen` (or `npm run dev` once) to generate route types |
+| Live site shows Vercel `NOT_FOUND` | Vercel has no build of the app: connect the Git repo, set Framework Preset to Next.js, add the env vars and redeploy (Human_Tasks #6) |

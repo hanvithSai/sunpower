@@ -20,6 +20,7 @@ export const COMPANY = {
   address: "Plot 42, HITEC City Road, Madhapur, Hyderabad, Telangana 500081",
   phone: "+91 40 4520 1200",
   email: "hello@sunpower.example",
+  website: "https://www.sunpowersolutions.me",
 } as const;
 
 /* ------------------------------------------------------------------ */
