@@ -58,19 +58,19 @@ export default async function DispatchOrderPage({ params }: { params: Promise<{ 
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Packing</p>
+          <p className="text-xs font-medium font-sans tracking-normal text-muted-foreground">Packing</p>
           <PackingProgress progress={progress} className="mt-2" />
           {canPack && !progress.complete ? <p className="mt-1 text-xs text-warning-foreground">Still to do: {missing}</p> : null}
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 text-sm shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Deliver to</p>
+          <p className="text-xs font-medium font-sans tracking-normal text-muted-foreground">Deliver to</p>
           <p className="mt-2 flex items-start gap-1.5">
             <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             {[order.siteAddress.line1, order.siteAddress.city, order.siteAddress.pincode].filter(Boolean).join(", ")}
           </p>
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 text-sm shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Installation</p>
+          <p className="text-xs font-medium font-sans tracking-normal text-muted-foreground">Installation</p>
           {job ? (
             <>
               <p className="mt-2 flex items-center gap-1.5">
@@ -84,7 +84,7 @@ export default async function DispatchOrderPage({ params }: { params: Promise<{ 
           )}
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 text-sm shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{invoice ? "Tax invoice" : "Truck"}</p>
+          <p className="text-xs font-medium font-sans tracking-normal text-muted-foreground">{invoice ? "Tax invoice" : "Truck"}</p>
           {invoice ? (
             <>
               <p className="mt-2 flex items-center gap-1.5">

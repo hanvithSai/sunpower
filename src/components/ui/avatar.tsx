@@ -8,15 +8,15 @@ import { initials } from "@/lib/format";
 
 type AvatarSize = "sm" | "md" | "lg";
 
-/** Apple system colours: 12–14% tint with the accessible dark text variant. */
+/** Earth tones from the SunPower palette: a soft tint with a dark text variant (all ≥ 5.9:1). */
 const PALETTE = [
-  "bg-[#007aff]/12 text-[#0040dd]", // blue
-  "bg-[#34c759]/14 text-[#248a3d]", // green
-  "bg-[#5856d6]/12 text-[#3634a3]", // indigo
-  "bg-[#ff9500]/14 text-[#c93400]", // orange
-  "bg-[#ff2d55]/12 text-[#d30f45]", // pink
-  "bg-[#af52de]/12 text-[#8944ab]", // purple
-  "bg-[#30b0c7]/14 text-[#0071a4]", // teal
+  "bg-[#1d5c40]/12 text-[#1a5238]", // forest
+  "bg-[#f2b441]/20 text-[#7a4a00]", // sunlight
+  "bg-[#2f7ed8]/12 text-[#1b5a9e]", // sky
+  "bg-[#b5653a]/14 text-[#8a3f17]", // clay
+  "bg-[#5b8a3a]/14 text-[#3d6324]", // moss
+  "bg-[#2b8a8a]/14 text-[#16615f]", // teal
+  "bg-[#7a5ea8]/12 text-[#58407f]", // plum
 ] as const;
 
 const SIZES: Record<AvatarSize, string> = {

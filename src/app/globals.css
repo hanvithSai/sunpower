@@ -1,59 +1,77 @@
 /*
- * SunPower OS — design tokens and global styles (Apple-inspired light theme).
+ * SunPower — design tokens and global styles ("Energy in motion").
+ *
+ * The palette tells the energy story: deep forest for the brand and dark
+ * surfaces, a field green for every action, sunlight amber for energy and
+ * highlights, and "current" lime only for electricity moving through the
+ * energy-flow diagrams (never as text on light surfaces). Every text pair is
+ * WCAG AA, measured (product/Style_Guide.md §11).
  *
  * How it fits together
  * - Raw values live as CSS variables on :root (one place to retune the brand).
  * - `@theme inline` maps them to Tailwind utilities: bg-primary, text-muted-foreground,
- *   border-border, bg-success/12, text-danger-foreground, shadow-card, animate-dialog-in ...
- * - Status tones (success | warning | danger | info | brand) pair a vivid base colour with a
+ *   border-border, bg-success/12, text-danger-foreground, bg-forest, text-sun ...
+ * - Status tones (success | warning | danger | info | brand) pair a base colour with a
  *   darker, accessible `*-foreground` text colour. Tinted badges use `bg-{tone}/12 text-{tone}-foreground`.
- * - `secondary`, `muted` and `accent` are translucent Apple "fills", so they read correctly on both
- *   white cards and the #F5F5F7 app background.
+ * - `secondary`, `muted` and `accent` are translucent forest fills, so they read on both
+ *   white cards and the sage canvas.
+ * - Type: IBM Plex Sans for the interface (tabular figures for money and measurements),
+ *   Bricolage Grotesque for display headings. Both self-hosted (./fonts, SIL OFL).
  * - The print block at the bottom lets quotes, invoices and certificates print cleanly via window.print().
  */
 @import "tailwindcss";
 
 :root {
-  /* Radius scale is derived from the 10px control radius (see @theme below). */
-  --radius: 0.625rem;
+  /* Radius scale is derived from the 8px control radius (see @theme below). */
+  --radius: 0.5rem;
 
   /* Surfaces & ink */
-  --background: #f5f5f7;
-  --foreground: #1d1d1f;
+  --background: #f3f5f0; /* sage-white canvas */
+  --foreground: #18261f; /* 15.7:1 on white, 14.3:1 on the canvas */
   --card: #ffffff;
-  --card-foreground: #1d1d1f;
+  --card-foreground: #18261f;
   --popover: #ffffff;
-  --popover-foreground: #1d1d1f;
+  --popover-foreground: #18261f;
+
+  /* Brand surfaces: deep forest for the sidebar, hero and dark bands */
+  --forest: #0f2f24;
+  --forest-2: #163d30; /* raised surface on forest */
+  --forest-foreground: #e8f0e9;
+  --forest-muted: #9fb3a6; /* 6.5:1 on forest */
+  --sage: #dce9df;
 
   /* Actions */
-  --primary: #0066cc; /* Apple's link blue: 5.1:1 as text on the grey page, 5.6:1 under white text (was #0071e3) */
-  --primary-hover: #0066cc; /* white text 5.6:1 (was #0077ed, 4.3:1) */
+  --primary: #1d5c40; /* field green: 7.9:1 under white text and as text on white */
+  --primary-hover: #174a33;
   --primary-foreground: #ffffff;
-  --secondary: rgb(118 118 128 / 0.12);
-  --secondary-hover: rgb(118 118 128 / 0.18);
-  --secondary-foreground: #1d1d1f;
-  --muted: rgb(118 118 128 / 0.08);
-  --muted-foreground: #66666b; /* 4.6:1 on the darkest tinted surface (was #6e6e73) */
-  --accent: rgb(118 118 128 / 0.1);
-  --accent-foreground: #1d1d1f;
+  --secondary: rgb(15 47 36 / 0.07);
+  --secondary-hover: rgb(15 47 36 / 0.12);
+  --secondary-foreground: #18261f;
+  --muted: rgb(15 47 36 / 0.05);
+  --muted-foreground: #536158; /* 6.5:1 on white, 5.2:1 on the darkest tinted fill */
+  --accent: rgb(15 47 36 / 0.07);
+  --accent-foreground: #18261f;
 
   /* Lines & focus */
-  --border: #e5e5ea;
-  --input: #86868b; /* 3.6:1 field boundary, WCAG 1.4.11 (was #d2d2d7) */
-  --ring: #0066cc; /* solid focus ring 5.6:1 (was 40% opacity, 1.8:1) */
+  --border: #dbe2da;
+  --input: #7c897f; /* 3.7:1 field boundary, WCAG 1.4.11 */
+  --ring: #1d5c40; /* solid focus ring 7.9:1 */
 
-  /* Brand (sun-amber) and status tones: base colour + accessible dark text variant */
-  --brand: #ff9f0a;
-  --brand-light: #ffb340;
-  --brand-foreground: #c93400;
-  --success: #34c759;
-  --success-foreground: #17732f; /* 6:1 on white, 5:1 on its badge tint (was #1a7f37) */
-  --warning: #ff9f0a;
-  --warning-foreground: #a64a00; /* 5:1 on its badge tint (was #b25000) */
-  --danger: #ff3b30;
-  --danger-foreground: #d70015;
-  --info: #007aff;
-  --info-foreground: #0040dd;
+  /* Energy: sunlight amber (brand highlight) and current lime (moving electricity) */
+  --brand: #f2b441;
+  --brand-light: #f7cf7a;
+  --brand-foreground: #8a5300; /* amber text on light surfaces, 6.3:1 */
+  --current: #b9ef62; /* only on forest: 10.7:1 */
+
+  /* Status tones: base colour + accessible dark text variant (all ≥ 5.5:1 on their 12% tint) */
+  --success: #2e9b63;
+  --success-foreground: #1a6e45;
+  --warning: #e8a317;
+  --warning-foreground: #8f4a00;
+  --danger: #e5484d;
+  --danger-foreground: #b42318;
+  --info: #2f7ed8;
+  --info-foreground: #1b5a9e;
 }
 
 @theme inline {
@@ -79,6 +97,14 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  --color-forest: var(--forest);
+  --color-forest-2: var(--forest-2);
+  --color-forest-foreground: var(--forest-foreground);
+  --color-forest-muted: var(--forest-muted);
+  --color-sage: var(--sage);
+  --color-volt: var(--current);
+  --color-sun: var(--brand);
+
   --color-brand: var(--brand);
   --color-brand-light: var(--brand-light);
   --color-brand-foreground: var(--brand-foreground);
@@ -95,9 +121,10 @@
   --color-destructive: var(--danger);
   --color-destructive-foreground: #ffffff;
 
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: var(--font-plex), "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-plex), "Segoe UI", sans-serif;
 
-  /* 6 / 8 / 10 (controls) / 16 (cards) / 20 (sheets) */
+  /* 4 / 6 / 8 (controls) / 14 (cards) / 18 (sheets) */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -106,13 +133,14 @@
 }
 
 @theme {
-  /* Elevation: cards sit almost flat; dialogs and popovers float. */
-  --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.03);
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.04), 0 1px 1px rgb(0 0 0 / 0.02);
-  --shadow-md: 0 8px 30px rgb(0 0 0 / 0.08);
-  --shadow-lg: 0 8px 30px rgb(0 0 0 / 0.08);
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 1px 1px rgb(0 0 0 / 0.02);
-  --shadow-elevated: 0 8px 30px rgb(0 0 0 / 0.08);
+  /* Elevation: surfaces are separated by hairline borders, not shadows; only
+     things that float above the page (menus, dialogs, the cookie banner) cast one. */
+  --shadow-xs: 0 1px 0 rgb(15 47 36 / 0.04);
+  --shadow-sm: 0 1px 0 rgb(15 47 36 / 0.05);
+  --shadow-md: 0 12px 32px -8px rgb(15 47 36 / 0.18);
+  --shadow-lg: 0 16px 40px -10px rgb(15 47 36 / 0.22);
+  --shadow-card: 0 1px 0 rgb(15 47 36 / 0.05);
+  --shadow-elevated: 0 16px 40px -10px rgb(15 47 36 / 0.22);
 
   /* Motion: 150–200 ms, ease-out. Disabled for prefers-reduced-motion (see base layer). */
   --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
@@ -213,7 +241,7 @@
     @apply bg-background font-sans text-sm text-foreground antialiased;
   }
 
-  /* One consistent focus ring for every focusable element: solid 2px blue, offset 2px (WCAG 2.4.11). */
+  /* One consistent focus ring for every focusable element: solid 2px field green, offset 2px (WCAG 2.4.11). */
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
@@ -227,7 +255,7 @@
   }
 
   ::selection {
-    background-color: rgb(0 113 227 / 0.18);
+    background-color: rgb(242 180 65 / 0.35);
   }
 
   h1,
@@ -235,18 +263,31 @@
   h3 {
     text-wrap: balance;
   }
+
+  /* Page and section titles use the display face; smaller headings stay in Plex. */
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+
+  /* Money, counts and measurements line up in columns everywhere. */
+  .tabular-nums,
+  table {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @layer components {
   /* Native <Select>: Apple-style up/down chevrons drawn as a background image (no wrapper element). */
   select[data-slot="select"]:not([multiple]) {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2366666b' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5'/%3E%3Cpath d='m7 9 5-5 5 5'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23536158' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5'/%3E%3Cpath d='m7 9 5-5 5 5'/%3E%3C/svg%3E");
     background-position: right 0.625rem center;
     background-repeat: no-repeat;
     background-size: 1rem 1rem;
   }
 
-  /* Native <Checkbox>: white tick / dash on the blue fill. */
+  /* Native <Checkbox>: white tick / dash on the field-green fill. */
   input[data-slot="checkbox"]:checked {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.75 8.25 6.5 11 12.25 5'/%3E%3C/svg%3E");
   }
@@ -261,7 +302,124 @@
   }
 }
 
+/* Page transitions (PageTransition): the old page leaves fast, the new one rises in. */
+::view-transition-old(.page) {
+  animation: 140ms ease-out both page-out;
+}
+::view-transition-new(.page) {
+  animation: 260ms cubic-bezier(0.25, 1, 0.5, 1) 60ms both page-in;
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* In-page links (/#how-it-works, /#warranty …) glide instead of jumping. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Hero panel grid (PanelGridGlow): solar-panel cells revealed in a soft-edged
+   square around the mouse. --gx/--gy are set from the pointer; two linear masks
+   intersect to make the square. Cells 64 px with two faint busbars each, and a
+   brighter module frame every 4 cells. */
+.panel-grid-glow {
+  --gx: -999px;
+  --gy: -999px;
+  --r: 140px;
+  --soft: 90px;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+  background-image:
+    linear-gradient(rgb(185 239 98 / 0.3) 2px, transparent 2px),
+    linear-gradient(90deg, rgb(185 239 98 / 0.3) 2px, transparent 2px),
+    linear-gradient(rgb(185 239 98 / 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(185 239 98 / 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(185 239 98 / 0.06) 1px, transparent 1px);
+  background-size:
+    256px 256px,
+    256px 256px,
+    64px 64px,
+    64px 64px,
+    21.333px 64px;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent calc(var(--gx) - var(--r) - var(--soft)), #000 calc(var(--gx) - var(--r)), #000 calc(var(--gx) + var(--r)), transparent calc(var(--gx) + var(--r) + var(--soft))),
+    linear-gradient(to bottom, transparent calc(var(--gy) - var(--r) - var(--soft)), #000 calc(var(--gy) - var(--r)), #000 calc(var(--gy) + var(--r)), transparent calc(var(--gy) + var(--r) + var(--soft)));
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent calc(var(--gx) - var(--r) - var(--soft)), #000 calc(var(--gx) - var(--r)), #000 calc(var(--gx) + var(--r)), transparent calc(var(--gx) + var(--r) + var(--soft))),
+    linear-gradient(to bottom, transparent calc(var(--gy) - var(--r) - var(--soft)), #000 calc(var(--gy) - var(--r)), #000 calc(var(--gy) + var(--r)), transparent calc(var(--gy) + var(--r) + var(--soft)));
+  mask-composite: intersect;
+}
+.panel-grid-glow[data-on="true"] {
+  opacity: 1;
+}
+
+/* Scrollbars in the theme: thin, a sage thumb on light surfaces and a faint
+   light thumb on forest (sidebar, mobile menu) — no grey OS bars with arrows. */
+:root {
+  scrollbar-color: #b7c3b8 transparent;
+}
+* {
+  scrollbar-width: thin;
+}
+.scrollbar-on-dark {
+  scrollbar-color: rgb(232 240 233 / 0.24) transparent;
+}
+/* Browsers without scrollbar-color (older Safari) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background-color: #b7c3b8;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #7c897f;
+}
+.scrollbar-on-dark::-webkit-scrollbar-thumb {
+  background-color: rgb(232 240 233 / 0.24);
+}
+
+/* Energy in motion: current flowing along a wire (the energy-flow diagram). */
+@keyframes energy-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+.energy-dash {
+  animation: energy-flow 0.9s linear infinite;
+}
+
 /* Respect the OS "reduce motion" setting. Loading spinners keep turning so progress stays visible. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(.page) {
+    animation: 120ms ease-out both page-fade;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   *:not(.animate-spin),
   *:not(.animate-spin)::before,

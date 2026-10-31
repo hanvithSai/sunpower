@@ -75,11 +75,14 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  closeClassName,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: SheetSide;
   /** Show the × button in the top-right corner. Defaults to true. */
   showCloseButton?: boolean;
+  /** Extra classes for the × button (for example on the dark navigation sheet). */
+  closeClassName?: string;
 }) {
   return (
     <SheetPortal>
@@ -102,6 +105,7 @@ function SheetContent({
               "absolute top-4 right-4 grid size-8 place-items-center rounded-full text-muted-foreground transition-colors",
               "hover:bg-accent hover:text-foreground pointer-coarse:size-11",
               "[&_svg]:size-4",
+              closeClassName,
             )}
           >
             <XIcon aria-hidden="true" />

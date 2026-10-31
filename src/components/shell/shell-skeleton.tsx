@@ -10,10 +10,13 @@ import { PageSkeleton } from "@/components/shared/skeletons";
 
 const NAV_GROUPS = [
   { id: "overview", items: 1 },
-  { id: "sales", items: 4 },
-  { id: "operations", items: 3 },
-  { id: "service", items: 1 },
+  { id: "acquisition", items: 2 },
+  { id: "sales", items: 3 },
+  { id: "operations", items: 5 },
 ];
+
+/** Placeholder bars on the forest sidebar. */
+const bar = "rounded-sm bg-white/10";
 
 export function ShellSkeleton() {
   return (
@@ -21,29 +24,29 @@ export function ShellSkeleton() {
       <aside
         data-app-sidebar
         aria-hidden="true"
-        className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-card lg:flex"
+        className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-forest lg:flex"
       >
         <div className="flex h-14 shrink-0 items-center px-5">
-          <Logo size="sm" />
+          <Logo size="sm" className="text-white" />
         </div>
         <div className="flex-1 space-y-6 px-5 pt-4">
           {NAV_GROUPS.map((group) => (
             <div key={group.id} className="space-y-2.5">
-              <Skeleton className="h-2.5 w-16" />
+              <div className={`h-2.5 w-20 ${bar}`} />
               {Array.from({ length: group.items }, (_, index) => (
                 <div key={index} className="flex items-center gap-3 py-1">
-                  <Skeleton className="size-4.5 rounded-md" />
-                  <Skeleton className="h-3 w-24" />
+                  <div className={`size-4.5 ${bar}`} />
+                  <div className={`h-3 w-24 ${bar}`} />
                 </div>
               ))}
             </div>
           ))}
         </div>
-        <div className="flex shrink-0 items-center gap-3 border-t border-border p-5">
-          <Skeleton className="size-9 rounded-full" />
+        <div className="flex shrink-0 items-center gap-3 border-t border-white/10 p-5">
+          <div className="size-9 rounded-full bg-white/10" />
           <div className="flex-1 space-y-2">
-            <Skeleton className="h-3 w-28" />
-            <Skeleton className="h-2.5 w-16" />
+            <div className={`h-3 w-28 ${bar}`} />
+            <div className={`h-2.5 w-16 ${bar}`} />
           </div>
         </div>
       </aside>
@@ -52,7 +55,7 @@ export function ShellSkeleton() {
         <div
           data-app-topbar
           aria-hidden="true"
-          className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border/70 bg-white/70 px-4 backdrop-blur-xl sm:px-6"
+          className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-md sm:px-6"
         >
           <Skeleton className="size-9 rounded-lg lg:hidden" />
           <Skeleton className="h-9 min-w-0 flex-1 rounded-lg sm:max-w-md" />

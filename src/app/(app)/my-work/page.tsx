@@ -14,6 +14,7 @@ import { StatCard } from "@/components/shared/stat-card";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { requireUser } from "@/server/auth/session";
 import { getMyWork } from "@/server/services/jobs";
+import { ScrollColumn } from "@/components/shared/scroll-column";
 
 export const metadata: Metadata = { title: "My work" };
 
@@ -34,7 +35,7 @@ export default async function MyWorkPage() {
 
       {work.inProgress.length ? (
         <section aria-labelledby="now-heading" className="mb-6">
-          <h2 id="now-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-warning-foreground">
+          <h2 id="now-heading" className="mb-3 text-sm font-semibold font-sans tracking-normal text-warning-foreground">
             In progress
           </h2>
           <div className="space-y-3">
@@ -46,15 +47,15 @@ export default async function MyWorkPage() {
       ) : null}
 
       <section aria-labelledby="today-heading" className="mb-6">
-        <h2 id="today-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h2 id="today-heading" className="mb-3 text-sm font-semibold font-sans tracking-normal text-muted-foreground">
           Today
         </h2>
         {work.today.length ? (
-          <div className="space-y-3">
+          <ScrollColumn label="Today's visits" className="space-y-3">
             {work.today.map((item) => (
               <WorkCard key={item.id} item={item} timeOnly />
             ))}
-          </div>
+          </ScrollColumn>
         ) : (
           <EmptyState icon={Sun} title="Nothing else today" description="New surveys and installations appear here automatically." />
         )}
@@ -62,20 +63,20 @@ export default async function MyWorkPage() {
 
       {work.upcoming.length ? (
         <section aria-labelledby="next-heading" className="mb-6">
-          <h2 id="next-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 id="next-heading" className="mb-3 text-sm font-semibold font-sans tracking-normal text-muted-foreground">
             Coming up
           </h2>
-          <div className="space-y-3">
+          <ScrollColumn label="Upcoming visits" className="space-y-3">
             {work.upcoming.map((item) => (
               <WorkCard key={item.id} item={item} />
             ))}
-          </div>
+          </ScrollColumn>
         </section>
       ) : null}
 
       {work.recentDone.length ? (
         <section aria-labelledby="done-heading">
-          <h2 id="done-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 id="done-heading" className="mb-3 text-sm font-semibold font-sans tracking-normal text-muted-foreground">
             Done this week
           </h2>
           <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">

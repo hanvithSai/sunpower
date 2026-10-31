@@ -15,7 +15,7 @@ import { LoginForm } from "@/components/auth/login-form";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Staff sign-in for SunPower OS.",
+  description: "Staff sign-in for SunPower.",
 };
 
 const VALUE_POINTS: { icon: LucideIcon; title: string; body: string }[] = [
@@ -40,33 +40,33 @@ export default function LoginPage() {
   return (
     <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-card shadow-lg lg:grid-cols-[1.05fr_1fr]">
       <section
-        aria-label="About SunPower OS"
-        className="relative hidden flex-col justify-between gap-10 overflow-hidden bg-linear-to-br from-[#fff3e0] via-[#fff8ef] to-white p-10 lg:flex"
+        aria-label="About SunPower"
+        className="relative hidden flex-col justify-between gap-10 overflow-hidden bg-forest p-10 text-forest-foreground lg:flex"
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-24 -left-24 size-72 rounded-full bg-[radial-gradient(circle,rgb(255_159_10/0.35),transparent_70%)]"
+          className="pointer-events-none absolute -top-28 -right-28 size-80 rounded-full bg-[radial-gradient(circle,rgb(242_180_65/0.22),transparent_68%)]"
         />
-        <Logo size="lg" className="relative" />
+        <Logo size="lg" className="relative text-white" />
         <div className="relative space-y-8">
-          <p className="max-w-sm text-[28px] leading-tight font-semibold tracking-tight text-balance text-foreground">
-            From first enquiry to 20-year warranty — one platform.
+          <p className="max-w-sm font-display text-[30px] leading-tight font-semibold tracking-tight text-balance text-white">
+            Every installation, from first enquiry to every unit delivered.
           </p>
           <ul className="space-y-5">
             {VALUE_POINTS.map(({ icon: Icon, title, body }) => (
               <li key={title} className="flex gap-3.5">
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/80 text-brand-foreground shadow-sm ring-1 ring-brand/15">
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/8 text-sun ring-1 ring-white/10">
                   <Icon className="size-4.5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{title}</p>
-                  <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">{body}</p>
+                  <p className="text-sm font-semibold text-white">{title}</p>
+                  <p className="mt-0.5 text-[13px] leading-relaxed text-forest-muted">{body}</p>
                 </div>
               </li>
             ))}
           </ul>
         </div>
-        <p className="relative text-xs text-muted-foreground">SunPower Solutions · Hyderabad, Telangana</p>
+        <p className="relative text-xs text-forest-muted">SunPower Solutions, Hyderabad, Telangana</p>
       </section>
 
       <section className="flex flex-col justify-center px-6 py-10 sm:px-10 sm:py-12">

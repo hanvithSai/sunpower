@@ -74,7 +74,7 @@ export default async function SharedDashboardPage({ params, searchParams }: { pa
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Shared by {COMPANY.name} · read-only</p>
+          <p className="text-xs font-medium font-sans tracking-normal text-muted-foreground">Shared by {COMPANY.name} · read-only</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
             {RANGE_LABELS[range]}
             {link.label ? ` · for ${link.label}` : ""}

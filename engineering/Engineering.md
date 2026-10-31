@@ -57,7 +57,7 @@ Each decision below records **what** we chose, **why**, and **how it helps** lat
 
 - Cached Mongoose connection per serverless instance. Lean queries, indexes on every list filter, pagination.
 - Static shells plus streaming. Images compressed in the browser before upload.
-- **Self-hosted Inter** (`next/font/local`, SIL OFL): no Google Fonts call at build or run time, so builds and venue demos work on slow or offline networks.
+- **Self-hosted fonts** (IBM Plex Sans and Bricolage Grotesque, `next/font/local`, SIL OFL): no Google Fonts call at build or run time, so builds and venue demos work on slow or offline networks.
 - **Slow-network tolerance:** a 30 s server-selection window and IPv4-only sockets in `connectDB()`. On networks with slow SRV DNS, use Atlas's standard (non-SRV) connection string locally (Setup.md §10).
 - Analytics are sent after the response (`after()`), never on the critical path.
 

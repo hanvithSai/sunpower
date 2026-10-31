@@ -71,7 +71,7 @@ export default async function QuotePrintPage({ params }: { params: Promise<{ id:
 
         <section className="grid gap-6 py-6 sm:grid-cols-2">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Prepared for</p>
+            <p className="text-xs font-medium font-sans tracking-normal text-muted-foreground">Prepared for</p>
             <p className="mt-1 font-semibold">{customer?.name}</p>
             {customer ? (
               <p className="text-muted-foreground">
@@ -88,7 +88,7 @@ export default async function QuotePrintPage({ params }: { params: Promise<{ id:
             ) : null}
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">System</p>
+            <p className="text-xs font-medium font-sans tracking-normal text-muted-foreground">System</p>
             <p className="mt-1 font-semibold">{quote.title}</p>
             <p className="text-muted-foreground">
               Supply, installation, testing and commissioning on your rooftop, including all mounting, cabling, protection and earthing.

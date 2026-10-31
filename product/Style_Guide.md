@@ -1,30 +1,33 @@
-# SunPower OS: Style Guide
+# SunPower: Style Guide
 
 | | |
 |---|---|
-| **Version** | 1.1, 31 Oct 2026 (WCAG AA colour pass) |
+| **Version** | 2.0, 1 Nov 2026 ("Energy in motion" redesign and the SunPower rebrand) |
 | **Owner** | Hanvith Sai Alla (design system, `globals.css`) |
-| **Stack** | Tailwind CSS v4, shadcn/ui, Inter via `next/font`, lucide-react, Recharts |
-| **Related** | [PRD.md](PRD.md) · [Features.md](Features.md) |
+| **Stack** | Tailwind CSS v4, shadcn/ui on Radix, IBM Plex Sans and Bricolage Grotesque (self-hosted), lucide-react, Recharts |
+| **Related** | [PRD.md](PRD.md) · [Features.md](Features.md) · [Analytics.md](Analytics.md) |
 
-An Apple-inspired system: a quiet grey canvas, white cards, one blue for actions, clear type and generous space, so the data and the next step stand out. The values in this guide are final and the UI is built with exactly these tokens. Light theme only in v1.0.
+SunPower should look like the operating system of a renewable-energy company, not a generic admin template. The idea is **energy in motion**: sunlight comes in, gets converted, and flows through the business the way electricity flows through a rooftop system. A deep-forest brand carries the identity on the sidebar, the public header and the hero; a field green marks every action; sunlight amber is the highlight; and a "current" lime is reserved for electricity moving through diagrams. The UI is built with exactly these tokens. Light theme only.
+
+Version 1.0 (31 Oct) was an Apple-style blue system called "SunPower OS". Reviewers found it generic, so 2.0 replaces the palette, type, logo and shell; the component rules and accessibility floor carry over.
 
 ## 1. Principles
 
 | Principle | In practice |
 |---|---|
-| Clarity | One primary action per view; plain words; numbers right-aligned in tabular figures |
-| Deference | Grey canvas and white surfaces; colour only for actions and status |
-| Consistency | The same tokens, components and patterns on every screen and for every role |
-| Fit for the field | Technician screens are mobile-first, with large targets and few fields |
+| One connected journey | Navigation, the dashboard pipeline and the landing page all follow the project's life: enquiry, survey, quote, order, dispatch, installation, commissioning, service |
+| Spend boldness in one place | The landing page's memorable element is the interactive energy-flow diagram; everything else is quiet |
+| Real data only | No invented statistics or fake buttons. Illustrations say they are illustrations; estimates say they are estimates |
+| Structure that carries meaning | Hairline rules and numbered steps where there is a real sequence, rather than a wall of identical rounded cards |
+| Fit for the field | Technician and warehouse screens are mobile-first, with large targets and few fields |
 
 ## 2. Logo
 
-- **Construction:** a rounded-square tile filled with an amber linear gradient from #FFB340 (top-left) to #FF9F0A (bottom-right), with a white sun glyph (lucide `Sun`) centred in it. The wordmark follows: "SunPower" in semibold ink (#1D1D1F) and "OS" in ink at 70% opacity, with a single space between them.
-- **Recommended sizes:** sidebar tile 28 px with a 17 px wordmark; sign-in page tile 40 px with a 22 px wordmark; the favicon uses the tile alone.
-- **Clear space:** at least half the tile's width on every side. **Minimum size:** 20 px tile.
-- **Don't:** recolour or re-angle the gradient, stretch the tile, add outlines or shadows, place it on photos, use it as a button, or write the name as "Sunpower" or "SunPowerOS".
-- **Customer documents** (quote, invoice, certificate) show the tile with the company name "SunPower Solutions"; "SunPower OS" is the product name inside the app.
+- **Mark:** a sunlight-amber sun (#F2B441) rising behind a sage solar panel (#DCE9DF, three cells divided by forest lines) on a deep-forest rounded tile (#0F2F24) with a faint sage outline so it also reads on forest surfaces. Original artwork in `src/components/brand/logo.tsx`, `src/app/icon.svg` and `public/logo.svg`.
+- **Wordmark:** "SunPower" in Bricolage Grotesque semibold, −0.02 em tracking, forest ink on light surfaces and white on forest.
+- **Name:** always "SunPower" (the product and the company's short name); "SunPower Solutions Pvt. Ltd." on legal and customer documents. Never "SunPower OS", "Sunpower" or "Sun Power".
+- **Sizes:** sidebar and header tile 28–32 px with a 17–19 px wordmark; sign-in tile 44 px with a 25 px wordmark; the favicon is the mark alone. Minimum 20 px.
+- **Don't:** recolour the sun, add gradients or shadows, place the mark on photos or use it as a button.
 
 ## 3. Colour
 
@@ -32,98 +35,101 @@ An Apple-inspired system: a quiet grey canvas, white cards, one blue for actions
 
 | Token | Hex | Use |
 |---|---|---|
-| Primary | #0066CC | Primary buttons, links, selected states, focus (was #0071E3 before the AA pass) |
-| Primary hover | #0066CC | Same as primary since the AA pass; the pressed state dims to 90% |
-| On primary | #FFFFFF | Text and icons on primary |
-| Accent (sun amber) | #FF9F0A | Logo and brand highlights on public pages |
-| Ink | #1D1D1F | Headings and body text |
-| Secondary text | #66666B | Labels, helper text, metadata, placeholders (was #6E6E73) |
-| Background | #F5F5F7 | App canvas |
+| Forest | #0F2F24 | Brand surfaces: sidebar, public header and footer, hero, dark bands, the pipeline strip |
+| Forest raised | #163D30 | Panels on forest (the energy-flow card) |
+| Field green (primary) | #1D5C40 | Primary buttons, links, selected states, focus ring |
+| Primary hover | #174A33 | Hover on primary buttons |
+| Sunlight amber | #F2B441 | Highlights: calls to action on forest, the active-page marker, the sun, chart "cash" accents (darkened, see 9) |
+| Amber text | #8A5300 | Amber as text on light surfaces |
+| Current lime | #B9EF62 | Electricity moving in diagrams and live pipeline stages, **on forest only** (Tailwind `volt`) |
+| Ink | #18261F | Headings and body text |
+| Secondary text | #536158 | Labels, helper text, metadata, placeholders |
+| Forest text / muted | #E8F0E9 / #9FB3A6 | Body text and secondary text on forest |
+| Canvas | #F3F5F0 | App and page background (sage white) |
+| Sage | #DCE9DF | Tinted bands (the subsidy section), panel cells in the mark |
 | Surface | #FFFFFF | Cards, tables, dialogs, inputs |
-| Separator / border | #E5E5EA | Dividers, card and table rules |
-| Input border | #86868B | Text fields, selects, checkboxes, secondary buttons |
+| Line | #DBE2DA | Dividers, card and table rules |
+| Input border | #7C897F | Text fields, selects, checkboxes, outline buttons |
 
 ### 3.2 Status colours
 
-Badges use a soft tint of the base colour (about 12%) with the dark text variant. The tint values below are the 12% mix over white.
+Badges use a 12% tint of the base colour with the dark text variant.
 
-| Status | Base | Text variant | Badge background |
-|---|---|---|---|
-| Success | #34C759 | #17732F | rgba(52, 199, 89, 0.12) ≈ #E7F8EB |
-| Warning | #FF9F0A | #A64A00 | rgba(255, 159, 10, 0.12) ≈ #FFF3E2 |
-| Danger | #FF3B30 | #D70015 | rgba(255, 59, 48, 0.12) ≈ #FFE7E6 |
-| Info | #007AFF | #0040DD | rgba(0, 122, 255, 0.12) ≈ #E0EFFF |
-| Neutral | #66666B | #66666B | #F5F5F7 (background token) |
+| Status | Base | Text variant |
+|---|---|---|
+| Success | #2E9B63 | #1A6E45 |
+| Warning | #E8A317 | #8F4A00 |
+| Danger | #E5484D | #B42318 |
+| Info | #2F7ED8 | #1B5A9E |
+| Neutral | #536158 | #536158 on the canvas |
+
+Avatars use seven earth tones (forest, sunlight, sky, clay, moss, teal, plum) with dark text variants, all at least 5.9:1; on the forest sidebar the avatar is amber with forest initials.
 
 ### 3.3 Rules
 
-- **Blue means "you can act."** Never use #0066CC for decoration or status. Info status uses its own blues (#007AFF, #0040DD).
-- **Amber is the brand in the logo; inside the app amber means warning.** Don't use the accent as decoration near status information.
-- **Base status colours** are for dots, icons, chart marks and fills. **Text uses the dark variant**, because the base colours are too light for text on white.
+- **Field green means "you can act."** Status success uses its own greens and always carries an icon or label, so the two never get confused.
+- **Lime is electricity, nothing else.** Never use it for text on light surfaces or for decoration.
+- **Amber is light and attention.** The primary action *on forest* is amber with forest text; on light surfaces the primary action is field green.
 - **Colour is never the only signal:** every status has a text label, and an icon where space allows.
+- No gradients except two faint radial "sunlight" washes (hero and sign-in), no glassmorphism, no neon.
 
 ## 4. Typography
 
-- **Font:** Inter, loaded with `next/font` (self-hosted at build time, no runtime request to Google). Fallback stack: `-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`.
-- **Weights:** 400 regular, 500 medium (buttons, tabs, badges), 600 semibold (headings, emphasis). No 700.
-- **Numbers:** `font-variant-numeric: tabular-nums` for every figure: amounts, quantities, KPI values and table dates.
+- **Interface: IBM Plex Sans** (variable, 100–700). Technical, highly legible, with good tabular figures for money and measurements.
+- **Display: Bricolage Grotesque** (variable, 200–800). Used for `h1` and `h2` (page and section titles), the wordmark, KPI and pipeline numbers, and the landing page headlines. Tracking −0.015 em to −0.03 em at large sizes.
+- Both are self-hosted with `next/font/local` from `src/app/fonts` (SIL Open Font License), so nothing is fetched from Google at build or run time.
+- **Numbers:** `tabular-nums` for amounts, quantities, counts and table dates (tables get it by default).
 
-| Style | Size / line height (px) | Weight | Use |
+| Style | Size / line height (px) | Face, weight | Use |
 |---|---|---|---|
-| Display | 34 / 41 | Semibold | Landing hero, sign-in heading |
-| Title 1 | 28 / 34 | Semibold | Page titles, KPI values |
-| Title 2 | 22 / 28 | Semibold | Section headings on detail pages |
-| Title 3 | 20 / 25 | Semibold | Dialog titles, card group headings |
-| Headline | 17 / 22 | Semibold | Card and table titles |
-| Body | 15 / 20 | Regular | Paragraphs, form values on mobile |
-| Callout | 14 / 19 | Regular | **Default UI and table text**, inputs; buttons in medium |
-| Footnote | 13 / 18 | Regular | Field labels, helper and error text; table headers in semibold |
-| Caption | 12 / 16 | Regular | Badges (medium), timestamps, chart axes |
+| Hero | 42–68 / 1.02 | Bricolage, semibold | Landing hero |
+| Display | 36–48 / 1.1 | Bricolage, semibold | Landing section titles |
+| Title 1 | 28 / 34 | Bricolage, semibold | Page titles |
+| Title 2 | 20–22 / 28 | Bricolage, semibold | Section headings on detail pages |
+| Headline | 15–17 / 22 | Plex, semibold | Card and table titles |
+| Body | 15 / 22 | Plex, regular | Paragraphs, form values on mobile |
+| Callout | 14 / 20 | Plex, regular | **Default UI and table text**, inputs; buttons in medium |
+| Footnote | 13 / 18 | Plex, regular | Field labels, helper and error text; sidebar section names |
+| Caption | 11–12 / 16 | Plex, medium | Badges, timestamps, chart axes |
 
-Use at most two type styles inside one component, keep paragraphs under about 75 characters per line, and never set text in all capitals.
+Sentence case everywhere. No tracked-out capital "eyebrow" labels, no monospace for small labels.
 
 ## 5. Layout and spacing
 
-- **4-pt grid:** spacing values are 4, 8, 12, 16, 20, 24, 32, 40, 48 and 64 px.
-- **Page padding:** 24 px on desktop, 16 px on mobile.
-- **Card padding:** 20–24 px (20 on mobile, 24 on desktop).
-- **Grid gaps:** 16 px between items inside a section and on mobile; 24 px between cards on desktop.
-- **Structure:** sidebar about 240 px wide from `lg`; forms in a single column up to 640 px wide; detail pages with a main column and a side panel (summary, timeline) from `lg`.
+- **4-pt grid:** 4, 8, 12, 16, 20, 24, 32, 40, 48, 64 px.
+- **Page padding:** 24 px on desktop, 16 px on mobile. The app's main column is up to 1280 px wide; landing sections up to 1152 px.
+- **Landing rhythm:** 80–112 px between sections, alternating canvas, white, sage and forest bands so each section reads as its own chapter.
+- **App structure:** forest sidebar 256 px (68 px collapsed) from `lg`; sticky top bar 56 px; forms single column up to 640 px; detail pages with a main column and a side panel from `lg`.
 
 ## 6. Shape and elevation
 
 | Token | Value | Use |
 |---|---|---|
-| Radius, controls | 10 px | Buttons, inputs, selects, segmented controls, menus |
-| Radius, cards | 16 px | Cards, dialogs, command palette, sheets, toasts |
-| Radius, badges | Full pill (9999 px) | Badges, chips, filter pills |
-| Shadow, card | `0 1px 2px rgba(0,0,0,.04), 0 1px 1px rgba(0,0,0,.02)` | Cards on the grey canvas |
-| Shadow, elevated | `0 8px 30px rgba(0,0,0,.08)` | Popovers, menus, dialogs, ⌘K palette, toasts |
+| Radius, controls | 8 px | Buttons, inputs, selects, segmented controls, menus |
+| Radius, cards | 12–14 px | Cards, dialogs, the energy-flow panel, the pipeline strip |
+| Radius, sheets | 18 px | Sheets and large panels |
+| Radius, badges | Full pill | Badges, chips, filter pills |
+| Shadow, card | `0 1px 0 rgb(15 47 36 / .05)` | Cards separate by a hairline border, not a shadow |
+| Shadow, elevated | `0 16px 40px -10px rgb(15 47 36 / .22)` | Menus, dialogs, ⌘K, toasts, the cookie banner |
 
-White cards sit on the #F5F5F7 canvas with the card shadow and no border. A card inside a white surface uses a 1 px #E5E5EA border instead of a shadow.
+Groups of equal items (the landing platform grid, the facts strip) use 1 px rules between cells rather than separate floating cards.
 
 ## 7. Icons
 
-- lucide-react only, stroke width **1.75**.
-- Sizes: **16 px** inline (buttons, tables, badges), **18 px** navigation, **20 px** page and card headers.
+- lucide-react only, stroke width **1.75**. Sizes: 16 px inline, 18 px navigation, 20–24 px headers and diagram parts.
 - Icons inherit the text colour. Icon-only buttons need an `aria-label` and a tooltip.
-
-| Area | Icon | Area | Icon |
-|---|---|---|---|
-| Dashboard | `LayoutDashboard` | Dispatch | `Truck` |
-| My work | `ListChecks` | Jobs | `HardHat` |
-| Leads | `Users` | Service | `LifeBuoy` |
-| Surveys | `ClipboardList` | Invoices | `Receipt` |
-| Catalog | `Package` | Subsidy | `Landmark` |
-| Quotes | `FileText` | Team | `UsersRound` |
-| Orders | `ShoppingCart` | Search | `Search` |
-| Inventory | `Boxes` | Scan / warranty | `ScanBarcode` / `ShieldCheck` |
+- Domain icons: `SolarPanel`, `SunMedium`, `Cpu` (inverter), `Gauge` (charge controller), `BatteryCharging`, `House`, `UtilityPole`; navigation icons are defined in `src/lib/navigation.ts`.
 
 ## 8. Motion
 
-- 150–200 ms with ease-out. No bounce or spring overshoot. Animate opacity and transform only.
-- Hover and press: 150 ms. Menus and popovers: 150 ms fade with a 4 px slide. Dialogs and ⌘K: 200 ms fade with a 0.98 → 1 scale. Toasts: 200 ms slide in.
-- `prefers-reduced-motion: reduce` turns movement into instant changes or a plain fade, stops skeleton shimmer and disables smooth scrolling.
+- One orchestrated element per screen. Interface motion is 150–200 ms ease-out on opacity and transform; no bounce or overshoot.
+- **Energy flow:** current moves along the diagram's wires as a dashed stroke (`energy-dash`, 0.9 s linear loop) with arrowheads showing direction, so the meaning survives when motion is off.
+- **Page transitions:** every navigation fades the old page out (140 ms) and lifts the new one in by 8 px (260 ms) with React's `<ViewTransition>` in each route group's `template.tsx` (between sections; pages within one section swap instantly); reduced motion keeps a plain crossfade. In-page links (`/#how-it-works`, `/#warranty`) scroll smoothly; route changes still jump to the top (`data-scroll-behavior="smooth"`).
+- **Count-up:** the landing facts count from 0 to their value once, when they scroll into view (1.4 s, ease-out); screen readers get the final value.
+- **Hero panel grid:** on the landing hero, a solar-panel cell grid (64 px cells, faint busbars, a brighter module frame every 4 cells, in current lime) appears only under the mouse, in a soft-edged square about 280 px wide; it fades out when the pointer leaves. Mouse only, no effect on touch.
+- **Solar-panel cards:** the eight journey steps are drawn as panels (aluminium frame, cell grid) that tilt slightly and catch a light sweep on hover.
+- Sidebar collapse animates width (200 ms). Menus and popovers fade with a 4 px slide; dialogs fade and scale from 0.96.
+- `prefers-reduced-motion: reduce` freezes the energy dashes and the journey fill, and turns movement into instant changes.
 
 ## 9. Components
 
@@ -131,132 +137,147 @@ White cards sit on the #F5F5F7 canvas with the card shadow and no border. A card
 
 | Variant | Look | Use |
 |---|---|---|
-| Primary | #0066CC fill, white text; pressed 90% | One per view: Create quote, Record payment, Dispatch |
-| Secondary | White fill, 1 px #86868B border, ink text | Every other action |
-| Tertiary | No fill, #0066CC text | Low emphasis: Cancel, View all |
-| Destructive | White fill, #D70015 text; filled #D70015 with white text only inside a confirmation dialog | Cancel order, Revoke link |
+| Primary | #1D5C40 fill, white text; hover #174A33 | One per view: Create quote, Record payment, Dispatch |
+| Primary on forest | #F2B441 fill, #0F2F24 text | Calls to action on forest bands (Get a free quote) |
+| Outline | White fill, 1 px #7C897F border, ink text | Every other action |
+| Ghost / link | No fill, field-green text | Low emphasis: Cancel, View all |
+| Destructive | Danger text; filled danger only inside a confirmation dialog | Cancel order, Revoke link |
 
-- Height 36 px on desktop and **44 px on technician and other touch screens**; 16 px side padding; label in Callout, medium; 16 px icon with an 8 px gap.
-- States: hover, pressed, focus ring, disabled (40% opacity, no pointer events) and loading (spinner replaces the icon, button disabled).
-- **Gate buttons** (blocked by a business rule) stay visible but disabled, with a lock icon and the reason next to them: "Approve the survey to create a quote", "Scan 1 more serial to dispatch".
+- Height 36 px on desktop and **44 px on touch screens**; label in Callout, medium; 16 px icon with an 8 px gap.
+- States: hover, pressed, focus ring, disabled (40% opacity) and loading (spinner replaces the icon, button disabled).
+- **Gate buttons** (blocked by a business rule) stay visible but disabled, with the reason next to them: "Approve the survey to create a quote", "Scan 1 more serial to dispatch".
 
 ### Inputs
 
-- Height 36 px (44 px on touch screens), radius 10 px, 1 px #86868B border, white fill, Callout text, #66666B placeholder.
-- Label above every field (Footnote, medium); helper text below (Footnote, secondary); errors below in Footnote #D70015 with a #FF3B30 border and an alert icon.
-- Focus: the border turns #0066CC and the focus ring appears (section 11).
-- Special fields: amounts with a ₹ prefix, right-aligned tabular figures and lakh grouping on blur; mobile with a fixed +91 prefix and a numeric keypad; 6-digit pincode; serial fields in capitals with autocorrect and autocomplete off; dates shown as DD MMM YYYY.
-- Validate on blur, then on every change once a field has an error. On submit, focus the first invalid field.
+- Height 36 px (44 px on touch), radius 8 px, 1 px #7C897F border, white fill, Callout text, #536158 placeholder.
+- Label above every field (Footnote, medium); helper text below; errors below in danger text with a danger border and an alert icon.
+- Focus: field-green border and the focus ring. Special fields: ₹ amounts with lakh grouping, +91 mobile with a numeric keypad, 6-digit PIN, serials in capitals with autocorrect off, dates as DD MMM YYYY.
 
 ### Tables
 
-- Callout text; headers in Footnote semibold #66666B, sentence case; rows 44 px high with 1 px #E5E5EA separators; hover row #F5F5F7.
-- Numbers right-aligned in tabular figures; status shown as badges; the first column links to the record; sticky header; sortable columns show their direction; 25 rows per page.
-- Below `md`, rows become stacked cards: title, two or three key facts and the status badge.
-- Profit table: loss-making rows get the danger badge tint with the profit in #D70015; rows below 15% margin get the warning tint.
+- Callout text, headers in Footnote semibold secondary text, sentence case; 44 px rows with #DBE2DA separators; numbers right-aligned in tabular figures; first column links to the record; 25 rows per page; stacked cards below `md`.
+- Profit table: loss-making rows get the danger tint; rows below 15% margin get the warning tint.
 
 ### Badges
 
-Pill shape, Caption in medium, 2 px × 8 px padding, tinted background with the dark text variant, optionally a 6 px dot in the base colour. Badges sit on white surfaces (cards and tables).
+Pill, Caption medium, tinted background with the dark text variant, optionally a 6 px dot in the current text colour.
 
 | Meaning | Colour | Examples |
 |---|---|---|
-| Done, healthy | Success | Approved, Accepted, Won, Paid, Commissioned, In warranty, Customer confirmed, Disbursed |
-| Moving, waiting on us | Info | New, Contacted, Qualified, Scheduled, Sent, Confirmed, Dispatched, Delivered, In progress, Issued |
-| Needs attention | Warning | Uncontacted 1h, To schedule, Submitted (needs review), Pending payment, Resolved (awaiting customer), Partly paid, Low stock, Expiring soon |
-| Blocked, late, failed | Danger | Uncontacted 2h, Survey rejected, Overdue, Out of warranty, Out of stock, Loss |
-| Inactive, finished | Neutral | Draft, Superseded, Expired quote, Declined, Lost, Rejected, Cancelled, Closed |
+| Done, healthy | Success | Approved, Won, Paid, Commissioned, In warranty, Customer confirmed, Disbursed |
+| Moving, waiting on us | Info | New, Contacted, Scheduled, Sent, Confirmed, Dispatched, Delivered, In progress |
+| Needs attention | Warning | Uncontacted 1 h, Submitted (needs review), Pending payment, Awaiting confirmation, Low stock |
+| Blocked, late, failed | Danger | Uncontacted 2 h, Survey rejected, Overdue, Out of warranty, Loss |
+| Inactive, finished | Neutral | Draft, Superseded, Declined, Lost, Cancelled, Closed |
 
 ### Cards
 
-- White surface, 16 px radius, card shadow, 20–24 px padding.
-- Header: Headline title, optional Footnote description, actions on the right.
-- **KPI card:** label in Footnote secondary; value in Title 1 with tabular figures; change against the previous period in Caption with an arrow icon, in success or danger text.
+White surface, 12–14 px radius, hairline border, 20–24 px padding. KPI cards: label in Footnote secondary, value in Bricolage with tabular figures, change against the previous period with an arrow.
+
+### Navigation (app shell)
+
+- **Sidebar:** forest, sections in sentence case that follow the project's life: Overview, Customer acquisition, Sales, Operations, After-sales, Business. Each item has a one-line purpose as its tooltip. The current page gets a white-tinted row, an amber icon and a 3 px amber marker. Collapses to 68 px icons (labels move into tooltips); the choice is remembered on the device.
+- **Top bar:** "Section / Page" location (from `xl`), ⌘K search and a primary **New** menu with the role's quick actions (the same list as ⌘K).
+- **Account:** the signed-in user appears once, at the foot of the sidebar (and of the mobile menu): avatar, name and role. The card opens the account menu upwards (email, My home, Warranty check, Public website, Cookie settings, Sign out); collapsed, only the avatar shows and the menu opens to the right.
+- **Mobile:** the same navigation in a forest sheet from the hamburger.
+
+### Lifecycle pipeline (dashboard)
+
+A forest strip: "Every project, stage by stage", seven numbered stages (Enquiry → Survey → Quote → Order → Dispatch → Installation → Commissioned) separated by hairlines. Each shows a live count in Bricolage, what the count means, and a lime dot when work is waiting (amber for Commissioned). Every stage links to its module. Counts come from current statuses only.
+
+### Energy-flow diagram (landing)
+
+A forest-raised panel: system type (On-Grid, Off-Grid — the systems SunPower installs) as a segmented control with the active option in amber; the parts as 44–56 px circular buttons with labels and status tags ("Exporting", "Charging", "Switched off"); faint wires for every connection and lit, animated wires with arrows for the current moment (Sunny afternoon, Evening, Power cut); a one-sentence story below that changes with the moment, or the clicked part's explanation. Every sentence describes how the system behaves; no live figures are shown.
+
+### Board columns
+
+Kanban-style columns (leads board, subsidy board, the technician's Today and Coming up) show **five cards and scroll the rest inside the column** (`ScrollColumn`, which measures where the sixth card starts). Below the column: "Showing 5 of 83. Scroll for 78 more." The scroll area is focusable for keyboard users.
+
+### Detail dialogs
+
+Catalog packages open a dialog with the price breakdown (excl. GST, GST, total, estimated subsidy) and the full bill of materials, from the same quote maths as the builder.
 
 ### Empty, loading and error states
 
-- **Empty:** centred in the card: a 20 px icon in a 40 px #F5F5F7 circle, a Headline title, one sentence in Callout secondary and one primary action. Example: "No leads yet. New enquiries from the website appear here automatically." [Add lead]
-- **No results:** "No results for these filters" with Clear filters.
-- **Loading:** skeleton blocks in #E5E5EA matching the final layout; no spinners for whole pages.
-- **Error:** "Couldn't load leads" with a short reason and Retry.
+- **Empty:** icon in a 40 px canvas circle, a Headline title, one sentence that invites action, one primary action.
+- **Loading:** skeletons matching the final layout (on forest, white at 10% opacity); no full-page spinners.
+- **Error:** what went wrong and how to fix it, with Retry; the sidebar keeps working.
 
 ### Toasts
 
-- Bottom-right on desktop, top-centre on mobile; elevated shadow; 16 px radius; one-line title plus an optional description and one action (for example "View invoice").
-- Success messages say what happened, in the past tense: "Payment of ₹50,000 recorded". They close after 4 seconds.
-- Errors say what went wrong and how to fix it: "Scan every serial before dispatch: 1 of 8 left". They stay until dismissed.
-- Announced with `aria-live` (polite for success, assertive for errors).
+Bottom-right on desktop, top-centre on mobile; elevated shadow. Success in the past tense ("Payment of ₹50,000 recorded", 4 s); errors say how to fix it and stay until dismissed. Announced with `aria-live`.
 
 ### Cookie banner
 
-- Fixed to the bottom of the viewport with 12 px insets, up to 672 px wide, card surface with the elevated shadow and a 16 px radius; above the safe area on phones; hidden in print.
-- A non-modal landmark (`section` with a heading): the page stays usable behind it and focus isn't trapped.
-- Cookie icon, Headline title "Cookies on SunPower", one Callout paragraph in secondary text with a "Privacy & cookies" link.
-- **Reject analytics** and **Accept analytics** are the same variant (outline) and size, side by side from `sm`, stacked full width on phones. Never style Accept as the only primary action.
-- Reopened from "Cookie settings", it adds the current state ("Analytics cookies are currently on") and a close button.
+Fixed to the bottom with 12 px insets, up to 672 px wide, elevated card; a non-modal landmark. **Reject analytics** and **Accept analytics** are the same variant (outline) and size. Reopened from "Cookie settings" it shows the current state and a close button.
 
 ### Command palette (⌘K)
 
-Elevated card about 640 px wide with a 16 px radius; Body-size input; results grouped under Footnote headers (Customers, Serials, Leads, Quotes, Orders, Tickets, Invoices); ↑ and ↓ to move, Enter to open, Esc to close; recent records shown before typing.
+Elevated card about 640 px wide; results grouped under Footnote headers (Customers, Serials, Leads, Quotes, Orders, Tickets, Invoices); quick actions shared with the top bar's New menu.
 
 ### Charts
 
-Recharts. Invoiced series #0071E3, cash series #EB6834, gridlines #E5E5EA, axis labels in Caption #66666B, ₹ axis values in compact form (₹5 L); tooltips use the elevated style; status colours only when the series means a status. No 3D charts and no pie charts with more than five slices.
+The Reports page (`/reports`) follows the dataviz method: one series in forest #1D5C40; categorical series in the fixed order field green #2A8A5C, sky #2F7ED8, amber #B8801A, plum #8A63B8, clay #C0603A (validated against white: lightness band, chroma floor, colour-blind separation of neighbours, 3:1 contrast); emphasis in danger #B42318 for loss-making jobs; never two y-axes; part-to-whole as a tall segmented bar with a legend list (no text inside the colours, which would be under 4.5:1); ranked horizontal bars with printed values; counts drawn with straight lines; every chart has a tooltip and a table view.
+
+
+Recharts. Invoiced series #1D5C40 (7.9:1 on white), cash series #B8801A (3.4:1, above the 3:1 needed for graphics), gridlines #DBE2DA, axis labels in Caption #536158, ₹ axis values in compact form (₹5 L). Every chart has a title, units, a legend and a "Show as a table" alternative.
 
 ## 10. Content style
 
-- **Sentence case everywhere:** titles, buttons, navigation, table headers ("Create quote", not "Create Quote").
-- **Buttons start with a verb and name the object:** "Record payment", not "Submit".
-- **Money:** ₹ with lakh grouping (₹1,50,000; ₹12,34,567); compact on KPI cards and chart axes (₹18.6 L, ₹1.2 Cr); whole rupees in lists, paise only on invoices; negatives with a minus sign in danger text (−₹6,400).
-- **Dates and times:** DD MMM YYYY (31 Oct 2026); with a time, "31 Oct 2026, 10:30 AM"; recent activity as relative time ("2 h ago") with the full date on hover; IST everywhere.
-- **Units:** a space before units ("3 kW", "545 Wp", "12 m"); none before % or ° ("15%", "18°").
-- **Phone numbers:** "+91 98480 12345". **Document numbers** exactly as issued: SP-Q-0142.
-- **Voice:** plain, polite Indian English; speak to the user as "you"; no jargon on public pages ("solar panels", not "PV modules"); never blame the user.
+- **Sentence case everywhere**; buttons start with a verb and name the object ("Record payment", "Book a free roof survey").
+- **Money:** ₹ with lakh grouping (₹1,50,000); compact on KPIs and axes (₹18.6 L, ₹1.2 Cr). **Dates:** DD MMM YYYY, IST. **Units:** "3 kW", "545 Wp", "15%".
+- **Voice:** plain, polite Indian English; "you"; no jargon on public pages ("solar panels", not "PV modules"); never blame the user.
+- **Honesty:** estimates are labelled as estimates ("An estimate under current rules, not an approval"), illustrations as illustrations; no statistic appears unless the system can back it.
 
 ## 11. Accessibility
 
 Target: **WCAG 2.2 AA**.
 
-- **Contrast:** text at least 4.5:1, large text (24 px, or 18.66 px bold) at least 3:1, meaningful icons and component boundaries at least 3:1.
-- **Focus:** every focusable element shows a **solid 2 px #0066CC ring with a 2 px offset** on `:focus-visible`. Outlines are never removed without this replacement.
-- **Touch targets:** at least **44 × 44 px on technician mobile screens** (and every touch layout), with 8 px between adjacent targets.
-- **Forms:** every input has a visible label; errors are linked with `aria-describedby`; the first invalid field takes focus on submit.
-- **Keyboard:** everything is reachable in a logical order; ⌘K or Ctrl+K opens search; Esc closes dialogs; focus is trapped inside dialogs and returned on close.
-- **Screen readers:** landmarks and a unique title on every page; `lang="en-IN"`; `aria-live` for toasts and scan results; alt text on photos ("Roof photo 2 of 3, job SP-J-0087").
+- **Contrast:** text at least 4.5:1, large text at least 3:1, meaningful icons, chart marks and component boundaries at least 3:1.
+- **Focus:** a **solid 2 px #1D5C40 ring with a 2 px offset** on `:focus-visible` everywhere.
+- **Touch targets:** at least 44 × 44 px on touch screens, with 8 px between targets.
+- **Forms:** visible labels; errors linked with `aria-describedby`; first invalid field takes focus.
+- **Keyboard:** logical order; ⌘K / Ctrl+K opens search; Esc closes dialogs; the energy-flow parts and switches are real buttons with `aria-pressed`.
+- **Screen readers:** landmarks and a unique title on every page; `lang="en-IN"`; `aria-live` for toasts, scan results, the energy-flow story and the subsidy estimate.
 - **Motion:** honour `prefers-reduced-motion` (section 8).
 
 ### Contrast check (measured)
 
-Re-measured 31 Oct, 22:45 against the tokens in `src/app/globals.css` (WCAG 2.x relative luminance; badge tints are 12% of the base colour over white).
+Measured 1 Nov 2026 against the tokens in `src/app/globals.css` (WCAG 2.x relative luminance; badge tints are 12–16% of the base colour over white).
 
 | Pair | Ratio | Result |
 |---|---|---|
-| Ink on surface / on background | 16.8:1 / 15.5:1 | Pass |
-| Secondary text #66666B on surface / on background | 5.7:1 / 5.2:1 | Pass |
-| White on primary #0066CC | 5.6:1 | Pass |
-| Primary text on surface / on background | 5.6:1 / 5.1:1 | Pass |
-| Badge text on its tint, over white: info / warning #A64A00 / danger | 6.5:1 / 5.3:1 / 4.6:1 | Pass |
-| Success text #17732F on its tint / on white | 5.4:1 / 5.9:1 | Pass |
-| Neutral badge (#66666B on #F5F5F7) | 5.2:1 | Pass |
-| Focus ring (solid #0066CC) against white | 5.6:1 | Pass |
-| Input border #86868B against white | 3.6:1 | Pass |
+| Ink #18261F on surface / on canvas | 15.7:1 / 14.3:1 | Pass |
+| Secondary text #536158 on surface / canvas / darkest tinted fill | 6.5:1 / 5.9:1 / 5.2:1 | Pass |
+| White on primary #1D5C40 / on hover #174A33 | 7.9:1 / 10.2:1 | Pass |
+| Primary text on surface / on canvas | 7.9:1 / 7.2:1 | Pass |
+| Amber text #8A5300 on surface / canvas / its tint | 6.3:1 / 5.8:1 / 5.8:1 | Pass |
+| Forest #0F2F24 on amber (CTA on forest) | 7.8:1 | Pass |
+| Lime #B9EF62 / amber / forest text #E8F0E9 / muted #9FB3A6 on forest | 10.7:1 / 7.8:1 / 12.4:1 / 6.5:1 | Pass |
+| Forest text at 75% opacity on forest / on the raised panel; muted on the raised panel / on the active sidebar row | 7.7:1 / 6.9:1; 5.7:1 / 4.8:1 | Pass |
+| Badge text on its tint: success / warning / danger / info | 5.5:1 / 6.0:1 / 5.6:1 / 6.1:1 | Pass |
+| Focus ring #1D5C40 against white / canvas | 7.9:1 / 7.2:1 | Pass |
+| Input border #7C897F against white | 3.7:1 | Pass |
+| Chart marks: invoiced #1D5C40 / cash #B8801A on white | 7.9:1 / 3.4:1 | Pass (graphics ≥ 3:1) |
 
-### Known gaps and mitigations
+### Known gaps
 
-1. **Resolved 31 Oct (AA pass):** primary is now **#0066CC**, so links and badges pass on the grey canvas too (5.1:1, was 4.3:1). Secondary text moved from #6E6E73 to **#66666B**, success text to **#17732F** and warning text to **#A64A00**.
-2. **Resolved 31 Oct:** the focus ring is **solid** (now #0066CC, 5.6:1) instead of 40% opacity (1.8:1).
-3. **Resolved 31 Oct:** the input border is now **#86868B** (3.6:1, WCAG 1.4.11), the same border apple.com uses on its fields.
-4. **Open:** primary and primary hover are now the same colour, so a primary button has no hover change, only the 90% pressed state.
+1. **Hairline borders** (#DBE2DA, 1.3:1) separate decorative structure only; every interactive boundary uses the input border (3.7:1).
+2. **Display font coverage:** Bricolage Grotesque ships the Latin subset only; Telugu or Hindi text in titles would fall back to Plex and then the system font.
+
+### Scrollbars
+
+Thin everywhere. On light surfaces a sage thumb (#B7C3B8, #7C897F on hover) on a transparent track; on forest (sidebar, mobile menu) a 24% light thumb (`scrollbar-on-dark`). Board columns scroll inside themselves with the same style.
 
 ## 12. Responsive behaviour
 
 | Breakpoint | Min width | Layout |
 |---|---|---|
-| Base | 0 | Single column; sidebar becomes a drawer; tables become stacked cards; sticky bottom action bar on technician forms |
-| `sm` | 640 px | Two-up cards; wider dialogs |
-| `md` | 768 px | Tables return; two-column forms |
-| `lg` | 1024 px | Persistent sidebar; detail pages gain a side panel |
-| `xl` | 1280 px | Dashboard shows three or four KPI columns |
+| Base | 0 | Single column; sidebar in a sheet; tables become stacked cards; energy-flow diagram full width; sticky bottom action bar on technician forms |
+| `sm` | 640 px | Two-up cards; wider dialogs; full labels in segmented controls |
+| `md` | 768 px | Tables return; two-column forms; landing system columns side by side |
+| `lg` | 1024 px | Persistent forest sidebar; hero splits text and diagram; detail pages gain a side panel |
+| `xl` | 1280 px | Top-bar location; pipeline shows all seven stages in one row |
 
-- **Technician screens are mobile-first:** `/my-work`, `/surveys/[id]`, `/jobs/[id]`, `/service/[id]` and the `/dispatch/[orderId]` scanner are designed at 360–414 px for one-handed use, with full-width camera, photo and signature areas.
-- **Test widths:** 360, 768, 1024 and 1440 px, plus a real Android phone in Chrome for camera scanning.
+- **Technician screens are mobile-first:** `/my-work`, `/surveys/[id]`, `/jobs/[id]`, `/service/[id]` and the `/dispatch/[orderId]` scanner are designed at 360–414 px for one-handed use.
+- **Test widths:** 360/375, 768, 1024 and 1440 px, plus a real Android phone in Chrome for camera scanning.

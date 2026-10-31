@@ -1,6 +1,6 @@
 /**
- * Catalog: the ten ready-made packages (with list price, subsidy and full
- * bill of materials) and every product with cost, price, margin, GST, HSN,
+ * Catalog: the ready-made packages (each opens a dialog with its price
+ * breakdown and full bill of materials) and every product with cost, price, margin, GST, HSN,
  * warranty and stock.
  */
 import type { Metadata } from "next";
@@ -10,9 +10,11 @@ import { FilterTabs } from "@/components/shared/filter-tabs";
 import { PageHeader } from "@/components/shared/page-header";
 import { SearchInput } from "@/components/shared/search-input";
 import { Section } from "@/components/shared/section";
+import { PackageDialog } from "@/components/modules/quotes/package-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PRODUCT_CATEGORIES, PRODUCT_CATEGORY_LABELS, SYSTEM_TYPE_LABELS } from "@/lib/constants";
+import { PRODUCT_CATEGORIES, PRODUCT_CATEGORY_LABELS } from "@/lib/constants";
+import { expandPackage } from "@/lib/quote-calc";
 import { formatINR } from "@/lib/money";
 import { first, type SearchParamsRecord } from "@/lib/query";
 import { requireUser } from "@/server/auth/session";
@@ -26,14 +28,14 @@ function warranty(months: number): string {
 }
 
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<SearchParamsRecord> }) {
-  await requireUser(["sales", "warehouse"]);
+  const user = await requireUser(["sales", "warehouse"]);
   const sp = await searchParams;
   const [packages, products, catalog] = await Promise.all([
     listPackagesWithPricing(),
     listProducts({ category: first(sp.category), q: first(sp.q) }),
     getActiveCatalog(),
   ]);
-  const nameById = new Map(catalog.products.map((p) => [p.id, p.name]));
+  const productById = new Map(catalog.products.map((p) => [p.id, p]));
   const usedCategories = PRODUCT_CATEGORIES.filter((c) => catalog.products.some((p) => p.category === c));
 
   return (
@@ -42,35 +44,37 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
 
       <Section
         title="Packages"
-        description="Picking one in the quote builder fills the complete bill of materials. Installation is the service line on every system and can be added to a Panel Set."
+        description="Open a package to see its price breakdown and full bill of materials. Picking one in the quote builder fills the same list. Installation is the service line on every system and can be added to a Panel Set."
         className="mb-6"
       >
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {packages.map((pkg) => (
-            <details key={pkg.id} className="group rounded-xl border border-border p-4 open:bg-secondary/40">
-              <summary className="cursor-pointer list-none">
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold text-foreground">{pkg.capacityKw} kW</span>
-                  <Badge variant={pkg.systemType === "on_grid" ? "info" : pkg.systemType === "off_grid" ? "brand" : "neutral"}>{SYSTEM_TYPE_LABELS[pkg.systemType]}</Badge>
-                </div>
-                <p className="mt-1 font-mono text-xs text-muted-foreground">{pkg.code}</p>
-                <p className="mt-3 text-sm tabular-nums text-foreground">{formatINR(pkg.totalPaise)}</p>
-                {pkg.subsidyPaise ? (
-                  <p className="text-xs text-success-foreground">{formatINR(pkg.netCostPaise)} after subsidy</p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">No subsidy ({pkg.systemType === "panel_set" ? "hardware only" : "off-grid"})</p>
-                )}
-                <p className="mt-2 text-xs text-primary group-open:hidden">Show {pkg.lineCount} items</p>
-              </summary>
-              <ul className="mt-3 space-y-1 border-t border-border pt-3 text-xs">
-                {pkg.lines.map((l) => (
-                  <li key={l.productId} className="flex justify-between gap-2">
-                    <span className="text-muted-foreground">{nameById.get(l.productId) ?? "Item"}</span>
-                    <span className="shrink-0 tabular-nums">×{l.qty}</span>
-                  </li>
-                ))}
-              </ul>
-            </details>
+            <PackageDialog
+              key={pkg.id}
+              canQuote={user.role === "sales" || user.role === "admin"}
+              pkg={{
+                id: pkg.id,
+                code: pkg.code,
+                name: pkg.name,
+                description: pkg.description,
+                systemType: pkg.systemType,
+                capacityKw: pkg.capacityKw,
+                taxablePaise: pkg.taxablePaise,
+                gstPaise: pkg.gstPaise,
+                totalPaise: pkg.totalPaise,
+                subsidyPaise: pkg.subsidyPaise,
+                netCostPaise: pkg.netCostPaise,
+                lines: expandPackage(pkg.lines, productById).map((l) => ({
+                  productId: l.productId,
+                  name: l.name,
+                  qty: l.qty,
+                  unit: l.unit,
+                  unitPricePaise: l.unitPricePaise,
+                  gstRate: l.gstRate,
+                  isSerialized: l.isSerialized,
+                })),
+              }}
+            />
           ))}
         </div>
       </Section>

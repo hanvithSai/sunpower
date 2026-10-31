@@ -75,7 +75,7 @@ export function SharePanel({ links, range, month }: { links: LinkRow[]; range: s
 
         {active.length ? (
           <div>
-            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Active links</p>
+            <p className="mb-2 text-xs font-medium font-sans tracking-normal text-muted-foreground">Active links</p>
             <ul className="space-y-2">
               {active.map((l) => (
                 <li key={l.id} className="flex items-center justify-between gap-2 text-sm">

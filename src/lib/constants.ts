@@ -1,7 +1,7 @@
 /**
  * Domain vocabulary shared by the server and the browser.
  *
- * Every status, enum and label in SunPower OS lives here so that Mongoose
+ * Every status, enum and label in SunPower lives here so that Mongoose
  * schemas, Zod validators, UI badges and the seed script all agree.
  * Keep this file free of server-only imports — client components use it.
  */

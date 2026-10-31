@@ -47,7 +47,7 @@ export function CertificateView({ detail, shareToken }: { detail: CertificateDat
 
       <section className="grid gap-6 border-b border-border py-6 sm:grid-cols-2">
         <div>
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Customer and site</h2>
+          <h2 className="mb-2 text-xs font-semibold font-sans tracking-normal text-muted-foreground">Customer and site</h2>
           <p className="font-medium">{customer?.name}</p>
           <p className="text-muted-foreground">{address}</p>
           {customer && !shareToken ? <p className="text-muted-foreground">{formatPhone(customer.phone)}</p> : null}
@@ -59,7 +59,7 @@ export function CertificateView({ detail, shareToken }: { detail: CertificateDat
           ) : null}
         </div>
         <div>
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">System</h2>
+          <h2 className="mb-2 text-xs font-semibold font-sans tracking-normal text-muted-foreground">System</h2>
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
             <dt className="text-muted-foreground">Installed size</dt>
             <dd className="font-medium">
@@ -84,7 +84,7 @@ export function CertificateView({ detail, shareToken }: { detail: CertificateDat
       </section>
 
       <section className="border-b border-border py-6">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Equipment installed and warranty</h2>
+        <h2 className="mb-3 text-xs font-semibold font-sans tracking-normal text-muted-foreground">Equipment installed and warranty</h2>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] text-left">
             <thead>
@@ -128,7 +128,7 @@ export function CertificateView({ detail, shareToken }: { detail: CertificateDat
 
       {job.photos.length ? (
         <section className="border-b border-border py-6">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Finished installation</h2>
+          <h2 className="mb-3 text-xs font-semibold font-sans tracking-normal text-muted-foreground">Finished installation</h2>
           <div className="grid grid-cols-3 gap-3">
             {job.photos.slice(0, 3).map((photo) => (
               // eslint-disable-next-line @next/next/no-img-element -- GridFS file behind a session or share token; next/image can't forward either
@@ -140,12 +140,12 @@ export function CertificateView({ detail, shareToken }: { detail: CertificateDat
 
       <section className="grid gap-6 pt-6 sm:grid-cols-2">
         <div>
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Installed by</h2>
+          <h2 className="mb-2 text-xs font-semibold font-sans tracking-normal text-muted-foreground">Installed by</h2>
           <p>{job.crew.map((c) => `${c.name}${c.lead ? " (lead)" : ""}`).join(", ")}</p>
           <p className="mt-1 text-xs text-muted-foreground">for {COMPANY.name}</p>
         </div>
         <div className="sm:text-right">
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Accepted by the customer</h2>
+          <h2 className="mb-2 text-xs font-semibold font-sans tracking-normal text-muted-foreground">Accepted by the customer</h2>
           {job.signature ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element -- signature PNG captured on the tablet */}

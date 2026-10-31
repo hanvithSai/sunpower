@@ -315,7 +315,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               ) : null}
               <div className="mt-4 border-t border-border pt-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Papers on file</p>
+                  <p className="text-xs font-medium font-sans tracking-normal text-muted-foreground">Papers on file</p>
                   {seesMoney && order.status !== "cancelled" ? <SubsidyDocumentDialog orderId={order.id} suggested={NEXT_PAPER[order.subsidy.status]} /> : null}
                 </div>
                 {order.subsidy.documents.length === 0 ? (

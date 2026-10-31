@@ -1,6 +1,6 @@
 /**
  * Minimal centred frame for authentication screens (sign in). No app chrome — just the
- * page content on a soft sunrise wash and a way back to the public website.
+ * page content on the sage canvas with a faint sunlight wash, and a way back to the public website.
  */
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
     <div className="relative isolate flex min-h-dvh flex-col items-center justify-center px-4 py-10 sm:px-6">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(70%_55%_at_50%_0%,rgb(255_159_10/0.12),transparent)]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(70%_55%_at_50%_0%,rgb(242_180_65/0.16),transparent)]"
       />
       {children}
       <Link
