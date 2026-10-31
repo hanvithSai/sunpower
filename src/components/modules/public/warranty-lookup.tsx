@@ -117,7 +117,7 @@ function WarrantyResult({ result }: { result: PublicWarranty }) {
   return (
     <section aria-live="polite" aria-label="Warranty result" className="space-y-4 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
       <div>
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Installed for</p>
+        <p className="text-xs font-medium font-sans tracking-normal text-muted-foreground">Installed for</p>
         <p className="text-lg font-semibold text-foreground">{result.customer}</p>
       </div>
       <ul className="space-y-3">

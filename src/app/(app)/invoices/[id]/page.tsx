@@ -109,14 +109,14 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 
         <section className="grid gap-6 border-b border-border py-5 sm:grid-cols-2">
           <div>
-            <h2 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Bill to</h2>
+            <h2 className="mb-1 text-xs font-semibold font-sans tracking-normal text-muted-foreground">Bill to</h2>
             <p className="font-medium">{invoice.billTo.name}</p>
             <p className="text-muted-foreground">{invoice.billTo.address}</p>
             <p className="text-muted-foreground">{invoice.billTo.phone}</p>
             {invoice.billTo.gstin || customerGstin ? <p className="text-muted-foreground">GSTIN {invoice.billTo.gstin ?? customerGstin}</p> : null}
           </div>
           <div className="sm:text-right">
-            <h2 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reference</h2>
+            <h2 className="mb-1 text-xs font-semibold font-sans tracking-normal text-muted-foreground">Reference</h2>
             {order ? <p>Order {order.number} · {order.title}</p> : null}
             {ticket ? <p>Service ticket {ticket.number}</p> : null}
             {invoice.notes ? <p className="text-muted-foreground">{invoice.notes}</p> : null}

@@ -159,7 +159,7 @@ export function QuoteBuilder({ lead, customerType, catalog, defaultPackageId, fr
             { title: "Panel Set (hardware only: panels, connectors, cable)", items: panelSets },
           ].filter((group) => group.items.length > 0).map((group) => (
             <div key={group.title} className="mt-4">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{group.title}</p>
+              <p className="mb-2 text-xs font-medium font-sans tracking-normal text-muted-foreground">{group.title}</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                 {group.items.map((pkg) => (
                   <button
