@@ -85,7 +85,8 @@ export default async function UpcomingModulePage({ params }: { params: Promise<{
   const href = `/${slug[0]}`;
   const item = NAV_SECTIONS.flatMap((section) => section.items).find((navItem) => navItem.href === href);
   const upcoming = UPCOMING[href];
-  if (!item || !upcoming || slug.length > 1) notFound();
+  // Sub-routes of an upcoming module (e.g. /quotes/new) show the same card.
+  if (!item || !upcoming) notFound();
   await requireUser(item.roles);
 
   return (
