@@ -67,9 +67,11 @@ export const DispatchOrderSchema = z.object({
   driverName: requiredText("Driver name", 80),
   driverPhone: optionalText(15),
 });
+export type DispatchOrderInput = z.output<typeof DispatchOrderSchema>;
 
 export const DeliverOrderSchema = z.object({
   orderId: objectId,
   receivedBy: requiredText("Received by", 80),
   note: optionalText(300),
 });
+export type DeliverOrderInput = z.output<typeof DeliverOrderSchema>;
