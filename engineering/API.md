@@ -77,7 +77,7 @@ Each action has the signature `(prev: ActionState, formData: FormData) => Promis
 |---|---|---|
 | Auth | `loginAction`, `logoutAction` | ✅ 0 |
 | Leads & surveys | create enquiry (+ public `submitEnquiryAction`), mark contacted, qualify, mark lost, reopen, assign, schedule survey, submit survey (photos must exist in GridFS), approve / re-survey / not feasible | ✅ 1 |
-| Quotes & orders | save quote (draft/sent), mark sent, accept → order, reject, revise, record payment (confirms the order → pick list + installation job), cancel | 🗓️ 1 |
+| Quotes & orders | `saveQuoteAction` (JSON; server re-prices from the catalog, survey-approval gate), mark sent, accept → order (+ subsidy tracker, supersedes other quotes; expired quotes blocked), reject, record payment (first payment confirms the order → pick list + installation job with the 3 least-loaded installers; overpayment blocked), cancel (admin; releases serials + job) | ✅ 1 |
 | Inventory & dispatch | goods receipt with serials, stock adjustment, allocate/remove serial, mark picked, dispatch (gate: all serials scanned), deliver (→ warranties + sale invoice) | 🗓️ 2 |
 | Jobs | reschedule, reassign crew, start (gate: delivered), complete (photos + signature + time logs → commissioned) | 🗓️ 2 |
 | Service | create ticket (warranty snapshot), assign, schedule visit, resolve (parts, labour, replacement, auto invoice if out of warranty), confirm / reopen | 🗓️ 3 |

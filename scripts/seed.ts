@@ -4,16 +4,19 @@
  *   npm run seed              local database (npm run db:local)
  *   npm run seed -- --yes     required for a remote database such as Atlas
  *
- * Phase 0 scope: builds every collection's indexes and creates/updates the
- * staff accounts (idempotent upsert by email — nothing is deleted). Later
- * phases extend this script with the catalog, customers, pipeline, orders,
- * inventory, service and finance data described in Plan.md §6.
+ * Idempotent, never deletes: upserts the staff accounts (by email) and the
+ * catalog — products (by SKU), the ten 1–5 kW packages (by code) and opening
+ * stock for bulk items that have never moved (with matching ledger entries).
+ * Later phases add customers, pipeline, orders, inventory, service and
+ * finance data described in Plan.md §6.
  */
 import { loadEnvConfig } from "@next/env";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { connectDB } from "@/server/db";
-import { User } from "@/server/models";
+import { actorRef } from "@/server/lib/actor";
+import { Package, Product, StockMove, User } from "@/server/models";
+import { PACKAGES, PRODUCTS } from "./seed/catalog";
 import { DEMO_PASSWORD, STAFF } from "./seed/users";
 
 // connectDB() reads MONGODB_URI lazily, so loading .env.local here is in time.
@@ -60,6 +63,8 @@ async function main() {
   );
   console.log(`Staff accounts: ${result.upsertedCount} created, ${result.modifiedCount} updated`);
 
+  await seedCatalog();
+
   const byRole = await User.aggregate<{ _id: string; count: number }>([
     { $group: { _id: "$role", count: { $sum: 1 } } },
     { $sort: { _id: 1 } },
@@ -71,6 +76,88 @@ async function main() {
   }
 
   await mongoose.disconnect();
+}
+
+/** Products, packages and opening stock — all bulk writes (few round trips on slow networks). */
+async function seedCatalog() {
+  await Promise.all([Product.createIndexes(), Package.createIndexes()]);
+  const director = await User.findOne({ role: "admin" }).select("name").lean();
+  if (!director) throw new Error("Seed staff first: no admin user found");
+
+  await Product.bulkWrite(
+    PRODUCTS.map((p) => ({
+      updateOne: {
+        filter: { sku: p.sku },
+        update: {
+          $set: {
+            name: p.name,
+            brand: p.brand,
+            category: p.category,
+            unit: p.unit,
+            isSerialized: p.isSerialized,
+            specs: p.specs,
+            costPaise: p.costRs * 100,
+            pricePaise: p.priceRs * 100,
+            gstRate: p.gstRate,
+            hsn: p.hsn,
+            warrantyMonths: p.warrantyMonths,
+            reorderLevel: p.reorderLevel,
+            active: true,
+          },
+          $setOnInsert: { stockQty: 0 },
+        },
+        upsert: true,
+      },
+    })),
+  );
+  const products = await Product.find({ sku: { $in: PRODUCTS.map((p) => p.sku) } }).select("sku").lean();
+  const idBySku = new Map(products.map((p) => [p.sku, p._id]));
+
+  // Opening stock only for bulk items with no ledger history yet, so re-runs never double count.
+  const moved = new Set((await StockMove.distinct("productId")).map(String));
+  const opening = PRODUCTS.filter((p) => p.openingStock && !moved.has(String(idBySku.get(p.sku))));
+  if (opening.length > 0) {
+    await Product.bulkWrite(
+      opening.map((p) => ({ updateOne: { filter: { sku: p.sku }, update: { $inc: { stockQty: p.openingStock! } } } })),
+    );
+    await StockMove.insertMany(
+      opening.map((p) => ({
+        productId: idBySku.get(p.sku),
+        sku: p.sku,
+        qty: p.openingStock!,
+        type: "adjustment",
+        serials: [],
+        refType: "manual",
+        note: "Opening stock",
+        by: actorRef({ id: String(director._id), name: director.name }),
+        at: new Date(),
+      })),
+    );
+  }
+
+  await Package.bulkWrite(
+    PACKAGES.map((pkg) => ({
+      updateOne: {
+        filter: { code: pkg.code },
+        update: {
+          $set: {
+            name: pkg.name,
+            systemType: pkg.systemType,
+            capacityKw: pkg.capacityKw,
+            description: pkg.description,
+            lines: pkg.lines.map((l) => {
+              const productId = idBySku.get(l.sku);
+              if (!productId) throw new Error(`Package ${pkg.code} references unknown SKU ${l.sku}`);
+              return { productId, qty: l.qty };
+            }),
+            active: true,
+          },
+        },
+        upsert: true,
+      },
+    })),
+  );
+  console.log(`Catalog: ${PRODUCTS.length} products, ${PACKAGES.length} packages, opening stock for ${opening.length} bulk items`);
 }
 
 main().catch(async (error) => {
