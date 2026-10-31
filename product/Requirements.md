@@ -105,27 +105,27 @@ The five pains in "How things run today" trace to R-11 (enquiries), R-22 to R-24
 
 ## 3. Details requested from the team
 
-The PRD needs the following details, which have not been provided yet. For the hackathon, items 6 to 16 can use realistic placeholders, clearly marked in the seed, until real values arrive.
+Status as of 31 Oct 2026 is in the last column. For the hackathon, items 6 to 16 can use realistic placeholders, clearly marked in the seed, until real values arrive.
 
-| # | Detail needed | Used for | Needed by | Owner |
-|---|---|---|---|---|
-| 1 | MongoDB Atlas connection string (`MONGODB_URI`) and network access for Vercel | Database in every environment | Phase 0 | Hanvith |
-| 2 | Vercel project access and permission to set environment variables | Deployments | Phase 0 | Hanvith |
-| 3 | Namecheap domain name and DNS access | Custom domain pointed at Vercel | Phase 5 | Hanvith |
-| 4 | PostHog project API key and region (US or EU) | Analytics, session replay, exceptions | Phase 4 | Hanvith |
-| 5 | Session signing secret (32+ random bytes) | Signing session cookies | Phase 0 | Vamshi generates |
-| 6 | Company legal name, registered address, GSTIN (Telangana, starts with 36), PAN, phone and email | Quotes, invoices, certificates | Phase 1 | Company |
-| 7 | Bank account and UPI ID for payment instructions | Quotes and invoices | Phase 3 | Company |
-| 8 | Logo approval (amber tile, white sun, "SunPower OS" wordmark) and the company name to print on documents | Brand | Phase 0 | Company |
-| 9 | Real catalog: SKUs, cost and sell prices, HSN codes, warranty months, or approval to use the seeded values | Catalog, quotes, costing | Phase 1 | Company |
-| 10 | CA confirmation of GST treatment: line-wise rates or the 70:30 rule, installation SAC, battery rate | Quote and invoice tax | Phase 1 | Company |
-| 11 | Hourly labour rates by technician grade, overtime rule, out-of-warranty labour rate and visit charge | Costing, payouts, service invoices | Phase 3 | Company |
-| 12 | Commercial terms: quote validity, minimum advance, payment terms, terms and conditions text | Quotes and orders | Phase 1 | Company |
-| 13 | Warranty policy: confirm 24 / 24 / 240 months, workmanship warranty, replacement-unit rule, exclusions | Warranty engine | Phase 2 | Company |
-| 14 | PM Surya Ghar vendor registration with TSSPDCL and TSNPDCL, and DCR panel confirmation | Subsidy tracker | Phase 3 | Company |
-| 15 | First-response target and working hours | SLA badge | Phase 1 | Company |
-| 16 | Company WhatsApp and support phone numbers | `wa.me` and `tel:` links on public pages | Phase 1 | Company |
-| 17 | Resend API key and a verified sender domain (P2) | Email notifications | Optional | Vamshi |
-| 18 | Demo logins to share with the judges | Evaluation | Phase 5 | Vamshi |
-| 19 | Confirmation that `gppa-odoo` and `hackathon-odoo` were added as collaborators (due 31 Oct, 11:00 AM) | Event rule | Immediately | Hanvith |
-| 20 | Printed barcode labels for about 10 seeded serials, and an Android phone with Chrome | Live scanning demo | Phase 5 | Both |
+| # | Detail needed | Used for | Needed by | Owner | Status |
+|---|---|---|---|---|---|
+| 1 | MongoDB Atlas connection string (`MONGODB_URI`) and network access for Vercel | Database in every environment | Phase 0 | Hanvith | ✅ Provided; Vercel connected (31 Oct) |
+| 2 | Vercel project access and permission to set environment variables | Deployments | Phase 0 | Hanvith | ✅ Live |
+| 3 | Namecheap domain name and DNS access | Custom domain pointed at Vercel | Phase 5 | Hanvith | ✅ www.sunpowersolutions.me |
+| 4 | PostHog project API key and region (US or EU) | Analytics, session replay, exceptions | Phase 4 | Hanvith | ⬜ Pending |
+| 5 | Session signing secret (32+ random bytes) | Signing session cookies | Phase 0 | Vamshi generates | ✅ Set locally and in Vercel |
+| 6 | Company legal name, registered address, GSTIN (Telangana, starts with 36), PAN, phone and email | Quotes, invoices, certificates | Phase 1 | Company | ⬜ Placeholders in `COMPANY` |
+| 7 | Bank account and UPI ID for payment instructions | Quotes and invoices | Phase 3 | Company | ⬜ Pending |
+| 8 | Logo approval (amber tile, white sun, "SunPower OS" wordmark) and the company name to print on documents | Brand | Phase 0 | Company | 🟨 Logo in use, approval pending |
+| 9 | Real catalog: SKUs, cost and sell prices, HSN codes, warranty months, or approval to use the seeded values | Catalog, quotes, costing | Phase 1 | Company | 🟨 Seeded catalog in use, approval pending |
+| 10 | CA confirmation of GST treatment: line-wise rates or the 70:30 rule, installation SAC, battery rate | Quote and invoice tax | Phase 1 | Company | 🟨 Line-wise 5%/18% implemented, CA confirmation pending |
+| 11 | Hourly labour rates by technician grade, overtime rule, out-of-warranty labour rate and visit charge | Costing, payouts, service invoices | Phase 3 | Company | 🟨 Seeded ₹250–450/h, service ₹600/h, confirmation pending |
+| 12 | Commercial terms: quote validity, minimum advance, payment terms, terms and conditions text | Quotes and orders | Phase 1 | Company | 🟨 15-day validity, 50% advance suggested, confirmation pending |
+| 13 | Warranty policy: confirm 24 / 24 / 240 months, workmanship warranty, replacement-unit rule, exclusions | Warranty engine | Phase 2 | Company | 🟨 24/24/240 months implemented, confirmation pending |
+| 14 | PM Surya Ghar vendor registration with TSSPDCL and TSNPDCL, and DCR panel confirmation | Subsidy tracker | Phase 3 | Company | ⬜ Pending |
+| 15 | First-response target and working hours | SLA badge | Phase 1 | Company | 🟨 2 h SLA (amber at 1 h) implemented, working hours pending |
+| 16 | Company WhatsApp and support phone numbers | `wa.me` and `tel:` links on public pages | Phase 1 | Company | ⬜ Placeholder phone |
+| 17 | Resend API key and a verified sender domain (P2) | Email notifications | Optional | Vamshi | ⬜ Optional |
+| 18 | Demo logins to share with the judges | Evaluation | Phase 5 | Vamshi | ✅ Seeded; shown on the login page |
+| 19 | Confirmation that `gppa-odoo` and `hackathon-odoo` were added as collaborators (due 31 Oct, 11:00 AM) | Event rule | Immediately | Hanvith | ✅ Done |
+| 20 | Printed barcode labels for about 10 seeded serials, and an Android phone with Chrome | Live scanning demo | Phase 5 | Both | ⬜ Pending |

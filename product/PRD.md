@@ -255,7 +255,7 @@ Each acceptance criterion is testable on seeded data. Screens, fields and valida
 
 1. `/enquiry` captures name, mobile, optional email, address, pincode, customer type (home or business), system type (On-Grid, Off-Grid, not sure), capacity (1–5 kW or not sure), monthly bill and subsidy interest, with consent.
 2. The same Zod schema validates in the browser and on the server; errors appear inline next to each field.
-3. On success the visitor sees a reference number (for example SP-L-2026-0231) and when to expect a call.
+3. On success the visitor sees a reference number (for example SP-L-0231) and when to expect a call.
 4. The lead appears in the New column of `/leads` with source `web`; nobody re-types it.
 5. A repeat enquiry from a mobile number with an open lead joins that lead as an activity; more than 5 submissions per IP per hour are refused.
 
@@ -312,7 +312,7 @@ Each acceptance criterion is testable on seeded data. Screens, fields and valida
 
 *As a salesperson, I want to record acceptance and payment once, so that the warehouse and crew start without a phone call.*
 
-1. Accepting a sent quote creates an order (for example SP-O-2026-0099) locked to that version.
+1. Accepting a sent quote creates an order (for example SP-O-0099) locked to that version.
 2. A payment records type (advance, balance, full), mode (UPI, NEFT, cash, cheque), amount, date and reference; BR-08 applies.
 3. The first payment confirms the order and creates the pick list and the installation job in one transaction (BR-07).
 4. The order page shows total, paid and balance, with links to its pick list, job, invoices and timeline.
@@ -361,7 +361,7 @@ Each acceptance criterion is testable on seeded data. Screens, fields and valida
 
 1. An invoice is issued from an order in one click (prefilled from the accepted quote), or created automatically for an out-of-warranty ticket.
 2. It shows SunPower's legal name, address and GSTIN; the customer's name, address and GSTIN (business customers); place of supply (Telangana, 36); HSN/SAC, quantity, rate, taxable value, CGST and SGST per line; totals and the amount in words.
-3. Numbers are sequential per financial year and at most 16 characters (for example SP-INV-2627-0001); issued invoices are read-only.
+3. Numbers are sequential per financial year and at most 16 characters (for example INV/26-27/0001); issued invoices are read-only.
 4. Status moves Issued → Partly paid → Paid, or Overdue after the due date.
 5. Each order shows costing: revenue (excl. GST) − material cost (cost price of dispatched units and parts) − labour (hours × hourly rate) − extras = profit and margin %.
 
