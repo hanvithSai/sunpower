@@ -381,8 +381,8 @@ export async function completeJob(input: CompleteJobInput, actor: JobActor, opts
       );
       serialCount = installed.modifiedCount;
 
-      for (const m of materialsUsed) order.extraCosts.push({ label: `Extra ${m.qty} ${m.unit} ${m.name} (${job.number})`, amountPaise: m.costPaise, at: finishedAt });
-      if (input.extraCostRs) order.extraCosts.push({ label: `${input.extraCostNote} (${job.number})`, amountPaise: Math.round(input.extraCostRs * 100), at: finishedAt });
+      for (const m of materialsUsed) order.extraCosts.push({ label: `Extra ${m.qty} ${m.unit} ${m.name} (${job.number})`, kind: "site", amountPaise: m.costPaise, at: finishedAt });
+      if (input.extraCostRs) order.extraCosts.push({ label: `${input.extraCostNote} (${job.number})`, kind: "site", amountPaise: Math.round(input.extraCostRs * 100), at: finishedAt });
       assertTransition("order", ORDER_FLOW, order.status, "commissioned");
       order.status = "commissioned";
       order.commissionedAt = finishedAt;
