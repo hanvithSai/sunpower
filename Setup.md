@@ -177,7 +177,7 @@ Health check: <http://localhost:3000/api/v1/health> returns `{"status":"ok","db"
 ```bash
 npm run lint        # ESLint (Next.js + TypeScript rules)
 npm run typecheck   # next typegen + tsc --noEmit
-npm test            # Vitest: 55 tests (form schemas as the browser posts them, packing and confirmation gates, missing quote parts, CSV guard, DB errors)
+npm test            # Vitest: 121 tests (quote maths, state machines, warranty dates, costing and crews, forms as the browser posts them, gates, CSV guard, analytics privacy, DB errors)
 npm run build       # production build
 ```
 
