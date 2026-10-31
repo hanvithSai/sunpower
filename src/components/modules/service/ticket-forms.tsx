@@ -323,7 +323,8 @@ export function ResolveTicketForm({
           ? `A GST invoice is issued on resolve: parts ${formatINR(partsPaise)} + labour ${formatINR(labourPaise)} + GST${type === "replacement" ? " + the replacement unit" : ""}.`
           : "₹0 to the customer. What it costs us is charged to the original installation's profit."}
       </p>
-      <SubmitButton pendingText="Resolving…">
+      {/* Long label: full width and wrapping on a phone instead of running off the card. */}
+      <SubmitButton pendingText="Resolving…" className="h-auto min-h-11 w-full py-2.5 whitespace-normal sm:w-auto">
         <Wrench aria-hidden="true" />
         Resolve — then confirm with the customer
       </SubmitButton>

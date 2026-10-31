@@ -32,7 +32,7 @@ export default async function PurchasePage({ params }: { params: Promise<{ id: s
         ]}
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 [&>*]:min-w-0">
         <div className="space-y-4 lg:col-span-2">
           {grn.lines.map((line) => (
             <Section

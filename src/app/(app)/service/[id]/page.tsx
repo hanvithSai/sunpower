@@ -92,7 +92,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 [&>*]:min-w-0">
         <div className="space-y-6 lg:col-span-2">
           <div className="space-y-2">
             <WarrantyCard
@@ -193,7 +193,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                     <>
                       {" · "}
                       {desk ? (
-                        <Link href={`/orders/${order.id}`} className="text-primary hover:underline">
+                        <Link href={`/orders/${order.id}`} className="text-primary underline underline-offset-2">
                           {order.number}
                         </Link>
                       ) : (

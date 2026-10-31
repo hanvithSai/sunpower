@@ -111,7 +111,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
         <StatCard label="Open tickets" value={totals.openTickets} hint={totals.openTickets ? "Not closed yet" : "Nothing open"} tone={totals.openTickets ? "warning" : "success"} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 [&>*]:min-w-0">
         <div className="space-y-6 lg:col-span-2">
           <Section title="Orders" description="Workmanship warranty runs from commissioning." contentClassName="p-0">
             {data.orders.length === 0 ? (

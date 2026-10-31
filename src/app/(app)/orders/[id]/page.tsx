@@ -113,7 +113,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         <StatCard label="Site" value={`${order.capacityKw} kW`} hint={[order.siteAddress.city, order.siteAddress.pincode].join(" · ")} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 [&>*]:min-w-0">
         <div className="space-y-6 lg:col-span-2">
           {costing ? (
             <Section

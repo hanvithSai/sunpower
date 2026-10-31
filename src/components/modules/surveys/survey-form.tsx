@@ -131,7 +131,7 @@ function DirectionPicker() {
           >
             <input type="radio" name="roofDirection" value={dir} required defaultChecked={dir === "S"} className="sr-only" />
             {dir}
-            {dir === "S" ? <span className="text-[10px] font-normal opacity-80">best</span> : null}
+            {dir === "S" ? <span className="text-[11px] font-normal">best</span> : null}
           </label>
         ))}
       </div>

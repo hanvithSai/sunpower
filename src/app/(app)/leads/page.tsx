@@ -105,7 +105,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
         </div>
         <Link
           href={hrefWith("/leads", sp, { mine: mine ? undefined : "1", page: undefined })}
-          aria-pressed={mine}
+          aria-current={mine ? "true" : undefined}
           className={cn(
             "rounded-full border px-3 py-1.5 text-sm transition-colors",
             mine ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground",

@@ -26,30 +26,30 @@
   --popover-foreground: #1d1d1f;
 
   /* Actions */
-  --primary: #0071e3;
+  --primary: #0066cc; /* Apple's link blue: 5.1:1 as text on the grey page, 5.6:1 under white text (was #0071e3) */
   --primary-hover: #0066cc; /* white text 5.6:1 (was #0077ed, 4.3:1) */
   --primary-foreground: #ffffff;
   --secondary: rgb(118 118 128 / 0.12);
   --secondary-hover: rgb(118 118 128 / 0.18);
   --secondary-foreground: #1d1d1f;
   --muted: rgb(118 118 128 / 0.08);
-  --muted-foreground: #6e6e73;
+  --muted-foreground: #66666b; /* 4.6:1 on the darkest tinted surface (was #6e6e73) */
   --accent: rgb(118 118 128 / 0.1);
   --accent-foreground: #1d1d1f;
 
   /* Lines & focus */
   --border: #e5e5ea;
   --input: #86868b; /* 3.6:1 field boundary, WCAG 1.4.11 (was #d2d2d7) */
-  --ring: #0071e3; /* solid focus ring 4.7:1 (was 40% opacity, 1.8:1) */
+  --ring: #0066cc; /* solid focus ring 5.6:1 (was 40% opacity, 1.8:1) */
 
   /* Brand (sun-amber) and status tones: base colour + accessible dark text variant */
   --brand: #ff9f0a;
   --brand-light: #ffb340;
   --brand-foreground: #c93400;
   --success: #34c759;
-  --success-foreground: #1a7f37; /* 5.1:1 on white, 4.6:1 on its tint (was #248a3d) */
+  --success-foreground: #17732f; /* 6:1 on white, 5:1 on its badge tint (was #1a7f37) */
   --warning: #ff9f0a;
-  --warning-foreground: #b25000;
+  --warning-foreground: #a64a00; /* 5:1 on its badge tint (was #b25000) */
   --danger: #ff3b30;
   --danger-foreground: #d70015;
   --info: #007aff;
@@ -240,7 +240,7 @@
 @layer components {
   /* Native <Select>: Apple-style up/down chevrons drawn as a background image (no wrapper element). */
   select[data-slot="select"]:not([multiple]) {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5'/%3E%3Cpath d='m7 9 5-5 5 5'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2366666b' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5'/%3E%3Cpath d='m7 9 5-5 5 5'/%3E%3C/svg%3E");
     background-position: right 0.625rem center;
     background-repeat: no-repeat;
     background-size: 1rem 1rem;
