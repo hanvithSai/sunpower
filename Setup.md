@@ -164,9 +164,10 @@ npm run build       # production build
 ```bash
 npx tsx scripts/check-lead-flow.ts SP-L-0123   # enquiry → qualified → survey → approval gate (10 checks)
 npx tsx scripts/check-sale-flow.ts SP-L-0123   # quote → order → payment → pick list + installation job (15 checks)
+npx tsx scripts/check-ops-flow.ts              # goods receipt → packing → dispatch → delivery → installation (46 checks)
 ```
 
-These move the given lead through the pipeline, so use a fresh enquiry (submit `/enquiry` first) on a development database.
+The first two move the given lead through the pipeline, so use a fresh enquiry (submit `/enquiry` first) on a development database. The operations check builds its own order on every run and needs `npm run seed` first (staff, catalog and goods receipts).
 
 ---
 
