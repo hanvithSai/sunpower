@@ -48,10 +48,19 @@ export async function getJobCalendar(anchor: Date, opts: { rolling?: boolean } =
   await connectDB();
   const start = opts.rolling ? startOfDayIST(anchor) : getRange("week", anchor).start;
   const end = addDays(start, 7);
+  // Open jobs sit on their booked day; started or finished work sits on the day it actually happened.
   const [jobs, technicians] = await Promise.all([
-    Job.find({ scheduledFor: { $gte: start, $lt: end }, status: { $ne: "cancelled" } }).sort({ scheduledFor: 1 }).lean(),
+    Job.find({
+      $or: [
+        { status: "scheduled", scheduledFor: { $gte: start, $lt: end } },
+        { status: { $in: ["in_progress", "completed"] }, startedAt: { $gte: start, $lt: end } },
+      ],
+    })
+      .sort({ scheduledFor: 1 })
+      .lean(),
     User.find({ role: "technician", active: true }).select("name skills").sort({ name: 1 }).lean(),
   ]);
+  const shownOn = (j: (typeof jobs)[number]) => startOfDayIST(j.status === "scheduled" ? j.scheduledFor : (j.startedAt ?? j.scheduledFor));
   const [customers, orders] = await Promise.all([
     Customer.find({ _id: { $in: jobs.map((j) => j.customerId) } }).select("name").lean(),
     Order.find({ _id: { $in: jobs.flatMap((j) => (j.orderId ? [j.orderId] : [])) } }).select("number status").lean(),
@@ -59,10 +68,11 @@ export async function getJobCalendar(anchor: Date, opts: { rolling?: boolean } =
   const customerById = new Map(customers.map((c) => [String(c._id), c.name]));
   const orderById = new Map(orders.map((o) => [String(o._id), o]));
 
-  // Technician + day pairs with more than one job: shown as clashes on the grid.
+  // Technician + day pairs with more than one open job: shown as clashes on the grid.
   const slots = new Map<string, number>();
   for (const j of jobs) {
-    const day = startOfDayIST(j.scheduledFor).getTime();
+    if (j.status === "completed") continue;
+    const day = shownOn(j).getTime();
     for (const t of j.technicianIds) slots.set(`${t}|${day}`, (slots.get(`${t}|${day}`) ?? 0) + 1);
   }
 
@@ -79,8 +89,8 @@ export async function getJobCalendar(anchor: Date, opts: { rolling?: boolean } =
         type: j.type,
         title: j.title,
         status: j.status,
-        scheduledFor: j.scheduledFor,
-        dayStart: startOfDayIST(j.scheduledFor),
+        scheduledFor: j.status === "scheduled" ? j.scheduledFor : (j.startedAt ?? j.scheduledFor),
+        dayStart: shownOn(j),
         technicianIds: j.technicianIds.map(String),
         customerName: customerById.get(String(j.customerId)) ?? "—",
         city: j.siteAddress.city,
