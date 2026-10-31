@@ -3,11 +3,11 @@
 /**
  * How energy moves through a rooftop system — the landing page's centrepiece.
  *
- * Three system types (On-Grid, Off-Grid, Hybrid) × three moments (sunny
- * afternoon, evening, power cut). Each moment lights the paths electricity
+ * The two systems SunPower installs (On-Grid, Off-Grid) × three moments
+ * (sunny afternoon, evening, power cut). Each moment lights the paths electricity
  * actually takes, with arrows for direction; every part is a button that
  * explains itself. It is an explainer, not monitoring: no kW figures are
- * invented, and the panel says so.
+ * invented — every sentence describes how the system behaves.
  *
  * Layout: an SVG layer (viewBox 600×440) draws the wires; the parts are HTML
  * buttons positioned at the same coordinates (as percentages), so they stay
@@ -18,7 +18,7 @@ import { useId, useState } from "react";
 import { BatteryCharging, Cpu, Gauge, House, Moon, SolarPanel, SunMedium, UtilityPole, Zap, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Mode = "on_grid" | "off_grid" | "hybrid";
+type Mode = "on_grid" | "off_grid";
 type Moment = "day" | "evening" | "outage";
 type NodeId = "sun" | "panels" | "controller" | "inverter" | "battery" | "home" | "grid";
 
@@ -52,14 +52,6 @@ const PARTS: Record<Mode, Partial<Record<NodeId, Part>>> = {
     battery: { label: "Battery bank", icon: BatteryCharging, about: "Stores the day's energy so the home keeps running after sunset. Batteries carry a 2-year warranty." },
     inverter: { label: "Inverter (PCU)", icon: Cpu, about: "Turns stored DC into AC for the home's appliances." },
     home: { label: "Your home", icon: House, about: "Runs only on what the panels and battery provide — there is no grid connection." },
-  },
-  hybrid: {
-    sun: { label: "Sunlight", icon: SunMedium, about: "The fuel for the panels." },
-    panels: { label: "Solar panels", icon: SolarPanel, about: "Turn sunlight into DC for the hybrid inverter." },
-    inverter: { label: "Hybrid inverter", icon: Cpu, about: "One box that runs the home, charges the battery and trades with the grid — and keeps going in a power cut." },
-    battery: { label: "Battery", icon: BatteryCharging, about: "Charged by the sun, used in the evening and as backup during outages." },
-    home: { label: "Your home", icon: House, about: "Uses solar first, then the battery, then the grid." },
-    grid: { label: "Utility grid", icon: UtilityPole, about: "Takes extra units when the battery is full and tops you up when it runs low." },
   },
 };
 
@@ -104,31 +96,11 @@ const SCENES: Record<Mode, Record<Moment, Scene>> = {
       story: "A power cut changes nothing — an off-grid home was never connected to the grid.",
     },
   },
-  hybrid: {
-    day: {
-      edges: [{ from: "sun", to: "panels", kind: "light" }, { from: "panels", to: "inverter" }, { from: "inverter", to: "home" }, { from: "inverter", to: "battery" }, { from: "inverter", to: "grid" }],
-      tags: { battery: "Charging", grid: "Exporting" },
-      story: "Solar runs the home and fills the battery first; anything left over goes to the grid.",
-    },
-    evening: {
-      edges: [{ from: "battery", to: "inverter" }, { from: "inverter", to: "home" }],
-      off: ["sun", "panels"],
-      tags: { battery: "Discharging", grid: "Standby" },
-      story: "The battery powers the evening. The grid steps in only when the battery runs low.",
-    },
-    outage: {
-      edges: [{ from: "sun", to: "panels", kind: "light" }, { from: "panels", to: "inverter" }, { from: "inverter", to: "home" }, { from: "battery", to: "inverter" }],
-      off: ["grid"],
-      tags: { grid: "Outage", battery: "Backup" },
-      story: "The hybrid inverter islands the home from the grid and keeps it running on solar and the battery.",
-    },
-  },
 };
 
 const MODES: { id: Mode; label: string }[] = [
   { id: "on_grid", label: "On-Grid" },
   { id: "off_grid", label: "Off-Grid" },
-  { id: "hybrid", label: "Hybrid" },
 ];
 
 const MOMENTS: { id: Moment; label: string; short: string; icon: LucideIcon }[] = [
@@ -197,7 +169,6 @@ export function EnergyFlow({ className }: { className?: string }) {
             </button>
           ))}
         </div>
-        <p className="text-xs text-forest-muted">An illustration, not live data</p>
       </div>
 
       <div className="relative mt-4 aspect-[600/440] w-full">
@@ -291,9 +262,6 @@ export function EnergyFlow({ className }: { className?: string }) {
             {scene.story}
           </p>
         )}
-        {mode === "hybrid" ? (
-          <p className="mt-2 text-xs text-forest-muted">We currently install On-Grid and Off-Grid systems and hardware-only Panel Sets. Ask us about hybrid.</p>
-        ) : null}
       </div>
     </div>
   );

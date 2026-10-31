@@ -11,11 +11,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  BadgeCheck,
+  BadgeIndianRupee,
   Boxes,
   ClipboardCheck,
   FileText,
   Headset,
   LayoutDashboard,
+  PhoneCall,
+  Ruler,
   ScanBarcode,
   ShieldCheck,
   Truck,
@@ -25,8 +29,11 @@ import {
 } from "lucide-react";
 import { EnergyFlow } from "@/components/modules/public/energy-flow";
 import { SubsidyEstimator } from "@/components/modules/public/subsidy-estimator";
+import { CountUp } from "@/components/shared/count-up";
 import { buttonVariants } from "@/components/ui/button";
 import { cta } from "@/lib/analytics";
+import { formatINR } from "@/lib/money";
+import { SUBSIDY_RULES } from "@/lib/subsidy";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -39,22 +46,23 @@ const onForestPrimary = "inline-flex h-12 items-center justify-center gap-2 roun
 const onForestSecondary =
   "inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-[15px] font-medium text-forest-foreground ring-1 ring-white/25 transition-colors hover:bg-white/8 hover:text-white";
 
+/** Counted up when the strip scrolls into view. The subsidy cap comes from the same rule the quote builder uses. */
 const FACTS = [
-  { value: "₹78,000", label: "maximum PM Surya Ghar subsidy for a home, and we file it for you" },
-  { value: "20 years", label: "panel warranty, registered to your home by serial number" },
-  { value: "5 years", label: "workmanship warranty on every installation we commission" },
-  { value: "1–5 kW", label: "On-Grid and Off-Grid systems, plus hardware-only Panel Sets" },
+  { to: SUBSIDY_RULES.capRs, prefix: "₹", suffix: "", label: "maximum PM Surya Ghar subsidy for a home, and we file it for you" },
+  { to: 20, prefix: "", suffix: " years", label: "panel warranty, registered to your home by serial number" },
+  { to: 5, prefix: "", suffix: " years", label: "workmanship warranty on every installation we commission" },
+  { to: 5, prefix: "1–", suffix: " kW", label: "On-Grid and Off-Grid systems, plus hardware-only Panel Sets" },
 ];
 
-const JOURNEY = [
-  { title: "Enquiry", body: "Tell us about your roof and your bill. We call back within 2 working hours." },
-  { title: "Roof survey", body: "A technician measures direction, tilt, shading and cable runs — free." },
-  { title: "Design & quote", body: "The right kit for your roof, every part listed, GST and subsidy worked out." },
-  { title: "Order", body: "Your first payment confirms it. We open your subsidy file the same day." },
-  { title: "Verified dispatch", body: "Every panel and inverter is scanned by serial before it leaves the warehouse." },
-  { title: "Installation", body: "Our crew installs, tests generation and takes photos. You sign on site." },
-  { title: "Commissioned", body: "You get a certificate listing every serial and its warranty, on WhatsApp." },
-  { title: "Warranty & service", body: "Raise a fault any time; covered repairs cost you nothing." },
+const JOURNEY: { icon: LucideIcon; title: string; body: string }[] = [
+  { icon: PhoneCall, title: "Enquiry", body: "Tell us about your roof and your bill. We call back within 2 working hours." },
+  { icon: Ruler, title: "Roof survey", body: "A technician measures direction, tilt, shading and cable runs — free." },
+  { icon: FileText, title: "Design & quote", body: "The right kit for your roof, every part listed, GST and subsidy worked out." },
+  { icon: BadgeIndianRupee, title: "Order", body: "Your first payment confirms it. We open your subsidy file the same day." },
+  { icon: ScanBarcode, title: "Verified dispatch", body: "Every panel and inverter is scanned by serial before it leaves the warehouse." },
+  { icon: Wrench, title: "Installation", body: "Our crew installs, tests generation and takes photos. You sign on site." },
+  { icon: BadgeCheck, title: "Commissioned", body: "You get a certificate listing every serial and its warranty, on WhatsApp." },
+  { icon: ShieldCheck, title: "Warranty & service", body: "Raise a fault any time; covered repairs cost you nothing." },
 ];
 
 const SYSTEMS = [
@@ -98,7 +106,7 @@ const PLATFORM: { icon: LucideIcon; title: string; body: string }[] = [
 const FAQ = [
   {
     q: "Am I eligible for the PM Surya Ghar subsidy?",
-    a: "Homes with a grid-connected (On-Grid) system are. Businesses and off-grid systems aren't. The subsidy is ₹30,000 per kW for the first 2 kW and ₹18,000 for the 3rd, up to ₹78,000, credited to your bank account after the DISCOM inspects the installation. We prepare and track the application for you.",
+    a: `Homes with a grid-connected (On-Grid) system are. Businesses and off-grid systems aren't. The subsidy is ${formatINR(SUBSIDY_RULES.perKwFirstTwoRs * 100)} per kW for the first 2 kW and ${formatINR(SUBSIDY_RULES.thirdKwRs * 100)} for the 3rd, up to ${formatINR(SUBSIDY_RULES.capRs * 100)}, credited to your bank account after the DISCOM inspects the installation. We prepare and track the application for you.`,
   },
   {
     q: "Will my solar system work during a power cut?",
@@ -138,7 +146,7 @@ export default function HomePage() {
               <Link href="/enquiry" className={onForestPrimary} {...cta("hero_get_quote")}>
                 Get a free quote
               </Link>
-              <Link href="/warranty" className={onForestSecondary} {...cta("hero_check_warranty")}>
+              <Link href="#warranty" className={onForestSecondary} {...cta("hero_check_warranty")}>
                 Check your warranty
               </Link>
             </div>
@@ -151,10 +159,15 @@ export default function HomePage() {
       <section aria-label="SunPower at a glance" className="border-b border-border bg-card">
         <dl className="mx-auto grid max-w-6xl grid-cols-2 divide-border px-4 sm:px-6 lg:grid-cols-4 lg:divide-x">
           {FACTS.map((f) => (
-            <div key={f.value} className="py-7 pr-4 lg:px-6 lg:first:pl-0">
+            <div key={f.label} className="py-7 pr-4 lg:px-6 lg:first:pl-0">
               <dt className="sr-only">{f.label}</dt>
               <dd>
-                <span className="block font-display text-3xl font-semibold tracking-tight text-forest tabular-nums">{f.value}</span>
+                <CountUp
+                  to={f.to}
+                  prefix={f.prefix}
+                  suffix={f.suffix}
+                  className="block font-display text-3xl font-semibold tracking-tight text-forest tabular-nums sm:text-4xl"
+                />
                 <span className="mt-1.5 block text-sm leading-snug text-muted-foreground">{f.label}</span>
               </dd>
             </div>
@@ -171,22 +184,26 @@ export default function HomePage() {
               Every installation follows the same path, and every step is recorded — so nothing is lost between the first call and the last service visit.
             </p>
           </div>
-          <div className="relative mt-14">
-            <div aria-hidden="true" className="absolute top-[11px] right-0 left-0 hidden h-0.5 bg-border lg:block">
-              <div className="journey-fill h-full bg-primary" />
-            </div>
-            <ol className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-              {JOURNEY.map((step, i) => (
-                <li key={step.title} className="relative">
-                  <span className="relative grid size-6 place-items-center rounded-full bg-primary text-[12px] font-semibold text-primary-foreground ring-4 ring-background tabular-nums">
-                    {i + 1}
-                  </span>
-                  <h3 className="mt-4 text-base font-semibold text-foreground">{step.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
+          {/* Each step is a solar panel: aluminium frame, cell grid, a sheen that catches the light on hover. */}
+          <ol className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {JOURNEY.map(({ icon: Icon, title, body }, i) => (
+              <li
+                key={title}
+                className="group relative overflow-hidden rounded-lg bg-[#123528] p-5 text-forest-foreground ring-4 ring-[#c8d3cb] transition-transform duration-300 ease-out [background-image:linear-gradient(rgb(220_233_223/0.09)_1px,transparent_1px),linear-gradient(90deg,rgb(220_233_223/0.09)_1px,transparent_1px)] [background-size:25%_33.34%] hover:-translate-y-1 hover:[transform:perspective(900px)_rotateX(5deg)_translateY(-4px)]"
+              >
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_30%,rgb(255_255_255/0.10)_45%,transparent_60%)] bg-[length:250%_100%] bg-[position:100%_0] transition-[background-position] duration-700 ease-out group-hover:bg-[position:0%_0]"
+                />
+                <div className="relative flex items-center justify-between">
+                  <span className="grid size-8 place-items-center rounded-full bg-sun text-[13px] font-bold text-forest tabular-nums">{i + 1}</span>
+                  <Icon className="size-5 text-volt" aria-hidden="true" />
+                </div>
+                <h3 className="relative mt-6 text-[17px] font-semibold text-white">{title}</h3>
+                <p className="relative mt-1.5 min-h-[3.75rem] text-sm leading-relaxed text-forest-foreground/85">{body}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
@@ -234,7 +251,7 @@ export default function HomePage() {
       </section>
 
       {/* Serial warranty */}
-      <section className="bg-forest text-forest-foreground">
+      <section id="warranty" className="scroll-mt-16 bg-forest text-forest-foreground">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-24">
           <div>
             <h2 className="text-4xl font-semibold text-white sm:text-5xl">Every panel has a serial. Every serial has a warranty.</h2>
