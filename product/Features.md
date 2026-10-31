@@ -32,7 +32,7 @@ Live at https://www.sunpowersolutions.me. Where this spec and the code differ, `
 | F08 Quote builder | ✅ Shipped | Package → full BOM, live GST/subsidy/margin, server re-pricing, print + WhatsApp |
 | F09 Orders and payments | ✅ Shipped | First payment confirms the order → pick list + installation job (least-loaded crew) |
 | F19 Activity timeline | 🟨 Partly | Timelines on leads, quotes and orders; customer-wide timeline with F13 |
-| F10–F18, F20–F23 | 🗓️ Planned | Phases 2–4 in Plan.md |
+| F10–F18, F20, F22, F23 | 🗓️ Planned | Phases 2–4 in Plan.md. F16–F18 promoted to P0-lite and F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
 
 ## Route access
 
@@ -222,7 +222,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 
 ## P1: Should have
 
-### F16 PM Surya Ghar subsidy tracker (P1)
+### F16 PM Surya Ghar subsidy tracker (P0-lite: stages, dates, dashboard counts · P1: documents, warnings)
 
 - **Purpose:** no customer loses a subsidy to lost paperwork.
 - **Screens:** `/subsidy` (board by stage), subsidy panel on `/orders/[id]`.
@@ -232,7 +232,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 - **Automations:** record created when an eligible order is confirmed; warning when installation is scheduled before feasibility approval; counts and ₹ by stage feed the dashboard.
 - **Access:** admin and sales full; support view.
 
-### F17 Share link and CSV export (P1)
+### F17 Share link and CSV export (P0-lite: expiring link + profit CSV · P1: revoke, other CSVs)
 
 - **Purpose:** share the numbers with a partner or the accountant without creating a login.
 - **Screens:** Share and Export on `/dashboard`; read-only `/share/[token]`.
@@ -242,7 +242,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 - **Automations:** events `share_link_created`, `report_exported`.
 - **Access:** admin.
 
-### F18 Technician hours and payouts (P1)
+### F18 Technician hours and payouts (P0-lite: monthly summary + CSV · P1: edit logs, close month)
 
 - **Purpose:** pay technicians for the hours they worked, and feed those hours into job costing.
 - **Screens:** `/team` (members, roles, hourly rates, monthly hours, payout summary); time logs on `/jobs/[id]`.
@@ -271,7 +271,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 
 ## P2: Could have
 
-### F21 Email notifications (P2)
+### F21 Email notifications (✂️ cut 31 Oct: no verified sender domain; wa.me links cover it)
 
 - **Purpose:** tell people automatically instead of by phone.
 - **Triggers:** new lead → its owner; quote sent → customer (with a link); ticket status change → customer.
