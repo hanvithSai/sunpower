@@ -16,7 +16,7 @@ import { AppError } from "@/server/errors";
 import { Job, Order, SerialUnit, ShareLink, User } from "@/server/models";
 import { costOrder } from "@/server/services/costing";
 import { getDashboard, maskName } from "@/server/services/dashboard";
-import { advanceSubsidy, createShareLink, getPayroll, openShareLink, revokeShareLink } from "@/server/services/finance";
+import { advanceSubsidy, certificateLink, createShareLink, getPayroll, listShareLinks, openShareLink, revokeShareLink, shareLinkAllowsFile } from "@/server/services/finance";
 import { makeCommissionedOrder, makeConfirmedOrder, staff } from "./flows/order";
 
 loadEnvConfig(process.cwd());
@@ -96,6 +96,23 @@ async function main() {
   const revoked = await openShareLink(link.token, now);
   check("a revoked link stops working at once", !revoked.ok && revoked.reason === "revoked");
   check("views are counted", stored.viewCount === 1);
+
+  /* ---- Customer certificate link (F22-lite) ---- */
+  const cert = await certificateLink(String(job._id), director, now);
+  check("a completed installation gets a 90-day certificate link", cert.created && Math.round((cert.expiresAt.getTime() - now.getTime()) / 86_400_000) === 90);
+  check("asking again reuses the same link", (await certificateLink(String(job._id), director, now)).token === cert.token);
+  const opened = await openShareLink(cert.token, now);
+  check("it opens as a certificate for that job", opened.ok && opened.scope === "certificate" && opened.jobId === String(job._id));
+  check("…and shows only that job's photos", (await shareLinkAllowsFile(cert.token, job.photos[0]!, now)) && !(await shareLinkAllowsFile(cert.token, "0123456789abcdef01234567", now)));
+  check("dashboard links never open a job's photos", !(await shareLinkAllowsFile(link.token, job.photos[0]!, now)));
+  check("certificate links stay off the director's dashboard list", (await listShareLinks(now)).every((l) => l.token !== cert.token));
+  await expectError("no certificate before the job is completed", "INVALID_STATE", async () => {
+    const pending = await makeConfirmedOrder({ kw: 2, systemType: "on_grid", name: "Certificate Pending" });
+    const pendingJob = (await Job.findOne({ orderId: pending.orderId }).lean())!;
+    return certificateLink(String(pendingJob._id), director, now);
+  });
+  await revokeShareLink(String((await ShareLink.findOne({ token: cert.token }).lean())!._id), director);
+  check("a revoked certificate link hides the photos too", !(await shareLinkAllowsFile(cert.token, job.photos[0]!, now)));
 
   /* ---- Payroll ---- */
   const payroll = await getPayroll(toDateInputValue(now).slice(0, 7));
