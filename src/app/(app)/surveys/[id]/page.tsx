@@ -47,7 +47,7 @@ export default async function SurveyPage({ params }: { params: Promise<{ id: str
   const address = customer ? [customer.address.line1, customer.address.city, customer.address.pincode].filter(Boolean).join(", ") : "";
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
   const requested = lead?.requirement;
-  const requestedType: SystemType = requested?.systemType === "off_grid" ? "off_grid" : "on_grid";
+  const requestedType: SystemType = requested?.systemType === "off_grid" || requested?.systemType === "panel_set" ? requested.systemType : "on_grid";
   const m = survey.measurements;
 
   return (

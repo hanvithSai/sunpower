@@ -40,21 +40,25 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
     <>
       <PageHeader title="Catalog" description="Ready-made packages and every part, priced with GST and HSN codes." />
 
-      <Section title="Packages" description="Picking one in the quote builder fills the complete bill of materials." className="mb-6">
+      <Section
+        title="Packages"
+        description="Picking one in the quote builder fills the complete bill of materials. Installation is the service line on every system and can be added to a Panel Set."
+        className="mb-6"
+      >
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {packages.map((pkg) => (
             <details key={pkg.id} className="group rounded-xl border border-border p-4 open:bg-secondary/40">
               <summary className="cursor-pointer list-none">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-semibold text-foreground">{pkg.capacityKw} kW</span>
-                  <Badge variant={pkg.systemType === "on_grid" ? "info" : "brand"}>{SYSTEM_TYPE_LABELS[pkg.systemType]}</Badge>
+                  <Badge variant={pkg.systemType === "on_grid" ? "info" : pkg.systemType === "off_grid" ? "brand" : "neutral"}>{SYSTEM_TYPE_LABELS[pkg.systemType]}</Badge>
                 </div>
                 <p className="mt-1 font-mono text-xs text-muted-foreground">{pkg.code}</p>
                 <p className="mt-3 text-sm tabular-nums text-foreground">{formatINR(pkg.totalPaise)}</p>
                 {pkg.subsidyPaise ? (
                   <p className="text-xs text-success-foreground">{formatINR(pkg.netCostPaise)} after subsidy</p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">No subsidy (off-grid)</p>
+                  <p className="text-xs text-muted-foreground">No subsidy ({pkg.systemType === "panel_set" ? "hardware only" : "off-grid"})</p>
                 )}
                 <p className="mt-2 text-xs text-primary group-open:hidden">Show {pkg.lineCount} items</p>
               </summary>

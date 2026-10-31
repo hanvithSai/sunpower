@@ -133,6 +133,7 @@ export function QuoteBuilder({ lead, customerType, catalog, defaultPackageId, fr
 
   const onGrid = catalog.packages.filter((p) => p.systemType === "on_grid");
   const offGrid = catalog.packages.filter((p) => p.systemType === "off_grid");
+  const panelSets = catalog.packages.filter((p) => p.systemType === "panel_set");
   const marginPct = totals.taxablePaise ? (totals.marginPaise / totals.taxablePaise) * 100 : 0;
 
   return (
@@ -146,7 +147,8 @@ export function QuoteBuilder({ lead, customerType, catalog, defaultPackageId, fr
           {[
             { title: "On-Grid (net metering)", items: onGrid },
             { title: "Off-Grid (battery backup)", items: offGrid },
-          ].map((group) => (
+            { title: "Panel Set (hardware only: panels, connectors, cable)", items: panelSets },
+          ].filter((group) => group.items.length > 0).map((group) => (
             <div key={group.title} className="mt-4">
               <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{group.title}</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -329,11 +331,13 @@ export function QuoteBuilder({ lead, customerType, catalog, defaultPackageId, fr
               </>
             ) : (
               <p className="text-xs text-muted-foreground">
-                {systemType === "off_grid"
-                  ? "Off-grid systems aren't covered by the PM Surya Ghar subsidy."
-                  : customerType !== "residential"
-                    ? "The subsidy applies to homes only."
-                    : "The customer didn't ask for subsidy help."}
+                {systemType === "panel_set"
+                  ? "Panel Sets are hardware only, so the PM Surya Ghar subsidy doesn't apply."
+                  : systemType === "off_grid"
+                    ? "Off-grid systems aren't covered by the PM Surya Ghar subsidy."
+                    : customerType !== "residential"
+                      ? "The subsidy applies to homes only."
+                      : "The customer didn't ask for subsidy help."}
               </p>
             )}
           </dl>
