@@ -170,7 +170,9 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             {job ? (
               <div className="space-y-2 text-sm">
                 <p className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-xs">{job.number}</span>
+                  <Link href={`/jobs/${job.id}`} className="font-mono text-xs text-primary hover:underline">
+                    {job.number}
+                  </Link>
                   <StatusBadge kind="job" status={job.status} />
                 </p>
                 <p className="flex items-center gap-2">
@@ -181,6 +183,11 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                   <Users className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   {job.crew.length ? job.crew.join(", ") : "Crew to be assigned"}
                 </p>
+                {job.status === "completed" ? (
+                  <Button asChild size="sm" variant="outline" className="w-full">
+                    <Link href={`/jobs/${job.id}/certificate`}>Installation certificate</Link>
+                  </Button>
+                ) : null}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">Booked automatically when the first payment arrives.</p>
