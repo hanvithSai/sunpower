@@ -149,7 +149,9 @@ export function CommandPalette({ role, open, onOpenChange }: CommandPaletteProps
 
   // ⌘K / Ctrl+K toggles the palette from anywhere in the app.
   const onShortcut = useEffectEvent((event: KeyboardEvent) => {
-    if (event.key.toLowerCase() !== "k" || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
+    // Browser autofill fires synthetic keydown events without a `key`.
+    if (typeof event.key !== "string" || event.key.toLowerCase() !== "k") return;
+    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
     event.preventDefault();
     setOpen(!open);
   });
