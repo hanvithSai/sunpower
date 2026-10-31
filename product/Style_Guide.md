@@ -215,6 +215,9 @@ Elevated card about 640 px wide; results grouped under Footnote headers (Custome
 
 ### Charts
 
+The Reports page (`/reports`) follows the dataviz method: one series in forest #1D5C40; categorical series in the fixed order field green #2A8A5C, sky #2F7ED8, amber #B8801A, plum #8A63B8, clay #C0603A (validated against white: lightness band, chroma floor, colour-blind separation of neighbours, 3:1 contrast); emphasis in danger #B42318 for loss-making jobs; never two y-axes; part-to-whole as a tall segmented bar with a legend list (no text inside the colours, which would be under 4.5:1); ranked horizontal bars with printed values; counts drawn with straight lines; every chart has a tooltip and a table view.
+
+
 Recharts. Invoiced series #1D5C40 (7.9:1 on white), cash series #B8801A (3.4:1, above the 3:1 needed for graphics), gridlines #DBE2DA, axis labels in Caption #536158, ₹ axis values in compact form (₹5 L). Every chart has a title, units, a legend and a "Show as a table" alternative.
 
 ## 10. Content style

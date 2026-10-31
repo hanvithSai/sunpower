@@ -154,7 +154,8 @@ SunPower is one Next.js 16 application. The screens and the backend live in one 
 | [warranty.ts](../src/server/services/warranty.ts) | Public warranty lookup by serial, or by phone plus the last 4 characters of a serial |
 | [customers.ts](../src/server/services/customers.ts) | Find or create a customer by phone; DISCOM by city; customer list; Customer 360 |
 | [costing.ts](../src/server/services/costing.ts) | Gathers actual costs for orders (serial GRN costs, time logs × rates) and hands them to `lib/costing` |
-| [dashboard.ts](../src/server/services/dashboard.ts) | KPIs, 12-month trend, profit table, unfinished steps, repairs by age, subsidy pipeline |
+| [dashboard.ts](../src/server/services/dashboard.ts) | KPIs, 12-month trend, profit table, unfinished steps, repairs by age, subsidy pipeline, lifecycle pipeline |
+| [reports.ts](../src/server/services/reports.ts) | Twelve IST months: installations and kW per month, invoiced and cash per month, the enquiry funnel (survey, quote, won), sources and wins, system mix, margin bands, revenue split from job costing, tickets raised/closed and by category |
 | [finance.ts](../src/server/services/finance.ts) | Invoices and CSV rows, subsidy stages and papers, payroll, dashboard and certificate share links |
 | [catalog.ts](../src/server/services/catalog.ts) | Active catalog, priced packages, products with stock and margin |
 | [users.ts](../src/server/services/users.ts) | Staff list for pickers |
@@ -202,7 +203,7 @@ SunPower is one Next.js 16 application. The screens and the backend live in one 
 | Root | `layout.tsx` (IBM Plex Sans and Bricolage Grotesque, toasts, cookie banner), `globals.css` (design tokens at WCAG AA, print styles), error and 404 pages, `global-error.tsx` (styled fallback if the root layout fails), self-hosted Inter font |
 | Public (no login) | `/` landing page, `/enquiry` form, `/warranty` check, `/privacy` notice, `/share/[token]` (read-only dashboard or one customer's certificate) |
 | Auth | `/login` |
-| Director | `/dashboard`, `/team` (payroll) |
+| Director | `/dashboard`, `/reports` (12-month analytics), `/team` (payroll) |
 | Sales | `/leads`, `/leads/[id]`, `/surveys`, `/surveys/[id]`, `/quotes`, `/quotes/new`, `/quotes/[id]`, `/quotes/[id]/print`, `/orders`, `/orders/[id]`, `/catalog`, `/customers`, `/customers/[id]`, `/invoices`, `/invoices/[id]`, `/subsidy` |
 | Warehouse | `/inventory`, `/inventory/serials`, `/inventory/purchases`, `/inventory/purchases/new`, `/inventory/purchases/[id]`, `/dispatch`, `/dispatch/[orderId]` |
 | Installations | `/my-work` (technician home), `/jobs` (crew calendar), `/jobs/[id]`, `/jobs/[id]/certificate` |
@@ -225,6 +226,7 @@ SunPower is one Next.js 16 application. The screens and the backend live in one 
 | [modules/jobs/](../src/components/modules/jobs/) (4) | Completion form (with local draft), reschedule dialog, agenda card, certificate view shared by staff and the customer link |
 | [modules/service/](../src/components/modules/service/) (2) | Warranty card, ticket forms for each state |
 | [modules/dashboard/](../src/components/modules/dashboard/) (4) | Lifecycle pipeline, dashboard view, revenue trend chart, share panel |
+| [modules/reports/](../src/components/modules/reports/) (1) | Report charts: column (one series, optional emphasis), two-line, ranked bars, segmented bar; validated categorical palette |
 | [modules/finance/](../src/components/modules/finance/) (2) | Subsidy stage and papers dialogs |
 | [modules/public/](../src/components/modules/public/) (4) | Energy-flow diagram, subsidy estimator, public enquiry form, warranty lookup |
 | Other (2) | Login form, logo |
@@ -504,7 +506,7 @@ Every action follows the same pattern: `runAction(roles)` → `parseForm(schema)
 | WarrantyCard / ticket forms | The warranty decision shown before a ticket is raised; one form per ticket state (assign, start, override, resolve with parts or replacement, confirm, close, reopen) |
 | LifecyclePipeline | The dashboard's forest strip: seven numbered stages with live counts, a lime dot where work waits, each linking to its module |
 | EnergyFlow | Landing hero: On-Grid / Off-Grid × Sunny afternoon / Evening / Power cut. SVG wires (animated where power flows, with arrows) under HTML buttons for each part; a click explains the part; no invented figures |
-| PageTransition | Wraps the app and public content in React's `<ViewTransition>` keyed by the pathname, so every navigation crossfades and lifts in |
+| PageTransition | Wraps the app and public content (background tabs are skipped by `src/lib/view-transition-guard.ts`, installed in `instrumentation-client.ts`) in React's `<ViewTransition>` keyed by the pathname, so every navigation crossfades and lifts in |
 | ScrollColumn | A board column that shows five cards and scrolls the rest (leads board, subsidy board, My work) |
 | CountUp | Landing facts count up once when they scroll into view; the subsidy cap comes from `SUBSIDY_RULES` |
 | PackageDialog | A catalog package card that opens its price breakdown and full bill of materials (`expandPackage` + `quoteTotals`) |
