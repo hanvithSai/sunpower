@@ -147,6 +147,20 @@ export async function listLeads(filter: LeadFilter, now: Date) {
   };
 }
 
+/** Headline numbers for the pipeline page (what needs attention right now). */
+export async function getLeadPipelineStats(now: Date, assignedTo?: string) {
+  await connectDB();
+  const mine = assignedTo && Types.ObjectId.isValid(assignedTo) ? { assignedTo: toObjectId(assignedTo) } : {};
+  const weekAgo = new Date(now.getTime() - 7 * 24 * HOUR_MS);
+  const [uncontacted, newThisWeek, awaitingReview, readyToQuote] = await Promise.all([
+    Lead.countDocuments({ ...mine, status: "new", createdAt: { $lt: new Date(now.getTime() - LEAD_FIRST_RESPONSE_SLA_HOURS * HOUR_MS) } }),
+    Lead.countDocuments({ ...mine, createdAt: { $gte: weekAgo } }),
+    Lead.countDocuments({ ...mine, status: "survey_completed" }),
+    Lead.countDocuments({ ...mine, status: "survey_approved" }),
+  ]);
+  return { uncontacted, newThisWeek, awaitingReview, readyToQuote };
+}
+
 export const BOARD_COLUMNS: { key: string; title: string; statuses: LeadStatus[] }[] = [
   { key: "new", title: "New", statuses: ["new"] },
   { key: "contacted", title: "Contacted", statuses: ["contacted"] },
