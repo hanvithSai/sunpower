@@ -27,7 +27,7 @@ export async function saveQuoteAction(input: unknown): Promise<ActionState> {
     revalidatePath(`/leads/${data.leadId}`);
     trackServer(
       "quote_created",
-      { packageCode: result.packageCode, capacityKw: data.capacityKw, totalRs: Math.round(result.totalPaise / 100) },
+      { packageCode: result.packageCode ?? null, capacityKw: data.capacityKw, totalRs: Math.round(result.totalPaise / 100) },
       user.id,
     );
     if (data.send) trackServer("quote_sent", {}, user.id);

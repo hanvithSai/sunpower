@@ -44,10 +44,10 @@ export async function receiveGoodsAction(input: unknown): Promise<ActionState> {
 
 export async function scanSerialAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return runAction(["warehouse"], async (user) => {
-    const { orderId, serial } = parseForm(ScanSerialSchema, formData);
+    const { orderId, serial, method } = parseForm(ScanSerialSchema, formData);
     const result = await scanSerial(orderId, serial, user);
     refreshDispatch(orderId);
-    trackServer("serial_scanned", { ok: true }, user.id);
+    trackServer("serial_scanned", { method }, user.id);
     return {
       ok: true,
       message: result.packed
@@ -99,7 +99,7 @@ export async function deliverOrderAction(_prev: ActionState, formData: FormData)
     refreshDispatch(input.orderId);
     revalidatePath("/jobs");
     revalidatePath("/my-work");
-    trackServer("order_delivered", { warranties: result.warranties }, user.id);
+    trackServer("order_delivered", { warrantiesStarted: result.warranties }, user.id);
     return { ok: true, message: `${result.orderNumber} delivered — ${result.warranties} warranties started` };
   });
 }

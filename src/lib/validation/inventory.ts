@@ -5,6 +5,7 @@
  * bench posts small forms.
  */
 import { z } from "zod";
+import { SCAN_METHODS } from "../analytics";
 import { objectId, optionalGstin, optionalText, requiredText } from "./common";
 
 /** Serials are stored upper-case with no surrounding spaces (matches the SerialUnit index). */
@@ -48,6 +49,8 @@ export type ReceiveGoodsInput = z.output<typeof ReceiveGoodsSchema>;
 export const ScanSerialSchema = z.object({
   orderId: objectId,
   serial,
+  /** How the serial arrived at the bench, for scan analytics. */
+  method: z.enum(SCAN_METHODS).default("manual"),
 });
 
 export const BulkPickSchema = z.object({
