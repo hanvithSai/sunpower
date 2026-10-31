@@ -6,7 +6,7 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Award, CalendarClock, MapPin, MessageCircle, Phone, Play, Users } from "lucide-react";
 import { CompleteJobForm } from "@/components/modules/jobs/complete-job-form";
 import { RescheduleJobDialog } from "@/components/modules/jobs/reschedule-job-dialog";
@@ -37,6 +37,8 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   const detail = await getJobDetail(id);
   if (!detail) notFound();
   const { job, customer, order, serials, extraProducts } = detail;
+  // Service visits are worked from their ticket.
+  if (job.type === "service" && job.ticketId) redirect(`/service/${job.ticketId}`);
 
   const onCrew = job.technicianIds.includes(user.id);
   if (user.role === "technician" && !onCrew) notFound();

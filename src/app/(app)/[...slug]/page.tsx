@@ -25,10 +25,6 @@ const UPCOMING: Record<string, { phase: string; summary: string }> = {
     phase: "Phase 3",
     summary: "Customer 360: installed systems, every serial number with its warranty status, tickets and invoices.",
   },
-  "/service": {
-    phase: "Phase 3",
-    summary: "Service tickets with instant warranty lookup — free when covered, billed automatically when not.",
-  },
   "/invoices": {
     phase: "Phase 3",
     summary: "GST tax invoices with the CGST/SGST split and payment tracking.",
