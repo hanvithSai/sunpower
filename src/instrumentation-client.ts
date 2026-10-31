@@ -36,7 +36,9 @@ const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 if (key) {
   try {
     posthog.init(key, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+      // Through our own domain (next.config.ts rewrites) so ad blockers don't drop events.
+      api_host: "/ingest",
+      ui_host: "https://us.posthog.com",
       defaults: "2026-01-30",
       capture_pageview: "history_change",
       autocapture: false,
