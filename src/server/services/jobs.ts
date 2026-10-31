@@ -39,10 +39,14 @@ function assertCrew(job: Pick<IJob, "technicianIds">, actor: JobActor, verb: str
 
 /* --------------------------------- Reads -------------------------------- */
 
-/** One week (Monday–Sunday, IST) of jobs, plus every technician for the crew grid. */
-export async function getJobCalendar(anchor: Date) {
+/**
+ * Seven days of jobs plus every technician for the crew grid: the Monday–Sunday
+ * week containing `anchor`, or — with `rolling` — seven days starting that day
+ * (auto-booked jobs land ~4 days out, so late in the week "this week" is empty).
+ */
+export async function getJobCalendar(anchor: Date, opts: { rolling?: boolean } = {}) {
   await connectDB();
-  const { start } = getRange("week", anchor);
+  const start = opts.rolling ? startOfDayIST(anchor) : getRange("week", anchor).start;
   const end = addDays(start, 7);
   const [jobs, technicians] = await Promise.all([
     Job.find({ scheduledFor: { $gte: start, $lt: end }, status: { $ne: "cancelled" } }).sort({ scheduledFor: 1 }).lean(),
