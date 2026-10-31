@@ -56,7 +56,8 @@ export function Avatar({ name, size = "md", className }: AvatarProps) {
         className,
       )}
     >
-      <span aria-hidden="true">{initials(label) || "?"}</span>
+      {/* Generated content, so a button labelled "Account menu for …" needn't repeat the initials (WCAG 2.5.3). */}
+      <span aria-hidden="true" data-initials={initials(label) || "?"} className="before:content-[attr(data-initials)]" />
     </span>
   );
 }

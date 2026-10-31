@@ -67,7 +67,7 @@ export function WorkCard({ item, timeOnly = false }: { item: WorkItem; timeOnly?
               </a>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <a href={waLink(item.phone)} target="_blank" rel="noreferrer" aria-label={`WhatsApp ${item.customerName}`}>
+              <a href={waLink(item.phone)} target="_blank" rel="noreferrer" aria-label={`Chat with ${item.customerName} on WhatsApp`}>
                 <MessageCircle aria-hidden="true" />
                 Chat
               </a>
