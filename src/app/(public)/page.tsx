@@ -31,7 +31,7 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-24">
       <section className="text-center">
-        <p className="text-sm font-medium text-brand">SunPower Solutions · Telangana</p>
+        <p className="text-sm font-medium text-brand-foreground">SunPower Solutions · Telangana</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           Rooftop solar, done right.
         </h1>

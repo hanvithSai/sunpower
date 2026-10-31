@@ -40,7 +40,7 @@ export function Logo({ className, showWordmark = true, size = "md" }: LogoProps)
       </span>
       {showWordmark ? (
         <span className={cn("font-semibold leading-none tracking-tight whitespace-nowrap", s.wordmark)}>
-          SunPower <span className="font-medium opacity-60">OS</span>
+          SunPower <span className="font-medium opacity-70">OS</span>
         </span>
       ) : (
         <span className="sr-only">SunPower OS</span>

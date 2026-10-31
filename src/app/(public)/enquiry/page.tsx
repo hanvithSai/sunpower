@@ -23,7 +23,7 @@ export default function EnquiryPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       <header className="mb-8 text-center">
-        <p className="text-sm font-medium text-brand">Free roof survey · No obligation</p>
+        <p className="text-sm font-medium text-brand-foreground">Free roof survey · No obligation</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Get a free solar quote</h1>
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
           Tell us a little about your home or business. A SunPower expert will call you, survey your roof and send a clear quote.

@@ -22,7 +22,7 @@ export default function WarrantyPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16">
       <header className="mb-8 text-center">
-        <p className="text-sm font-medium text-brand">No login needed</p>
+        <p className="text-sm font-medium text-brand-foreground">No login needed</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Check your warranty</h1>
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
           Every panel, inverter and battery we install is tracked by its serial number, so you can see exactly what is covered and until when.

@@ -57,8 +57,8 @@ export function RevenueTrendChart({ data }: { data: TrendPoint[] }) {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} barGap={2} barCategoryGap="22%" margin={{ top: 8, right: 4, bottom: 0, left: 0 }}>
               <CartesianGrid vertical={false} stroke="#e5e5ea" strokeDasharray="0" />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6e6e73" }} interval="preserveStartEnd" />
-              <YAxis tickLine={false} axisLine={false} width={56} tick={{ fontSize: 11, fill: "#6e6e73" }} tickFormatter={(v: number) => formatINRCompact(v)} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#66666b" }} interval="preserveStartEnd" />
+              <YAxis tickLine={false} axisLine={false} width={56} tick={{ fontSize: 11, fill: "#66666b" }} tickFormatter={(v: number) => formatINRCompact(v)} />
               <Tooltip content={(props) => <TrendTooltip active={props.active} label={props.label} payload={props.payload} />} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
               {SERIES.map((s) => (
                 <Bar key={s.key} dataKey={s.key} name={s.label} fill={s.color} radius={[4, 4, 0, 0]} maxBarSize={18} isAnimationActive={false} />
