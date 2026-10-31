@@ -33,11 +33,14 @@ export function getWarrantyInfo(
     return { state: "not_started", daysLeft: 0, endsAt: null, label: "Warranty not started" };
   }
   const end = new Date(endAt);
-  const days = Math.ceil((end.getTime() - now.getTime()) / DAY_MS);
-  if (days >= 0) {
+  const msLeft = end.getTime() - now.getTime();
+  // Same cut-off as ticket billing (covered while now <= end), so the card and the bill agree.
+  if (msLeft >= 0) {
+    const days = Math.ceil(msLeft / DAY_MS);
     return { state: "in_warranty", daysLeft: days, endsAt: end, label: `In warranty · ${formatSpan(days)} left` };
   }
-  return { state: "out_of_warranty", daysLeft: days, endsAt: end, label: `Expired ${formatSpan(-days)} ago` };
+  const daysAgo = Math.ceil(-msLeft / DAY_MS);
+  return { state: "out_of_warranty", daysLeft: -daysAgo, endsAt: end, label: `Expired ${formatSpan(daysAgo)} ago` };
 }
 
 /**
