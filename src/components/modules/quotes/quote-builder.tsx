@@ -9,10 +9,11 @@
  */
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Save, Send, Trash2 } from "lucide-react";
+import { AlertTriangle, Plus, Save, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -26,7 +27,7 @@ import {
   type SystemType,
 } from "@/lib/constants";
 import { formatINR, formatPercent } from "@/lib/money";
-import { expandPackage, lineFromProduct, quoteTotals, type CatalogProduct, type QuoteLine } from "@/lib/quote-calc";
+import { expandPackage, lineFromProduct, missingComponents, quoteTotals, type CatalogProduct, type QuoteLine } from "@/lib/quote-calc";
 import { cn } from "@/lib/utils";
 import { saveQuoteAction } from "@/server/actions/quotes";
 import type { PackageOption } from "@/server/services/catalog";
@@ -70,6 +71,9 @@ export function QuoteBuilder({ lead, customerType, catalog, defaultPackageId, fr
   });
   const [addProductId, setAddProductId] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [sendWithMissing, setSendWithMissing] = useState(false);
+  // R-24: nobody has to remember the small parts; a gap needs an explicit OK before sending.
+  const missing = useMemo(() => missingComponents(systemType, lines), [systemType, lines]);
 
   const totals = useMemo(
     () => quoteTotals(lines, { capacityKw, systemType, customerType, wantsSubsidy: lead.wantsSubsidy }),
@@ -109,6 +113,10 @@ export function QuoteBuilder({ lead, customerType, catalog, defaultPackageId, fr
       setError("Every item needs a quantity above zero.");
       return;
     }
+    if (send && missing.length > 0 && !sendWithMissing) {
+      setError("Add the missing parts, or tick “Send without” to send anyway. You can also save a draft.");
+      return;
+    }
     startTransition(async () => {
       const result = await saveQuoteAction({
         leadId: lead.id,
@@ -117,6 +125,7 @@ export function QuoteBuilder({ lead, customerType, catalog, defaultPackageId, fr
         systemType,
         notes: notes.trim() || undefined,
         send,
+        sendWithMissing: send && sendWithMissing,
         lines: lines.map((l) => ({ productId: l.productId, qty: l.qty, unitPriceRs: l.unitPricePaise / 100 })),
       });
       if (result?.ok) {
@@ -347,6 +356,18 @@ export function QuoteBuilder({ lead, customerType, catalog, defaultPackageId, fr
               {formatINR(totals.marginPaise)} · {formatPercent(totals.marginPaise, totals.taxablePaise)}
             </Badge>
           </div>
+          {missing.length > 0 ? (
+            <div role="status" className="space-y-2 rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm">
+              <p className="flex items-start gap-2 font-medium text-warning-foreground">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                Missing from this {SYSTEM_TYPE_LABELS[systemType]}: {missing.map((c) => PRODUCT_CATEGORY_LABELS[c].toLowerCase()).join(", ")}
+              </p>
+              <label className="flex items-start gap-2 text-xs text-foreground">
+                <Checkbox checked={sendWithMissing} onChange={(e) => setSendWithMissing(e.target.checked)} className="mt-0.5" />
+                Send without {missing.length === 1 ? "it" : "them"} (it is written on the timeline)
+              </label>
+            </div>
+          ) : null}
           {error ? (
             <p role="alert" className="text-sm text-danger-foreground">
               {error}
