@@ -202,7 +202,7 @@ Recharts. Primary series #0071E3, comparison series #6E6E73, gridlines #E5E5EA, 
 - **Money:** ₹ with lakh grouping (₹1,50,000; ₹12,34,567); compact on KPI cards and chart axes (₹18.6 L, ₹1.2 Cr); whole rupees in lists, paise only on invoices; negatives with a minus sign in danger text (−₹6,400).
 - **Dates and times:** DD MMM YYYY (31 Oct 2026); with a time, "31 Oct 2026, 10:30 AM"; recent activity as relative time ("2 h ago") with the full date on hover; IST everywhere.
 - **Units:** a space before units ("3 kW", "545 Wp", "12 m"); none before % or ° ("15%", "18°").
-- **Phone numbers:** "+91 98480 12345". **Document numbers** exactly as issued: SP-Q-2026-0142.
+- **Phone numbers:** "+91 98480 12345". **Document numbers** exactly as issued: SP-Q-0142.
 - **Voice:** plain, polite Indian English; speak to the user as "you"; no jargon on public pages ("solar panels", not "PV modules"); never blame the user.
 
 ## 11. Accessibility
@@ -214,7 +214,7 @@ Target: **WCAG 2.2 AA**.
 - **Touch targets:** at least **44 × 44 px on technician mobile screens** (and every touch layout), with 8 px between adjacent targets.
 - **Forms:** every input has a visible label; errors are linked with `aria-describedby`; the first invalid field takes focus on submit.
 - **Keyboard:** everything is reachable in a logical order; ⌘K or Ctrl+K opens search; Esc closes dialogs; focus is trapped inside dialogs and returned on close.
-- **Screen readers:** landmarks and a unique title on every page; `lang="en-IN"`; `aria-live` for toasts and scan results; alt text on photos ("Roof photo 2 of 3, job SP-J-2026-0087").
+- **Screen readers:** landmarks and a unique title on every page; `lang="en-IN"`; `aria-live` for toasts and scan results; alt text on photos ("Roof photo 2 of 3, job SP-J-0087").
 - **Motion:** honour `prefers-reduced-motion` (section 8).
 
 ### Contrast check (measured)

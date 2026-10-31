@@ -137,7 +137,7 @@ Demo logins (password **`SunPower@2026`** for all):
 | Warehouse | `warehouse@sunpower.demo` | Dispatch |
 | Support | `support@sunpower.demo` | Service tickets |
 
-> Phase 0 seeds staff accounts only. Catalog, customers, orders, serials and tickets are added as each module ships (see `Plan.md`).
+> The seed currently creates the staff accounts and the catalog (30 products, 10 packages and opening stock). It never deletes data and is safe to re-run. The full demo history (customers, orders, serials, tickets) arrives with the Phase 3 seed (see `Plan.md`).
 
 ---
 
@@ -159,6 +159,15 @@ npm test            # Vitest
 npm run build       # production build
 ```
 
+### Flow smoke checks (real database)
+
+```bash
+npx tsx scripts/check-lead-flow.ts SP-L-0123   # enquiry → qualified → survey → approval gate (10 checks)
+npx tsx scripts/check-sale-flow.ts SP-L-0123   # quote → order → payment → pick list + installation job (15 checks)
+```
+
+These move the given lead through the pipeline, so use a fresh enquiry (submit `/enquiry` first) on a development database.
+
 ---
 
 ## 8. Deploy (Vercel + Namecheap)
@@ -169,6 +178,9 @@ Production: **https://www.sunpowersolutions.me** (Namecheap domain; the apex red
 2. On <https://vercel.com>: **Add New → Project** → import `hanvithSai/sunpower`. Vercel detects Next.js automatically.
 3. **Environment Variables:** add `MONGODB_URI`, `AUTH_SECRET` (use a *different* secret from local), `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST`, then **Deploy**.
 4. Make sure Atlas **Network Access** includes `0.0.0.0/0`.
+   - Paste env values without quotes or spaces, and never leave Atlas's `<db_password>` placeholder in the string.
+   - Env changes only reach **new** deployments: after editing, go to **Deployments → ⋯ → Redeploy**.
+   - Verify: `https://www.sunpowersolutions.me/api/v1/health` must show `"db":"up"` and the expected `version` (Git commit).
 5. **Custom domain:** Vercel → Project → Settings → **Domains** → add `yourdomain.tld` and `www.yourdomain.tld`. Then in Namecheap → Domain List → **Manage → Advanced DNS** add:
    - `A` record, host `@`, value `76.76.21.21`
    - `CNAME` record, host `www`, value `cname.vercel-dns.com`
@@ -208,3 +220,5 @@ git push -u origin feat/<area>-<short-name> # open a PR, the other developer rev
 | `db:local` is slow the first time | It is downloading MongoDB (~780 MB) once. Atlas avoids this |
 | Type errors about `PageProps`/`LayoutProps` | Run `npx next typegen` (or `npm run dev` once) to generate route types |
 | Live site shows Vercel `NOT_FOUND` | Vercel has no build of the app: connect the Git repo, set Framework Preset to Next.js, add the env vars and redeploy (Human_Tasks #6) |
+| Sign-in shows "We couldn't sign you in right now" | The app can't reach MongoDB in that environment. Open `/api/v1/health` (it will say `"db":"down"`), then Vercel → **Logs** → search `login failed`: `bad auth` means wrong credentials in `MONGODB_URI`; a 30 s timeout means Atlas Network Access. Fix the variable, then redeploy |
+| Pages feel slow from India | Vercel functions default to Washington DC (`iad1`). Set Project → Settings → Functions → Region to Mumbai (`bom1`), near the Atlas cluster |

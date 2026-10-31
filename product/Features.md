@@ -11,10 +11,28 @@ Each feature lists its purpose, screens, key fields, actions, validations, autom
 ## Conventions
 
 - **Roles:** `admin` (director), `sales`, `technician`, `warehouse`, `support`. The public needs no login.
-- **Document numbers:** from atomic counters. SP-L lead (also the project number), SP-S survey, SP-Q quote, SP-O order, SP-G goods received note (GRN), SP-J job, SP-T ticket, SP-INV invoice (per financial year, for example SP-INV-2627-0001).
+- **Document numbers:** from atomic counters. SP-L lead, SP-SV survey, SP-Q quote, SP-O order, SP-PAY payment, SP-GRN goods received note, SP-J job, SP-T ticket (four-digit sequences, e.g. SP-L-0231); GST invoices restart every financial year (INV/26-27/0001).
 - **Money:** integer paise in the database; ₹ with lakh grouping in the UI (₹1,50,000).
 - **Time:** stored in UTC, shown in IST as DD MMM YYYY.
 - **Validation:** one Zod schema per form, run in the browser and again on the server. Enum values below mirror the Zod enums in `src/lib/schemas`.
+
+## Delivery status (31 Oct 2026)
+
+Live at https://www.sunpowersolutions.me. Where this spec and the code differ, `src/lib/constants.ts` and `src/lib/workflows.ts` are the source of truth; specs for features not built yet are reconciled with the code as each one ships.
+
+| Feature | Status | Notes |
+|---|---|---|
+| F01 Sign-in and roles | ✅ Shipped | Auth.js v5; role landing pages; proxy + per-page + per-action checks |
+| F02 App shell and ⌘K | ✅ Shipped | ⌘K page navigation and quick actions work; record search arrives with F13 |
+| F03 Public enquiry form | ✅ Shipped | `/enquiry` + `POST /api/v1/enquiries`; rate limit, honeypot, dedupe |
+| F04 Lead pipeline | ✅ Shipped | Board and table, SLA badges, auto-assignment, timeline |
+| F05 Qualification checklist | ✅ Shipped | Live "fits about N kW" hint (≈100 sq ft per kW) |
+| F06 Site survey | ✅ Shipped | Mobile form, compass picker, camera uploads to GridFS; approve / re-survey / not feasible |
+| F07 Catalog and packages | 🟨 Partly | Seeded catalog (30 products, 10 packages) shown read-only; create/edit UI pending |
+| F08 Quote builder | ✅ Shipped | Package → full BOM, live GST/subsidy/margin, server re-pricing, print + WhatsApp |
+| F09 Orders and payments | ✅ Shipped | First payment confirms the order → pick list + installation job (least-loaded crew) |
+| F19 Activity timeline | 🟨 Partly | Timelines on leads, quotes and orders; customer-wide timeline with F13 |
+| F10–F18, F20–F23 | 🗓️ Planned | Phases 2–4 in Plan.md |
 
 ## Route access
 
@@ -77,11 +95,11 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 
 - **Purpose:** one place for every lead from every channel, with nobody left waiting.
 - **Screens:** `/leads` (kanban and table), `/leads/[id]` (customer, qualification, survey, quotes, timeline).
-- **Key fields:** lead number (SP-L-2026-0231), customer, source (`web`, `whatsapp`, `call`, `walk_in`, `referral`), status, owner, requested kW, system type, subsidy interest, created at, first contacted at, close reason.
-- **Statuses:** `new` → `contacted` → `qualified` → `survey` → `quoted` → `won`; `rejected` (before a quote) and `lost` (after a quote) close the lead; admin can reopen.
+- **Key fields:** lead number (SP-L-0231), customer, source (`website`, `whatsapp`, `phone`, `walk_in`, `referral`, `other`), status, owner, requested kW, system type, subsidy interest, created at, first contacted at, close reason.
+- **Statuses:** `new` → `contacted` → `qualified` → `survey_scheduled` → `survey_completed` → `survey_approved` → `quoted` → `won`; `lost` (with a reason) closes the lead at any stage; sales can reopen a lost lead.
 - **Actions:** add a lead (source required), assign owner, Call (`tel:`), WhatsApp (`wa.me/91XXXXXXXXXX?text=…`), log a call or note, change status, reject or mark lost.
 - **Validations:** state-machine transitions only, enforced on the server; reason required to close; no delete.
-- **Automations:** Call and WhatsApp open a quick log, and "Reached" sets first contacted at and moves New to Contacted; SLA badge amber at 1 h and red at 2 h, red leads first (BR-11); pipeline refreshes every 30 s; Won is set when an order is created; event `lead_status_changed`.
+- **Automations:** Call and WhatsApp are one-tap deep links (the WhatsApp message is prefilled), and "Mark contacted" stamps first contacted at and moves New to Contacted; a repeat enquiry from the same phone within 30 days attaches to the open lead; website leads are auto-assigned to the salesperson with the fewest open leads; SLA badge amber at 1 h and red at 2 h, red leads first (BR-11); the pipeline refreshes after every action; Won is set when an order is created; event `lead_status_changed`.
 - **Access:** admin and sales full; support view.
 
 ### F05 Qualification checklist (P0)
@@ -120,7 +138,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 
 - **Purpose:** a complete, correctly taxed quote from a template in about a minute.
 - **Screens:** `/quotes` (number, customer, kW, total, status, version, valid until), `/quotes/new?leadId=…` (builder), `/quotes/[id]` (detail, versions, print view).
-- **Key fields:** quote number (SP-Q-2026-0142) and version, lead, customer type, package, lines (product, description, HSN/SAC, quantity, unit price, GST %, taxable value, CGST, SGST, total), discount, subtotal, GST, grand total, subsidy eligibility, expected subsidy, effective cost, estimated margin (never printed), valid until, terms.
+- **Key fields:** quote number (SP-Q-0142) and version, lead, customer type, package, lines (product, description, HSN/SAC, quantity, unit price, GST %, taxable value, CGST, SGST, total), discount, subtotal, GST, grand total, subsidy eligibility, expected subsidy, effective cost, estimated margin (never printed), valid until, terms.
 - **Statuses:** `draft` → `sent` → `accepted`, `declined` or `expired`; older versions become `superseded`.
 - **Actions:** choose a package (fills the BOM and installation line), edit lines, save, print or save as PDF, mark sent, share through `wa.me`, create a new version, accept, decline with a reason.
 - **Validations:** survey gate (BR-01: button disabled with the reason; server error `SURVEY_NOT_APPROVED`); at least one line; quantity > 0; price ≥ 0; discount ≤ subtotal; warning when a system quote lacks panels, inverter, structure or earthing; sent quotes are read-only.
@@ -131,7 +149,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 
 - **Purpose:** one acceptance and one payment start the warehouse and the crew, with no phone calls.
 - **Screens:** `/orders` (number, customer, kW, total, paid, balance, stage), `/orders/[id]` (summary, payments, pick list, job, invoices, subsidy, costing, timeline).
-- **Key fields:** order number (SP-O-2026-0099), accepted quote version, customer, locked lines, total, paid, balance, stage. Payment: type (`advance`, `balance`, `full`), mode (`upi`, `neft`, `cash`, `cheque`; `neft` covers NEFT, RTGS and IMPS), amount, date, reference (UTR or cheque number), received by.
+- **Key fields:** order number (SP-O-0099), accepted quote version, customer, locked lines, total, paid, balance, stage. Payment: type (`advance`, `balance`, `full`), mode (`upi`, `bank_transfer` (NEFT, RTGS, IMPS), `cash`, `cheque`, `card`), amount, date, reference (UTR or cheque number), received by.
 - **Statuses:** `pending_payment` → `confirmed` → `dispatched` → `delivered` → `installing` → `commissioned`; `cancelled` (admin, before dispatch, with a reason).
 - **Actions:** accept a quote (creates the order), record a payment, print a receipt, issue an invoice (F14), cancel.
 - **Validations:** BR-08 (amount > 0 and ≤ balance; date not in the future; reference except for cash); type `full` only when it clears the balance.
@@ -142,7 +160,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 
 - **Purpose:** know what is in stock and where every serialized unit is.
 - **Screens:** `/inventory` (stock by product), `/inventory/serials` (serial register), `/inventory/purchases` (GRN list and new GRN).
-- **Key fields:** stock move (product, quantity ±, type: GRN, dispatch, return, adjustment; reference; reason). Serial unit (serial number, product, status `in_stock`, `dispatched`, `installed`, `replaced`, `rma`; GRN; order; customer; warranty). GRN (SP-G-2026-0045, supplier, supplier invoice number, date, lines with quantity, unit cost and serials).
+- **Key fields:** stock move (product, quantity ±, type: GRN, dispatch, return, adjustment; reference; reason). Serial unit (serial number, product, status `in_stock`, `dispatched`, `installed`, `replaced`, `rma`; GRN; order; customer; warranty). GRN (SP-GRN-0045, supplier, supplier invoice number, date, lines with quantity, unit cost and serials).
 - **Actions:** receive goods, enter serials (scan, type or paste a list), adjust stock (admin, with a reason), view a serial's history.
 - **Validations:** a serialized GRN line needs exactly one unique serial per unit; a serial is unique per product across the system; quantity > 0; unit cost ≥ 0; stock never negative (BR-13).
 - **Automations:** a GRN posts stock moves and creates serial units In stock; available = on hand − reserved on open pick lists; low-stock badge at or below the reorder level; event `grn_received`.
@@ -162,7 +180,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 
 - **Purpose:** schedule the crew and capture proof of every installation from the roof.
 - **Screens:** `/jobs` (week calendar by technician with a "To schedule" lane; list view), `/jobs/[id]` (detail, mobile completion form, certificate print view), `/my-work`.
-- **Key fields:** job number (SP-J-2026-0087), order, customer, address with a map link, date, lead technician, helpers, status, started at, finished at, confirmed kW, generation test passed, kit check (all items received, or which were missing), photos, signature image and signer name, installed serials, extras (extra cable in m, extra hours, other cost in ₹ with a note), time logs.
+- **Key fields:** job number (SP-J-0087), order, customer, address with a map link, date, lead technician, helpers, status, started at, finished at, confirmed kW, generation test passed, kit check (all items received, or which were missing), photos, signature image and signer name, installed serials, extras (extra cable in m, extra hours, other cost in ₹ with a note), time logs.
 - **Statuses:** `to_schedule` → `scheduled` → `in_progress` → `completed`; `cancelled`.
 - **Actions:** schedule or reassign (admin, sales), Start and Complete (technician), print the certificate.
 - **Validations:** date today or later; warning when a technician is double-booked; Start only after the order is Delivered; finish after start; confirmed kW 0.5–10 with a reason if it differs from the order; at least 1 photo; signature not empty; generation test ticked (BR-14).
@@ -173,7 +191,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 
 - **Purpose:** find the customer and serial in seconds, apply the warranty rules, and track every complaint until the customer confirms the fix.
 - **Screens:** ⌘K palette (all staff), `/service` (tickets by status, with age), `/service/new` (prefilled from a search result), `/service/[id]` (ticket, warranty card, parts, billing, timeline).
-- **Key fields:** ticket number (SP-T-2026-0310), customer, order, serial (optional), category (`inverter_fault`, `no_generation`, `low_generation`, `battery`, `wiring_earthing`, `panel_damage`, `net_meter`, `other`), fault code and description, priority (low, normal, high), technician, warranty state (`in_warranty`, `out_of_warranty`, `not_applicable`; set at creation), parts used, labour hours, resolution type (`repair`, `replacement`, `remote_fix`, `no_fault_found`), billable, override reason, customer confirmation (who, channel, when), invoice.
+- **Key fields:** ticket number (SP-T-0310), customer, order, serial (optional), category (`inverter_fault`, `no_generation`, `low_generation`, `battery`, `wiring_earthing`, `panel_damage`, `net_meter`, `other`), fault code and description, priority (low, normal, high), technician, warranty state (`in_warranty`, `out_of_warranty`, `not_applicable`; set at creation), parts used, labour hours, resolution type (`repair`, `replacement`, `remote_fix`, `no_fault_found`), billable, override reason, customer confirmation (who, channel, when), invoice.
 - **Search:** mobile (full or last 4+ digits), name (partial, any case), serial (full or last 4+ characters) and document numbers; results grouped as Customers, Serials, Leads, Quotes, Orders, Tickets and Invoices; under 1 s.
 - **Statuses:** `open` → `assigned` → `in_progress` → `resolved` → `customer_confirmed` → `closed`; "Not fixed" returns a Resolved ticket to In progress.
 - **Actions:** create a ticket from a result, assign, start, add parts and hours, replace a serial, resolve, record the customer's confirmation, close.

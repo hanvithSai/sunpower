@@ -132,6 +132,21 @@ Index: `{ entityType: 1, entityId: 1, createdAt: -1 }`.
 ### media.files / media.chunks (GridFS) + media_uploads
 Photos, short videos and survey media. Files are stored in 255 KiB chunks. Browsers upload pieces of ~4 MB each (under Vercel's 4.5 MB request limit) that are assembled into standard GridFS documents. `media_uploads` tracks in-progress chunked uploads. Limits: images ≤ 10 MB (compressed client-side to ~1600 px), videos ≤ 50 MB.
 
+## Behaviour notes (implemented)
+
+- **Lead dedupe:** an enquiry from a phone that already has an open lead (not won/lost) created in the last 30 days is attached to that lead as an activity, never duplicated.
+- **Auto-assignment:** website leads go to the active salesperson with the fewest open leads; leads entered by a salesperson stay with them.
+- **Customer DISCOM:** set from the city on creation (TSNPDCL for north Telangana: Warangal, Karimnagar, Nizamabad, Khammam…; TSSPDCL otherwise).
+- **Survey photos:** a submission is rejected unless every photo id exists in `media.files`, so half-uploaded files never land on record.
+- **Quotes:** lines snapshot product name, SKU, cost, GST, HSN and warranty at save. The server re-reads products (only quantity and unit price come from the client) and recomputes totals with `src/lib/quote-calc.ts`.
+- **Acceptance:** creates the order (`pending_payment`) with a subsidy tracker (`not_applied` when eligible), wins the lead, and marks the lead's other open quotes `rejected` ("Superseded by …"). Expired quotes cannot be accepted.
+- **First payment:** confirms the order, builds `pickList` from every non-service line, and creates the installation job (09:30 IST, four days out) with the three least-loaded installers.
+- **Cancellation:** only before dispatch and before any payment; releases allocated serials and cancels the scheduled job.
+
+## Data in Atlas today (31 Oct)
+
+20 staff accounts · 30 products · 10 packages · 12 opening-stock ledger entries · demo chain SP-L-0001 → SP-SV-0001 (approved) → SP-Q-0001 (accepted) → SP-O-0001 (confirmed, fully paid) → SP-J-0001 (scheduled) · 1 survey photo in GridFS. The full demo history arrives with the Phase 3 seed.
+
 ## Capacity notes
 - Expected volume: about 40 orders/month → about 500 orders, 6,000 serial units and 1,000 tickets per year. That is a small fraction of Atlas M0's 512 MB, except for media. Images are compressed before upload and videos are capped to protect storage.
 - Upgrade path: Atlas M10+ (more storage and backups) or moving media to object storage without touching the API (only `services/core/files.ts` changes).

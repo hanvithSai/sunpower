@@ -209,7 +209,7 @@ Scenes: S1 The rooftop inquiry · S2 Getting the kit right · S3 Dispatch day an
 - S5: the same neighbour waited a week to learn whether his inverter was under warranty.
 
 **His journey with SunPower**
-- Day 1, 11:00 AM: fills in `/enquiry` on his phone (3 kW, subsidy yes) and gets reference SP-L-2026-0231. At 11:40 AM Priya calls and qualifies the roof.
+- Day 1, 11:00 AM: fills in `/enquiry` on his phone (3 kW, subsidy yes) and gets reference SP-L-0231. At 11:40 AM Priya calls and qualifies the roof.
 - Day 4: Ravi surveys the roof.
 - Day 5: an itemised quote on WhatsApp: ₹1,75,200 including GST, expected subsidy ₹78,000, effective cost ₹97,200 (illustrative). He pays a ₹50,000 advance by UPI.
 - Day 9: the kit is delivered and installed; he signs on the technician's phone and receives the installation certificate.

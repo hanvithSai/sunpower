@@ -13,6 +13,17 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
         → Delivery (warranty starts) → Installation (photos + signature) → Service tickets → Month-end P&L
 ```
 
+## Current status (31 Oct 2026)
+
+| Area | Status |
+|---|---|
+| Production | ✅ Live at [www.sunpowersolutions.me](https://www.sunpowersolutions.me); [health](https://www.sunpowersolutions.me/api/v1/health) shows the database up |
+| Phase 0: foundation (auth, data model, design system, CI/CD) | ✅ Done |
+| Phase 1: leads → surveys → quotes → orders & payments | ✅ Done, verified end to end on Atlas |
+| Phase 2: inventory & serials, dispatch scanning, delivery → warranties, installation jobs | ⏳ Next |
+| Phase 3: service desk, invoices, director dashboard, full demo seed | 🗓️ Planned |
+| Phase 4–5: tests, analytics, polish, demo | 🗓️ Planned |
+
 ## Highlights
 
 - **Enquiries never vanish:** web, WhatsApp, call and walk-in leads land in one pipeline with a 2-hour response SLA.
@@ -32,13 +43,15 @@ Next.js 16 (App Router, Cache Components) · TypeScript · MongoDB Atlas + Mongo
 git clone https://github.com/hanvithSai/sunpower.git && cd sunpower
 npm install
 cp .env.example .env.local      # set MONGODB_URI and AUTH_SECRET
-npm run seed -- --yes           # staff accounts (+ demo data as modules ship)
+npm run seed -- --yes           # staff accounts + catalog (30 products, 10 packages)
 npm run dev                     # http://localhost:3000
 ```
 
 The full Windows and macOS guide is in [Setup.md](Setup.md). No Atlas yet? Run `npm run db:local` for an in-memory MongoDB.
 
 Demo logins (password `SunPower@2026`): `director@`, `sales@`, `tech@`, `warehouse@`, `support@` with the domain `sunpower.demo`.
+
+Flow smoke checks against a real database: `npx tsx scripts/check-lead-flow.ts <lead-number>` and `npx tsx scripts/check-sale-flow.ts <lead-number>` (see [Setup.md](Setup.md#flow-smoke-checks-real-database)).
 
 ## Documentation
 
