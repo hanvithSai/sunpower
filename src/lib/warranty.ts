@@ -40,6 +40,20 @@ export function getWarrantyInfo(
   return { state: "out_of_warranty", daysLeft: days, endsAt: end, label: `Expired ${formatSpan(-days)} ago` };
 }
 
+/**
+ * Workmanship warranty (BR-04): faults with no serial — wiring, earthing,
+ * structure, leaks — are covered for the months sold with the installation
+ * service line, counted from commissioning. Nothing before commissioning.
+ */
+export function workmanshipEnd(order: {
+  lines: { category: string; warrantyMonths: number }[];
+  commissionedAt?: Date | null;
+}): Date | undefined {
+  if (!order.commissionedAt) return undefined;
+  const months = Math.max(0, ...order.lines.filter((l) => l.category === "service").map((l) => l.warrantyMonths));
+  return months > 0 ? addMonths(order.commissionedAt, months) : undefined;
+}
+
 /** 500 -> "1 yr 4 mo", 20 -> "20 days". */
 export function formatSpan(days: number): string {
   if (days < 45) return `${days} day${days === 1 ? "" : "s"}`;

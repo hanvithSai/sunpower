@@ -15,10 +15,9 @@
 import { PRODUCT_CATEGORY_LABELS, type ProductCategory } from "@/lib/constants";
 import { maskName } from "@/lib/format";
 import type { WarrantyLookupInput } from "@/lib/validation/warranty";
-import { getWarrantyInfo } from "@/lib/warranty";
+import { getWarrantyInfo, workmanshipEnd } from "@/lib/warranty";
 import { connectDB } from "../db";
 import { Customer, Order, SerialUnit } from "../models";
-import { workmanshipEnd } from "./tickets";
 
 const AT_CUSTOMER = ["dispatched", "installed", "replaced"] as const;
 

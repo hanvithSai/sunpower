@@ -34,12 +34,12 @@ import { escapeRegex, formatDate, formatDateTime, fromISTInput, normalizePhone }
 import { formatINR } from "@/lib/money";
 import type { AssignTicketInput, BillingOverrideInput, ConfirmTicketInput, CreateTicketInput, ResolveTicketInput } from "@/lib/validation/service";
 import { normalizeSerial } from "@/lib/validation/inventory";
-import { addMonths, getWarrantyInfo } from "@/lib/warranty";
+import { addMonths, getWarrantyInfo, workmanshipEnd } from "@/lib/warranty";
 import { TICKET_FLOW } from "@/lib/workflows";
 import { connectDB, withTransaction } from "../db";
 import { AppError, assertTransition, notFoundError } from "../errors";
 import { actorRef, toObjectId, type Actor } from "../lib/actor";
-import { Customer, Invoice, Job, Order, Product, SerialUnit, Ticket, User, type IOrder, type ITicket, type ITicketPart } from "../models";
+import { Customer, Invoice, Job, Order, Product, SerialUnit, Ticket, User, type ITicket, type ITicketPart } from "../models";
 import { logActivity } from "./core/activity";
 import { nextNumber } from "./core/counters";
 import { issueInvoice, type InvoiceLineInput } from "./core/invoicing";
@@ -59,13 +59,6 @@ export type WarrantyDecision = {
   basis: WarrantyBasis;
   endsAt?: Date;
 };
-
-/** Workmanship warranty sold with the installation service line, counted from commissioning. */
-export function workmanshipEnd(order: Pick<IOrder, "lines" | "commissionedAt">): Date | undefined {
-  if (!order.commissionedAt) return undefined;
-  const months = Math.max(0, ...order.lines.filter((l) => l.category === "service").map((l) => l.warrantyMonths));
-  return months > 0 ? addMonths(order.commissionedAt, months) : undefined;
-}
 
 /** BR-04: decide coverage from the serial, or from the latest installation's workmanship warranty. */
 export async function decideWarranty(input: { serial?: string; customerId?: string }, now: Date): Promise<WarrantyDecision> {
