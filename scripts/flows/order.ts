@@ -151,22 +151,27 @@ export async function topUpStock(orderId: string) {
   }
 }
 
-/** Confirmed → packed → dispatched → delivered → installed and commissioned, by the booked crew. */
-export async function makeCommissionedOrder(opts: { kw?: number; systemType?: SystemType; name?: string } = {}) {
-  const made = await makeConfirmedOrder(opts);
+/** Confirmed → packed (every serial scanned, bulk lines ticked) → dispatched → delivered. */
+export async function packAndDeliver(orderId: string, receivedBy: string) {
   const warehouse = await staff("warehouse@sunpower.demo");
-  await topUpStock(made.orderId);
-  const detail = (await getDispatchDetail(made.orderId))!;
+  await topUpStock(orderId);
+  const detail = (await getDispatchDetail(orderId))!;
   for (const line of detail.lines) {
     if (line.isSerialized) {
       const units = await SerialUnit.find({ productId: line.productId, status: "in_stock" }).sort({ serial: 1 }).limit(line.qty).lean();
-      for (const u of units) await scanSerial(made.orderId, u.serial, warehouse);
+      for (const u of units) await scanSerial(orderId, u.serial, warehouse);
     } else {
-      await setBulkPicked(made.orderId, line.productId, true, warehouse);
+      await setBulkPicked(orderId, line.productId, true, warehouse);
     }
   }
-  await dispatchOrder({ orderId: made.orderId, vehicleNo: "TS09EA1234", driverName: "Raju", driverPhone: undefined }, warehouse);
-  await deliverOrder({ orderId: made.orderId, receivedBy: opts.name ?? "Flow Check Customer", note: undefined }, warehouse);
+  await dispatchOrder({ orderId, vehicleNo: "TS09EA1234", driverName: "Raju", driverPhone: undefined }, warehouse);
+  await deliverOrder({ orderId, receivedBy, note: undefined }, warehouse);
+}
+
+/** Confirmed → packed → dispatched → delivered → installed and commissioned, by the booked crew. */
+export async function makeCommissionedOrder(opts: { kw?: number; systemType?: SystemType; name?: string } = {}) {
+  const made = await makeConfirmedOrder(opts);
+  await packAndDeliver(made.orderId, opts.name ?? "Flow Check Customer");
 
   const job = (await Job.findOne({ orderId: made.orderId }).lean())!;
   const leadUser = (await User.findById(job.technicianIds[0]).lean())!;
