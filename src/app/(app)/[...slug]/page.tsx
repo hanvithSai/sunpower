@@ -21,17 +21,9 @@ const UPCOMING: Record<string, { phase: string; summary: string }> = {
     phase: "Phase 3",
     summary: "Today / week / month KPIs, profit per job, open repairs and unfinished work, with read-only share links.",
   },
-  "/my-work": {
-    phase: "Phase 2",
-    summary: "Today's surveys and installations for the signed-in technician, with navigation and one-tap calling.",
-  },
   "/customers": {
     phase: "Phase 3",
     summary: "Customer 360: installed systems, every serial number with its warranty status, tickets and invoices.",
-  },
-  "/jobs": {
-    phase: "Phase 2",
-    summary: "Crew schedule and on-roof completion with photos and the customer's on-screen signature.",
   },
   "/service": {
     phase: "Phase 3",
