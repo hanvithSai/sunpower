@@ -7,6 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarClock, MessageCircle, Phone, Users } from "lucide-react";
 import { SubsidyAdvanceDialog } from "@/components/modules/finance/subsidy-advance-dialog";
+import { SubsidyDocumentDialog } from "@/components/modules/finance/subsidy-document-dialog";
 import { CancelOrderDialog } from "@/components/modules/orders/cancel-order-dialog";
 import { OrderStepper } from "@/components/modules/orders/order-stepper";
 import { RecordPaymentDialog } from "@/components/modules/orders/record-payment-dialog";
@@ -19,9 +20,10 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { Timeline } from "@/components/shared/timeline";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PAYMENT_MODE_LABELS, PAYMENT_TYPE_LABELS, statusMeta } from "@/lib/constants";
+import { PAYMENT_MODE_LABELS, PAYMENT_TYPE_LABELS, SUBSIDY_DOC_LABELS, statusMeta, type SubsidyDocKind, type SubsidyStatus } from "@/lib/constants";
 import { formatDate, formatDateTime, formatPhone, telLink, toDateInputValue, waLink } from "@/lib/format";
 import { formatINR } from "@/lib/money";
+import { feasibilityPending } from "@/lib/subsidy";
 import { cn } from "@/lib/utils";
 import { SUBSIDY_STEPS } from "@/lib/workflows";
 import { requireUser } from "@/server/auth/session";
@@ -30,6 +32,18 @@ import { costOrder } from "@/server/services/costing";
 import { getOrderDetail } from "@/server/services/orders";
 
 export const metadata: Metadata = { title: "Order" };
+
+/** The paper that usually arrives next, preselected in "Add paper". */
+const NEXT_PAPER: Record<SubsidyStatus, SubsidyDocKind> = {
+  not_applicable: "other",
+  not_applied: "application",
+  applied: "feasibility_letter",
+  feasibility_approved: "net_meter_photo",
+  net_meter_installed: "inspection_report",
+  inspected: "disbursement_proof",
+  disbursed: "other",
+  rejected: "application",
+};
 
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser(["sales", "warehouse", "support"]);
@@ -294,6 +308,38 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               </ol>
               {order.subsidy.status === "disbursed" ? <p className="mt-2 text-xs text-success-foreground">{formatINR(order.subsidy.disbursedPaise)} credited to the customer</p> : null}
               {order.subsidy.status === "rejected" ? <p className="mt-2 text-xs text-danger-foreground">Rejected — reapply after fixing the documents</p> : null}
+              {feasibilityPending(order.subsidy) && job && job.status === "scheduled" ? (
+                <p className="mt-3 rounded-lg bg-warning/12 px-3 py-2 text-xs text-warning-foreground">
+                  Installation is booked for {formatDate(job.scheduledFor)} but the DISCOM hasn&apos;t approved feasibility. Installing first can cost the customer the subsidy.
+                </p>
+              ) : null}
+              <div className="mt-4 border-t border-border pt-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Papers on file</p>
+                  {seesMoney && order.status !== "cancelled" ? <SubsidyDocumentDialog orderId={order.id} suggested={NEXT_PAPER[order.subsidy.status]} /> : null}
+                </div>
+                {order.subsidy.documents.length === 0 ? (
+                  <p className="mt-1 text-xs text-muted-foreground">None yet. Photograph each letter as it arrives.</p>
+                ) : (
+                  <ul className="mt-2 space-y-2">
+                    {order.subsidy.documents.map((d) => (
+                      <li key={d.fileId} className="flex items-center gap-3 text-sm">
+                        <a href={`/api/v1/files/${d.fileId}`} target="_blank" rel="noreferrer" className="shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- session-protected GridFS photo */}
+                          <img src={`/api/v1/files/${d.fileId}`} alt={SUBSIDY_DOC_LABELS[d.kind]} className="size-10 rounded-md border border-border object-cover" />
+                        </a>
+                        <div className="min-w-0">
+                          <p className="truncate">{SUBSIDY_DOC_LABELS[d.kind]}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {formatDate(d.at)} · {d.by}
+                            {d.note ? ` · ${d.note}` : ""}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </Section>
           ) : null}
 

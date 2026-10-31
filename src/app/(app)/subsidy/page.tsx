@@ -50,6 +50,7 @@ export default async function SubsidyPage() {
                       </p>
                       <p className="mt-1 text-xs tabular-nums">{status === "disbursed" ? `${formatINR(c.disbursedPaise)} credited` : `${formatINR(c.expectedPaise)} expected`}</p>
                       {c.applicationNo ? <p className="truncate font-mono text-[11px] text-muted-foreground">{c.applicationNo}</p> : null}
+                      <p className="text-[11px] text-muted-foreground">{c.documents ? `${c.documents} paper${c.documents === 1 ? "" : "s"} on file` : "No papers on file"}</p>
                       {c.since ? <p className="text-[11px] text-muted-foreground">since {formatRelative(c.since, now)}</p> : null}
                       {canEdit ? (
                         <div className="mt-2">
