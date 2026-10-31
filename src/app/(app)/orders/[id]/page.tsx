@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarClock, MessageCircle, Phone, Users } from "lucide-react";
+import { SubsidyAdvanceDialog } from "@/components/modules/finance/subsidy-advance-dialog";
 import { CancelOrderDialog } from "@/components/modules/orders/cancel-order-dialog";
 import { OrderStepper } from "@/components/modules/orders/order-stepper";
 import { RecordPaymentDialog } from "@/components/modules/orders/record-payment-dialog";
@@ -18,11 +19,14 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { Timeline } from "@/components/shared/timeline";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PAYMENT_MODE_LABELS, PAYMENT_TYPE_LABELS } from "@/lib/constants";
+import { PAYMENT_MODE_LABELS, PAYMENT_TYPE_LABELS, statusMeta } from "@/lib/constants";
 import { formatDate, formatDateTime, formatPhone, telLink, toDateInputValue, waLink } from "@/lib/format";
 import { formatINR } from "@/lib/money";
+import { cn } from "@/lib/utils";
+import { SUBSIDY_STEPS } from "@/lib/workflows";
 import { requireUser } from "@/server/auth/session";
 import { listActivity } from "@/server/services/core/activity";
+import { costOrder } from "@/server/services/costing";
 import { getOrderDetail } from "@/server/services/orders";
 
 export const metadata: Metadata = { title: "Order" };
@@ -34,7 +38,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const detail = await getOrderDetail(id);
   if (!detail) notFound();
   const { order, customer, lead, quote, job, invoice, payments } = detail;
-  const activity = await listActivity("order", order.id);
+  const seesMoney = user.role === "admin" || user.role === "sales";
+  const [activity, costing] = await Promise.all([listActivity("order", order.id), seesMoney ? costOrder(order.id) : Promise.resolve(null)]);
 
   const canTakePayment = (user.role === "sales" || user.role === "admin") && order.status !== "cancelled" && order.outstandingPaise > 0;
   const canCancel = user.role === "admin" && (order.status === "pending_payment" || order.status === "confirmed") && order.paidPaise === 0;
@@ -94,6 +99,44 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          {costing ? (
+            <Section
+              title="Job costing"
+              description={costing.estimated ? "Material is the quote estimate until the kit is dispatched." : "Actual cost of every serial dispatched, crew hours and anything absorbed later."}
+            >
+              <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
+                {[
+                  { label: "Revenue (excl. GST)", value: costing.revenuePaise },
+                  { label: "Material", value: -costing.materialPaise },
+                  { label: `Labour · ${costing.labourHours} h`, value: -costing.labourPaise },
+                  { label: "Site extras", value: -costing.sitePaise },
+                  { label: "Warranty repairs", value: -costing.warrantyPaise },
+                ].map((row) => (
+                  <div key={row.label}>
+                    <dt className="text-xs text-muted-foreground">{row.label}</dt>
+                    <dd className="tabular-nums">{formatINR(row.value)}</dd>
+                  </div>
+                ))}
+                <div>
+                  <dt className="text-xs text-muted-foreground">Profit</dt>
+                  <dd className={cn("font-semibold tabular-nums", costing.profitPaise < 0 ? "text-danger-foreground" : costing.marginPct < 15 ? "text-warning-foreground" : "text-success-foreground")}>
+                    {formatINR(costing.profitPaise)} · {costing.marginPct}%
+                  </dd>
+                </div>
+              </dl>
+              {order.extraCosts.length ? (
+                <ul className="mt-3 space-y-1 border-t border-border pt-3 text-xs text-muted-foreground">
+                  {order.extraCosts.map((e, i) => (
+                    <li key={i} className="flex justify-between gap-2">
+                      <span>{e.label}</span>
+                      <span className="tabular-nums">{formatINR(e.amountPaise)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </Section>
+          ) : null}
+
           <Section title="Bill of materials" contentClassName="p-0">
             <QuoteLines lines={order.lines} totals={order} />
           </Section>
@@ -217,6 +260,32 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               />
             )}
           </Section>
+
+          {order.subsidy.applicable ? (
+            <Section
+              title="PM Surya Ghar subsidy"
+              description={`${formatINR(order.subsidy.expectedPaise)} expected${order.subsidy.applicationNo ? ` · ${order.subsidy.applicationNo}` : ""}`}
+              actions={seesMoney && order.status !== "cancelled" ? <SubsidyAdvanceDialog orderId={order.id} status={order.subsidy.status} expectedPaise={order.subsidy.expectedPaise} /> : null}
+            >
+              <ol className="space-y-1.5 text-sm">
+                {SUBSIDY_STEPS.map((step) => {
+                  const reached = order.subsidy.history.find((h) => h.status === step);
+                  const current = order.subsidy.status === step;
+                  return (
+                    <li key={step} className="flex items-center justify-between gap-2">
+                      <span className={cn("flex items-center gap-2", reached || current ? "text-foreground" : "text-muted-foreground")}>
+                        <span className={cn("size-2 rounded-full", current ? "bg-primary" : reached ? "bg-success" : "bg-border")} aria-hidden="true" />
+                        {statusMeta("subsidy", step).label}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{reached ? formatDate(reached.at) : current ? "now" : ""}</span>
+                    </li>
+                  );
+                })}
+              </ol>
+              {order.subsidy.status === "disbursed" ? <p className="mt-2 text-xs text-success-foreground">{formatINR(order.subsidy.disbursedPaise)} credited to the customer</p> : null}
+              {order.subsidy.status === "rejected" ? <p className="mt-2 text-xs text-danger-foreground">Rejected — reapply after fixing the documents</p> : null}
+            </Section>
+          ) : null}
 
           <Section title="Linked records">
             <DetailList

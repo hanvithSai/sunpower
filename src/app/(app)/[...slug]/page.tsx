@@ -21,10 +21,6 @@ const UPCOMING: Record<string, { phase: string; summary: string }> = {
     phase: "Phase 3",
     summary: "Customer 360: installed systems, every serial number with its warranty status, tickets and invoices.",
   },
-  "/subsidy": {
-    phase: "Phase 3",
-    summary: "PM Surya Ghar subsidy tracker from application to disbursement.",
-  },
   "/team": {
     phase: "Phase 3",
     summary: "Technician hours, utilisation and monthly payouts.",
