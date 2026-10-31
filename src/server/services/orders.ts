@@ -99,7 +99,8 @@ export async function getOrderDetail(id: string) {
       paymentStatus: order.paymentStatus,
       status: order.status,
       pickList: order.pickList.map((p) => ({ ...p, productId: String(p.productId) })),
-      subsidy: order.subsidy,
+      // Orders saved before subsidy papers existed have no documents array (lean skips defaults).
+      subsidy: { ...order.subsidy, documents: order.subsidy.documents ?? [] },
       extraCosts: order.extraCosts,
       salesUser: order.salesUser.name,
       confirmedAt: order.confirmedAt,

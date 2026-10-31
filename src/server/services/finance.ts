@@ -177,6 +177,7 @@ export async function addSubsidyDocuments(input: AddSubsidyDocumentInput, actor:
     throw new AppError("VALIDATION", "Upload the document as a photo first.", { photos: "Photo not found" });
   }
   const now = new Date();
+  if (!order.subsidy.documents) order.subsidy.documents = []; // orders saved before papers existed
   for (const fileId of input.photos) order.subsidy.documents.push({ kind: input.kind, fileId, note: input.note, at: now, by: actor.name });
   order.markModified("subsidy");
   await order.save();
