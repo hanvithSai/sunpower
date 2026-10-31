@@ -44,7 +44,7 @@ Live at https://www.sunpowersolutions.me. Where this spec and the code differ, `
 | F20 Public warranty lookup | ✅ Shipped | `/warranty` + `POST /api/v1/warranty`: by serial, or mobile + last 4 of any serial; masked name, every unit and the workmanship warranty, call / WhatsApp buttons; 10 per IP per hour; one "No match found" for every miss |
 | F22 Certificate link (lite) | ✅ Shipped | Completing an installation creates a 90-day read-only certificate link; "Send on WhatsApp" and copy on the job page; revocable; photos load through the token, no phone shown. Full project tracking stays P2 |
 | Customer 360 | ✅ Shipped | `/customers` (search by name, city or phone digits) and `/customers/[id]`: orders with dues and workmanship cover, every serial with its warranty, tickets, invoices and payments, enquiries and quotes, timeline (R-01) |
-| F23 | 🗓️ P2 | Offline drafts. F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
+| F23 (lite) | ✅ Shipped | The job completion form saves a local draft (`localStorage`, per job, every 4 seconds): every field except the signature, including the uploaded photos, comes back after a reload, lost signal or closed tab, with "Restored what you entered at …"; the customer always signs fresh; the draft is cleared on completion. Queued offline submit and the survey form stay P2. F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
 
 ## Route access
 
@@ -300,6 +300,8 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 - **Access:** public, link holders only.
 
 ### F23 Offline-tolerant technician forms (P2)
+
+> **Shipped as a lite version (31 Oct):** a `localStorage` draft of the job completion form only (see the status table). The full behaviour below stays P2.
 
 - **Purpose:** weak rooftop signal never loses a survey or job form.
 - **Screens:** `/surveys/[id]` and `/jobs/[id]` on phones.
