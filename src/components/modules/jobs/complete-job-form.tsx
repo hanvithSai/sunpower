@@ -87,11 +87,11 @@ export function CompleteJobForm({ jobId, orderKw, customerName, startedAt, now, 
             <Input id="generationReadingKw" name="generationReadingKw" type="number" inputMode="decimal" min={0} max={15} step={0.01} />
           </FormField>
         </div>
-        {kwDiffers ? (
+        {kwDiffers && (
           <FormField label="Why is the size different?" name="kwChangeReason" required>
             <Textarea id="kwChangeReason" name="kwChangeReason" rows={2} maxLength={300} required placeholder="e.g. Roof fitted 5 panels, customer agreed" />
           </FormField>
-        ) : null}
+        )}
         <div className="grid gap-2 sm:grid-cols-2">
           {INSTALL_CHECKLIST.filter((c) => c.key !== "testing").map((c) => (
             <label key={c.key} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-border px-3 py-2 text-sm has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5">
