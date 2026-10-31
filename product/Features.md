@@ -32,7 +32,10 @@ Live at https://www.sunpowersolutions.me. Where this spec and the code differ, `
 | F08 Quote builder | ✅ Shipped | Package → full BOM, live GST/subsidy/margin, server re-pricing, print + WhatsApp |
 | F09 Orders and payments | ✅ Shipped | First payment confirms the order → pick list + installation job (least-loaded crew) |
 | F19 Activity timeline | 🟨 Partly | Timelines on leads, quotes and orders; customer-wide timeline with F13 |
-| F10–F18, F20, F22, F23 | 🗓️ Planned | Phases 2–4 in Plan.md. F16–F18 promoted to P0-lite and F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
+| F10 Inventory, serials and purchases | ✅ Shipped | Stock (on hand, reserved, available, value at GRN cost), serial register, GRN with serials by camera, typing or paste; stock adjustment UI pending |
+| F11 Dispatch and serial scanning | ✅ Shipped | Packing bench (camera + manual), wrong-product / already-packed / not-in-stock refusals, auto "Packed", dispatch gate (BR-02), sale invoice at dispatch (BR-18), delivery starts warranties (BR-03) |
+| F12 Installation jobs | ✅ Shipped | Auto-crew free that day (BR-07), My work, crew calendar, Start gate, completion with times, kW, generation test, kit check, extras, photos, signature (BR-14), time logs, certificate |
+| F13–F18, F20, F22, F23 | 🗓️ Planned | Phases 3–4 in Plan.md. F16–F18 promoted to P0-lite and F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
 
 ## Route access
 
