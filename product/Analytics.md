@@ -1,4 +1,4 @@
-# SunPower OS: Analytics Plan
+# SunPower: Analytics Plan
 
 | | |
 |---|---|
@@ -123,7 +123,7 @@ Money and cycle-time KPIs appear on the in-app dashboard (F15), computed from Mo
 | `warranty_lookup` | `by` (`serial`, `phone`), `found` (boolean) | A public warranty check is answered (the serial and phone are never sent) | Server | F20 |
 | `certificate_shared` | none | A customer certificate link is created from the job page | Server | F22 |
 | `$pageview` | Automatic (URL sanitised by `before_send`) | Every route change | Client | All |
-| `$autocapture` | Automatic, masked; `cta` when the element is a tagged call to action: `hero_get_quote`, `hero_staff_sign_in`, `nav_get_quote`, `nav_warranty`, `nav_staff_login`, `footer_call`, `footer_get_quote`, `footer_warranty`, `footer_staff_login`, `enquiry_submit`, `warranty_submit`, `warranty_call`, `warranty_whatsapp`, `certificate_whatsapp` | A click on a link or button, or a form submit | Client | F01, F20, F22 |
+| `$autocapture` | Automatic, masked; `cta` when the element is a tagged call to action: `hero_get_quote`, `hero_check_warranty`, `estimator_get_quote`, `systems_on_grid`, `systems_off_grid`, `systems_panel_set`, `band_check_warranty`, `platform_staff_sign_in`, `closing_get_quote`, `nav_get_quote`, `nav_warranty`, `nav_staff_login`, `footer_call`, `footer_get_quote`, `footer_warranty`, `footer_staff_login`, `enquiry_submit`, `warranty_submit`, `warranty_call`, `warranty_whatsapp`, `certificate_whatsapp` | A click on a link or button, or a form submit | Client | F01, F20, F22 |
 | `$rageclick`, `$dead_click` | Automatic, masked | Repeated clicks on one spot; a click that changed nothing | Client | All |
 | `$$heatmap` | Automatic (page URLs scrubbed) | Batched click and scroll positions | Client | All |
 | `$web_vitals` | Automatic: `$web_vitals_LCP_value`, `…_INP_value`, `…_CLS_value`, `…_FCP_value` (URLs scrubbed) | Page load and interaction speed, once per page | Client | All |
@@ -135,7 +135,7 @@ PostHog funnels follow one person. Steps done by different roles (for example sa
 
 | Funnel | Steps | Window | Breakdown | Question it answers |
 |---|---|---|---|---|
-| Public enquiry | `$pageview` on `/` → `$autocapture` with `cta` = `hero_get_quote` or `nav_get_quote` → `$pageview` on `/enquiry` → `$autocapture` with `cta` = `enquiry_submit` | 1 day | Device type, `cta` | Does the landing page turn visitors into enquiries, and which button brings them? |
+| Public enquiry | `$pageview` on `/` → `$autocapture` with `cta` = `hero_get_quote`, `nav_get_quote`, `estimator_get_quote`, a `systems_*` CTA or `closing_get_quote` → `$pageview` on `/enquiry` → `$autocapture` with `cta` = `enquiry_submit` | 1 day | Device type, `cta` | Does the landing page turn visitors into enquiries, and which button brings them? |
 | Warranty self-service | `$pageview` on `/warranty` → `$autocapture` with `cta` = `warranty_submit` → `$autocapture` with `cta` = `warranty_call` or `warranty_whatsapp` | 1 day | Device type | Do homeowners answer their own question, or still need to call? |
 | Quote to cash (sales) | `quote_created` → `quote_sent` → `quote_accepted` → `payment_recorded` | 30 days | `packageCode` | Where do deals stall? |
 | Dispatch (warehouse) | `$pageview` on `/dispatch/[orderId]` → `serial_scanned` → `order_dispatched` → `order_delivered` | 1 day | `method` | Does scanning slow or block dispatch? |

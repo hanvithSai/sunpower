@@ -1,4 +1,4 @@
-# SunPower OS
+# SunPower
 
 **The digital backbone for a rooftop-solar company. One platform from the first enquiry to the 20-year warranty.**
 
@@ -6,7 +6,7 @@
 
 **Live:** [www.sunpowersolutions.me](https://www.sunpowersolutions.me) · Vercel: [sunpowersolutions.vercel.app](https://sunpowersolutions.vercel.app) · Staff sign-in: [/login](https://www.sunpowersolutions.me/login)
 
-Built for **SunPower Solutions** (Telangana) at the Odoo x GCET Hackathon 2026 (Team 19). The company installs about 40 rooftop systems a month with 15 technicians. Today enquiries get lost on WhatsApp, quotes miss parts, serial numbers live on paper, and nobody knows which jobs made money. SunPower OS replaces that with one connected flow:
+Built for **SunPower Solutions** (Telangana) at the Odoo x GCET Hackathon 2026 (Team 19). The company installs about 40 rooftop systems a month with 15 technicians. Today enquiries get lost on WhatsApp, quotes miss parts, serial numbers live on paper, and nobody knows which jobs made money. SunPower replaces that with one connected flow:
 
 ```
 Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payment → Dispatch (serial scan)
@@ -25,6 +25,7 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
 | Phase 3b + verification (31 Oct, 20:30): public warranty check, customer certificate link on WhatsApp, subsidy papers, invoice/ticket CSVs, Customer 360, Panel Sets, missing-parts gate on quotes, business GSTIN, stock corrections | ✅ Done and live; Atlas re-seed for Panel Sets pending ([Human_Tasks](Human_Tasks.md) #18) |
 | Phase 4: hardening (121 unit tests, privacy-first PostHog analytics, WCAG AA contrast, 360 px fixes, job-form draft) | ✅ Done and live, analytics on |
 | Analytics and privacy (1 Nov): opt-in cookie banner, `/privacy` notice, masked click capture with named CTAs, heatmaps, rage/dead clicks, Core Web Vitals | ✅ Done locally; push pending |
+| Redesign "Energy in motion" (1 Nov): SunPower rebrand, interactive energy-flow landing page, lifecycle sidebar, dashboard pipeline ([Style_Guide](product/Style_Guide.md) v2) | 🟨 On branch `feat/energy-redesign`, in review |
 | Next: bug bash, final docs pass, demo video | 🗓️ See [Plan.md](Plan.md) |
 
 ## Highlights

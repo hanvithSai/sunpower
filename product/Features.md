@@ -1,4 +1,4 @@
-# SunPower OS: Feature Specifications
+# SunPower: Feature Specifications
 
 | | |
 |---|---|
@@ -46,6 +46,7 @@ Live at https://www.sunpowersolutions.me. Where this spec and the code differ, `
 | Customer 360 | ✅ Shipped | `/customers` (search by name, city or phone digits) and `/customers/[id]`: orders with dues and workmanship cover, every serial with its warranty, tickets, invoices and payments, enquiries and quotes, timeline (R-01) |
 | F23 (lite) | ✅ Shipped | The job completion form saves a local draft (`localStorage`, per job, every 4 seconds): every field except the signature, including the uploaded photos, comes back after a reload, lost signal or closed tab, with "Restored what you entered at …"; the customer always signs fresh; the draft is cleared on completion. Queued offline submit and the survey form stay P2. F21 cut after the 31 Oct brief audit (Plan.md section 1b) |
 | Privacy & consent | ✅ Shipped (1 Nov) | Opt-in cookie banner on every page (Accept and Reject equal, nothing pre-ticked, Global Privacy Control / Do Not Track honoured, "Cookie settings" in the footer and account menu to withdraw), `/privacy` notice under the DPDP Act 2023 (what we collect and why, cookie table, processors and locations, retention, rights, grievance contact). Analytics adds masked click capture with named CTAs, heatmaps, rage/dead clicks and Core Web Vitals (product/Analytics.md) |
+| Redesign: "Energy in motion" | 🟨 On branch `feat/energy-redesign` (1 Nov) | Rebrand to SunPower (new mark, forest-and-sunlight palette, IBM Plex Sans + Bricolage Grotesque). Landing page rebuilt around an interactive energy-flow diagram (On-Grid / Off-Grid / Hybrid × afternoon / evening / power cut), a subsidy estimator on the quote builder's rule, the eight-step journey, system guide, serial-warranty band, platform overview and FAQ. App shell: forest sidebar grouped by lifecycle with hints and a collapsed mode, top-bar location and New menu, serial register / goods receipts / warranty check promoted to the menu. Dashboard: lifecycle pipeline with live counts. Style_Guide v2 |
 
 ## Route access
 

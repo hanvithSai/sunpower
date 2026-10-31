@@ -92,7 +92,7 @@ sequenceDiagram
   participant Sales
   participant Tech as Technician
   participant WH as Warehouse
-  participant Sys as SunPower OS
+  participant Sys as SunPower
   C->>Sys: Enquiry (web form)
   Sys-->>Sales: Lead SP-L-… (SLA timer starts)
   Sales->>Sys: Qualify + schedule survey

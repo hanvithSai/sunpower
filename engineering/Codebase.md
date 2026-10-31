@@ -14,7 +14,7 @@ Read this in four passes: the big picture, the modules, the files, then the func
 
 ## 1. The big picture
 
-SunPower OS is one Next.js 16 application. The screens and the backend live in one repository and deploy together to Vercel, with functions in Mumbai (`bom1`). All data, including photos and videos, is in one MongoDB Atlas database, also in Mumbai.
+SunPower is one Next.js 16 application. The screens and the backend live in one repository and deploy together to Vercel, with functions in Mumbai (`bom1`). All data, including photos and videos, is in one MongoDB Atlas database, also in Mumbai.
 
 ```
  Browser: director · sales · technician (phone) · warehouse · support · homeowner
@@ -94,8 +94,8 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 | 9 | Dispatch | Packing bench with camera scanning, dispatch gate, tax invoice at dispatch, delivery starts the warranties | Both | ✅ |
 | 10 | Installations | Crew calendar with clash highlights, the technician's "My work", start gate, completion proof with a local draft, certificate and customer link | Both | ✅ |
 | 11 | Media | Photos and videos in GridFS: compressed in the browser, large files uploaded in pieces, streamed with seeking; certificate photos visible through the share token | Both | ✅ |
-| 12 | Public website | Landing page, enquiry form, enquiry API, public warranty check, privacy notice, cookie banner, rate limits, spam trap | Both | ✅ |
-| 13 | App shell and design system | Layouts, sidebar, mobile menu, ⌘K palette, Apple-style tokens at WCAG AA, 19 UI primitives, 23 shared components | Hanvith | ✅ |
+| 12 | Public website | Landing page (interactive energy-flow diagram, subsidy estimator, journey, systems, FAQ), enquiry form, enquiry API, public warranty check, privacy notice, cookie banner, rate limits, spam trap | Both | ✅ |
+| 13 | App shell and design system | Layouts, sidebar, mobile menu, ⌘K palette, forest-and-sunlight tokens at WCAG AA (Style_Guide v2), 19 UI primitives, 23 shared components | Hanvith | ✅ |
 | 14 | Search | ⌘K across customers, leads, quotes, orders, serials (last 4+ characters), tickets and invoices, filtered by role | Vamshi (API), Hanvith (palette) | ✅ |
 | 15 | Service desk | Tickets with the warranty decided at creation, visits on the technician's calendar, parts and replacements, ₹0 repairs costed to the installation, auto service invoice, confirm-before-close, CSV | Both | ✅ |
 | 16 | Customers | Customer list and Customer 360: orders, every serial with its warranty, tickets, invoices, payments, timeline | Both | ✅ |
@@ -199,7 +199,7 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 
 | Area | Contents |
 |---|---|
-| Root | `layout.tsx` (fonts, toasts), `globals.css` (design tokens at WCAG AA, print styles), error and 404 pages, `global-error.tsx` (styled fallback if the root layout fails), self-hosted Inter font |
+| Root | `layout.tsx` (IBM Plex Sans and Bricolage Grotesque, toasts, cookie banner), `globals.css` (design tokens at WCAG AA, print styles), error and 404 pages, `global-error.tsx` (styled fallback if the root layout fails), self-hosted Inter font |
 | Public (no login) | `/` landing page, `/enquiry` form, `/warranty` check, `/privacy` notice, `/share/[token]` (read-only dashboard or one customer's certificate) |
 | Auth | `/login` |
 | Director | `/dashboard`, `/team` (payroll) |
@@ -224,9 +224,9 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 | [modules/dispatch/](../src/components/modules/dispatch/) (3) | Packing bench, packing progress, dispatch and delivery dialogs |
 | [modules/jobs/](../src/components/modules/jobs/) (4) | Completion form (with local draft), reschedule dialog, agenda card, certificate view shared by staff and the customer link |
 | [modules/service/](../src/components/modules/service/) (2) | Warranty card, ticket forms for each state |
-| [modules/dashboard/](../src/components/modules/dashboard/) (3) | Dashboard view, revenue trend chart, share panel |
+| [modules/dashboard/](../src/components/modules/dashboard/) (4) | Lifecycle pipeline, dashboard view, revenue trend chart, share panel |
 | [modules/finance/](../src/components/modules/finance/) (2) | Subsidy stage and papers dialogs |
-| [modules/public/](../src/components/modules/public/) (2) | Public enquiry form, warranty lookup |
+| [modules/public/](../src/components/modules/public/) (4) | Energy-flow diagram, subsidy estimator, public enquiry form, warranty lookup |
 | Other (2) | Login form, logo |
 
 ### Scripts and tests (all Vamshi)
@@ -281,7 +281,7 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
   - ★ `maskContactText`: hides phone numbers, emails and GSTINs in session replay.
   - `scrubProperties`: runs `scrubUrl` over every string in an event, nested ones included (the page URL inside each web-vitals metric).
   - `scrubHeatmapData`: heatmap batches are keyed by page URL; the keys are scrubbed and merged.
-  - `CTAS` and `cta(name)`: the 14 named calls to action. `cta()` adds `data-ph-capture-attribute-cta`, the only label masked autocapture keeps, so clicks per CTA (and CTR) are measurable without element text.
+  - `CTAS` and `cta(name)`: the 21 named calls to action (landing, header, footer, enquiry, warranty and the job page's WhatsApp button). `cta()` adds `data-ph-capture-attribute-cta`, the only label masked autocapture keeps, so clicks per CTA (and CTR) are measurable without element text.
 - **[consent.ts](../src/lib/consent.ts)** (Hanvith):
   - ★ `consentStatus`: granted, denied or pending from the stored record. A choice lasts 12 months and one `CONSENT_VERSION`; with no choice, Global Privacy Control or Do Not Track mean denied.
   - `readConsent`, `saveConsent`, `onConsentChange` (this tab and others), `openConsentSettings`.
@@ -442,6 +442,7 @@ SunPower OS is one Next.js 16 application. The screens and the backend live in o
 
 - **[costing.ts](../src/server/services/costing.ts):** `costOrders` gathers actuals for many orders at once (GRN costs of dispatched serials, installation time logs with each technician's rate) and returns `costFromActuals` per order. `costOrder` does one.
 - **[dashboard.ts](../src/server/services/dashboard.ts):**
+  - `getPipeline(now)`: every open project by stage (Enquiry, Survey, Quote, Order, Dispatch, Installation) from current lead and order statuses, plus orders commissioned in the last 30 days; each stage links to its module.
   - ★ `getDashboard(range)`: for today, this week or this month (IST) against the period before. KPIs: revenue invoiced (excl. GST), cash collected, advances held on unfinished orders, stock purchased, technician hours, installs commissioned and their margin, new leads, open repairs. Plus a 12-month trend, the profit table, every customer waiting on a step, open repairs by age and subsidy files by stage.
   - ★ `getProfitTable`: profit per installation, losers first. With `masked` (share links) names become an initial and city.
 
@@ -501,6 +502,9 @@ Every action follows the same pattern: `runAction(roles)` → `parseForm(schema)
 | CompleteJobForm | Times, installed size (with a reason if different), generation test, checklist, kit check, extra material, photos (`MediaUploader`) and the customer's signature (`SignaturePad`). **Local draft:** everything except the signature is saved to `localStorage` every 4 seconds under `sunpower:job-draft:<jobId>`, restored on reload ("Restored what you entered at …") and cleared on completion |
 | CertificateView | One certificate for staff print and the customer link: serials with warranty end dates, workmanship warranty, crew, photos, signature; "Send on WhatsApp" card on the job page |
 | WarrantyCard / ticket forms | The warranty decision shown before a ticket is raised; one form per ticket state (assign, start, override, resolve with parts or replacement, confirm, close, reopen) |
+| LifecyclePipeline | The dashboard's forest strip: seven numbered stages with live counts, a lime dot where work waits, each linking to its module |
+| EnergyFlow | Landing hero: On-Grid / Off-Grid / Hybrid × Sunny afternoon / Evening / Power cut. SVG wires (animated where power flows, with arrows) under HTML buttons for each part; a click explains the part. Labelled as an illustration; no invented figures |
+| SubsidyEstimator | Landing: size, home or business, On-Grid or Off-Grid → `estimateSubsidyRs` (the quote builder's rule) with the reason when not eligible; links to `/enquiry?kw=&type=` |
 | DashboardView | KPI cards against the previous period, `RevenueTrendChart` (invoiced vs cash, 12 months), profit table with losers first and their cause, unfinished steps, repairs, subsidy; `SharePanel` creates, copies and revokes links |
 | Subsidy dialogs | `SubsidyAdvanceDialog` moves to the next stage with its required detail; `SubsidyDocumentDialog` photographs papers onto the file |
 | WarrantyLookup | Public form: serial, or phone + last 4; one "No match found" for every miss |
@@ -511,13 +515,13 @@ Every action follows the same pattern: `runAction(roles)` → `parseForm(schema)
 | CommandPalette | ⌘K / Ctrl+K: quick actions and pages for the user's role, plus record search through `/api/v1/search`; tracks result counts and the type opened (never the search text) |
 | AppShell / UserMenu | Identifies the signed-in staff member to PostHog (id and role only) and resets on sign-out; the account menu has Cookie settings |
 | ConsentBanner | Bottom card on every page while no choice is made: equal *Reject analytics* / *Accept analytics*, link to `/privacy`; reopened by `CookieSettingsButton` with the current state. Renders nothing on the server or without an analytics key |
-| SidebarNav / MobileNav | `navForRole` filters the menu; `isNavItemActive` highlights the current page |
+| SidebarNav / MobileNav | Forest sidebar: `navForRole` filters the menu, `activeNavItem` marks the current page in amber; collapses to icons with labels in tooltips (remembered as `sunpower:sidebar`). The top bar shows "Section / Page" and a New menu from `QUICK_ACTIONS` |
 | LoginForm | Demo-account shortcuts; only internal `callbackUrl` redirects |
 
 **Helper files:**
 
 - [format.ts](../src/lib/format.ts): IST dates, phone formatting, WhatsApp and call links, kW display.
-- [navigation.ts](../src/lib/navigation.ts): `canAccess` (the director can open everything), `navForRole`, `roleHome`.
+- [navigation.ts](../src/lib/navigation.ts): `NAV_SECTIONS` in lifecycle order (Overview, Customer acquisition, Sales, Operations, After-sales, Business) with a `hint` per item; `QUICK_ACTIONS` shared by the top bar's New menu and ⌘K; `activeNavItem` (longest match, so `/inventory/serials` highlights Serial register); `canAccess` (the director can open everything), `navForRole`, `roleHome`.
 - [query.ts](../src/lib/query.ts): `hrefWith` changes one URL parameter and keeps the rest.
 - [analytics-client.ts](../src/lib/analytics-client.ts): ★ `startAnalytics` (the whole PostHog configuration, run only after consent: `/ingest` proxy, masked autocapture, heatmaps, rage/dead clicks, web vitals, replay masking, `before_send` scrubbing) and ★ `stopAnalytics` (opt out, forget the identity, delete every `ph_…` cookie and storage item); `track` for the two browser events; `identifyStaff` (remembered, so a later Accept still identifies and starts replay); `resetAnalytics`; `captureClientError` for error boundaries.
 

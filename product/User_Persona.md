@@ -1,4 +1,4 @@
-# SunPower OS: User Personas
+# SunPower: User Personas
 
 | | |
 |---|---|
@@ -6,7 +6,7 @@
 | **Owner** | Hanvith Sai Alla (product) |
 | **Related** | [PRD.md](PRD.md) · [Features.md](Features.md) · brief: [Solar_Installation_Management_System.md](../Solar_Installation_Management_System.md) |
 
-Six personas drive SunPower OS: five people inside SunPower Solutions and one homeowner. They are composites built from the six scenes in the brief (S1 to S6 below), and their names match the seeded demo users.
+Six personas drive SunPower: five people inside SunPower Solutions and one homeowner. They are composites built from the six scenes in the brief (S1 to S6 below), and their names match the seeded demo users.
 
 | Persona | Role | Device | Top need | Scenes |
 |---|---|---|---|---|
@@ -44,7 +44,7 @@ Scenes: S1 The rooftop inquiry · S2 Getting the kit right · S3 Dispatch day an
 - 15:00 calls the accountant to match advances against bank statements.
 - 19:00 tries to answer "how did we do this month?" from an Excel sheet that is two weeks old.
 
-**How SunPower OS helps**
+**How SunPower helps**
 - `/dashboard` shows today, this week and this month: revenue, cash collected, margin, commissioned installations and open repairs.
 - The profit-per-job table puts losers in red, for example a job that lost ₹6,400 on rework and extra cable.
 - Stuck projects list the stage, the owner and the days waiting; the subsidy board shows every application by stage.
@@ -78,7 +78,7 @@ Scenes: S1 The rooftop inquiry · S2 Getting the kit right · S3 Dispatch day an
 - 16:00 builds and sends three quotes on WhatsApp.
 - 18:00 records the day's UPI advances.
 
-**How SunPower OS helps**
+**How SunPower helps**
 - One pipeline for every channel, with a red badge on any lead waiting more than 2 hours.
 - One-tap Call and WhatsApp buttons that log the contact.
 - A qualification checklist and survey approval that unlocks the quote, so she never quotes a shaded roof again.
@@ -113,7 +113,7 @@ Scenes: S1 The rooftop inquiry · S2 Getting the kit right · S3 Dispatch day an
 - 15:30 the homeowner signs on his phone and the certificate is generated.
 - 17:00 service visit in Miyapur: an inverter fault, a replacement unit and parts logged on the ticket.
 
-**How SunPower OS helps**
+**How SunPower helps**
 - `/my-work` lists today's surveys, jobs and tickets with address, map link and a Call button.
 - Short forms with 44 px targets and photos compressed for weak networks; offline drafts (P2).
 - A signature pad and an automatic certificate replace the site register.
@@ -147,7 +147,7 @@ Scenes: S1 The rooftop inquiry · S2 Getting the kit right · S3 Dispatch day an
 - 12:00 dispatches, and marks the order delivered when the driver calls from site.
 - 16:00 checks the low-stock list and asks the director to reorder.
 
-**How SunPower OS helps**
+**How SunPower helps**
 - Pick lists appear the moment an order is confirmed.
 - Camera scanning with instant checks; Dispatch stays locked until every serial is scanned.
 - A serial register with full history from GRN to customer.
@@ -180,7 +180,7 @@ Scenes: S1 The rooftop inquiry · S2 Getting the kit right · S3 Dispatch day an
 - 12:00 an out-of-warranty case: when the technician resolves it, the invoice is created automatically.
 - 17:00 calls customers with Resolved tickets and records their confirmation.
 
-**How SunPower OS helps**
+**How SunPower helps**
 - ⌘K search by mobile, name or serial in under a second.
 - A warranty card with the exact state and dates, so ₹0 or billed is never a guess.
 - A ticket lifecycle that can't close until the customer confirms.
@@ -216,7 +216,7 @@ Scenes: S1 The rooftop inquiry · S2 Getting the kit right · S3 Dispatch day an
 - Months 2 to 3: TSSPDCL installs the net meter and the subsidy reaches his bank account; SunPower tracks every step.
 - Month 18: during the rains the inverter shows a fault. Anjali finds his serial in seconds: in warranty, ₹0. The ticket closes after he confirms the power is back.
 
-**How SunPower OS helps**
+**How SunPower helps**
 - A two-minute enquiry form and a call within hours.
 - A clear, itemised quote with GST and the subsidy shown separately.
 - A signature and a certificate as proof of what was installed.

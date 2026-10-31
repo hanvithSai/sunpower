@@ -1,4 +1,4 @@
-# Setup.md: Run SunPower OS locally and in production
+# Setup.md: Run SunPower locally and in production
 
 This guide covers a fresh **Windows 10/11** or **macOS** machine, for a human or an AI agent.
 Allow about 15 minutes the first time.

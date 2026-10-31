@@ -1,4 +1,4 @@
-# SunPower OS: Requirements Traceability
+# SunPower: Requirements Traceability
 
 | | |
 |---|---|
@@ -95,7 +95,7 @@ The five pains in "How things run today" trace to R-11 (enquiries), R-22 to R-24
 
 ## 2. Judging criteria (EVENT.md)
 
-| Criterion | Type | How SunPower OS meets it | Where to verify |
+| Criterion | Type | How SunPower meets it | Where to verify |
 |---|---|---|---|
 | Use real-time or dynamic data sources; avoid static JSON | Must | Every screen reads MongoDB Atlas through server components and server actions; the seed script writes ~150 projects and 14 months of history to the database; the UI has no JSON fixtures | Run `npm run seed`, then open any list |
 | Responsive, clean UI with a consistent colour scheme and layout | Must | One token set (Style_Guide.md), shadcn/ui components, Inter, a 4-pt grid; mobile-first technician screens; breakpoints at 640, 768, 1024 and 1280 px | Style_Guide.md; resize any screen to 360 px |
@@ -120,7 +120,7 @@ Status as of 31 Oct 2026 is in the last column. For the hackathon, items 6 to 16
 | 5 | Session signing secret (32+ random bytes) | Signing session cookies | Phase 0 | Vamshi generates | ✅ Set locally and in Vercel |
 | 6 | Company legal name, registered address, GSTIN (Telangana, starts with 36), PAN, phone and email | Quotes, invoices, certificates | Phase 1 | Company | ⬜ Placeholders in `COMPANY` |
 | 7 | Bank account and UPI ID for payment instructions | Quotes and invoices | Phase 3 | Company | ⬜ Pending |
-| 8 | Logo approval (amber tile, white sun, "SunPower OS" wordmark) and the company name to print on documents | Brand | Phase 0 | Company | 🟨 Logo in use, approval pending |
+| 8 | Logo approval (forest tile with a sunlight-amber sun and a solar panel, "SunPower" wordmark; redesigned 1 Nov) and the company name to print on documents | Brand | Phase 0 | Company | 🟨 Logo in use, approval pending |
 | 9 | Real catalog: SKUs, cost and sell prices, HSN codes, warranty months, or approval to use the seeded values | Catalog, quotes, costing | Phase 1 | Company | 🟨 Seeded catalog in use, approval pending |
 | 10 | CA confirmation of GST treatment: line-wise rates or the 70:30 rule, installation SAC, battery rate | Quote and invoice tax | Phase 1 | Company | 🟨 Line-wise 5%/18% implemented, CA confirmation pending |
 | 11 | Hourly labour rates by technician grade, overtime rule, out-of-warranty labour rate and visit charge | Costing, payouts, service invoices | Phase 3 | Company | 🟨 Seeded ₹250–450/h, service ₹600/h, confirmation pending |

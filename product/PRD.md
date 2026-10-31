@@ -1,8 +1,8 @@
-# SunPower OS: Product Requirements Document
+# SunPower: Product Requirements Document
 
 | | |
 |---|---|
-| **Product** | SunPower OS |
+| **Product** | SunPower |
 | **Customer** | SunPower Solutions, a rooftop solar installer in Telangana, India |
 | **Event** | Odoo x GCET Hackathon 2026, Team 19 |
 | **Version** | 1.0, 31 Oct 2026 |
@@ -12,7 +12,7 @@
 
 ## 1. Summary
 
-SunPower OS is one web platform that takes a SunPower customer from the first enquiry to the end of the 20-year panel warranty. Each customer is a single project record that moves through one lifecycle (section 7). Leads, surveys, quotes, stock, dispatch, installation, service and invoicing are views of that record, in the same order as an integrated ERP (CRM → Sales → Inventory → Field Service → Helpdesk → Invoicing). The system enforces the gates people forget today: no quote before an approved survey, no dispatch until every serial is scanned, and no closed complaint until the customer confirms the fix.
+SunPower is one web platform that takes a SunPower customer from the first enquiry to the end of the 20-year panel warranty. Each customer is a single project record that moves through one lifecycle (section 7). Leads, surveys, quotes, stock, dispatch, installation, service and invoicing are views of that record, in the same order as an integrated ERP (CRM → Sales → Inventory → Field Service → Helpdesk → Invoicing). The system enforces the gates people forget today: no quote before an approved survey, no dispatch until every serial is scanned, and no closed complaint until the customer confirms the fix.
 
 ## 2. Problem
 
@@ -63,7 +63,7 @@ SunPower completes about 40 rooftop projects a month for homes and small factori
 
 Five internal roles and one public user. Full personas are in [User_Persona.md](User_Persona.md).
 
-| Role (code) | Persona | Main job in SunPower OS | Home screen |
+| Role (code) | Persona | Main job in SunPower | Home screen |
 |---|---|---|---|
 | Director (`admin`) | Rajesh Reddy | Money and progress; team, catalog and settings | `/dashboard` |
 | Sales (`sales`) | Priya Sharma | Leads, qualification, survey review, quotes, orders, payments | `/leads` |
@@ -197,7 +197,7 @@ All customers are in Telangana, so every sale is intra-state (place of supply: T
 
 ### 9.3 PM Surya Ghar: Muft Bijli Yojana subsidy
 
-- **Eligibility in SunPower OS:** residential customer and On-Grid system only. Off-Grid systems and business customers get no subsidy line.
+- **Eligibility in SunPower:** residential customer and On-Grid system only. Off-Grid systems and business customers get no subsidy line.
 - **Amount** (central financial assistance at general-category rates, which apply to Telangana): ₹30,000 per kW for the first 2 kW, ₹18,000 for the 3rd kW, capped at ₹78,000.
 - **Formula:** `subsidy = 30000 × min(kW, 2) + 18000 × min(max(kW − 2, 0), 1)`, calculated on the quote's system capacity.
 

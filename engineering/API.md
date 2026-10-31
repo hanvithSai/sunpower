@@ -1,6 +1,6 @@
 # API.md: HTTP endpoints and Server Actions
 
-SunPower OS is a Next.js monolith. Staff screens call **Server Actions** (type-safe RPC over POST) for mutations and read data in **Server Components**. Public and integration traffic uses the versioned REST API under **`/api/v1`**.
+SunPower is a Next.js monolith. Staff screens call **Server Actions** (type-safe RPC over POST) for mutations and read data in **Server Components**. Public and integration traffic uses the versioned REST API under **`/api/v1`**.
 
 Status legend: ✅ implemented · 🟨 in progress · 🗓️ planned (phase noted)
 
