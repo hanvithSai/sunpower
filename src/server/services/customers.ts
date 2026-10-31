@@ -19,6 +19,7 @@ export type CustomerContact = {
   pincode: string;
   addressLine?: string;
   customerType?: CustomerType;
+  gstin?: string;
 };
 
 /** DISCOM by service area: TSNPDCL covers north Telangana, TSSPDCL the south incl. Hyderabad. */
@@ -34,11 +35,17 @@ export async function upsertCustomerByPhone(
 ): Promise<{ customer: ICustomer; created: boolean }> {
   const existing = await Customer.findOne({ phone: input.phone }).session(session ?? null);
   if (existing) {
-    // Keep the original record; only fill gaps (e.g. an email given on a later enquiry).
+    // Keep the original record; only fill gaps (e.g. an email or GSTIN given on a later enquiry).
+    let changed = false;
     if (input.email && !existing.email) {
       existing.email = input.email;
-      await existing.save({ session });
+      changed = true;
     }
+    if (input.gstin && !existing.gstin) {
+      existing.gstin = input.gstin;
+      changed = true;
+    }
+    if (changed) await existing.save({ session });
     return { customer: existing.toObject(), created: false };
   }
 
@@ -49,6 +56,7 @@ export async function upsertCustomerByPhone(
         phone: input.phone,
         email: input.email,
         type: input.customerType ?? "residential",
+        gstin: input.gstin,
         address: {
           line1: input.addressLine || input.city,
           city: input.city,
