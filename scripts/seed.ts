@@ -21,6 +21,7 @@ import { actorRef } from "@/server/lib/actor";
 import { Package, Product, Purchase, StockMove, User } from "@/server/models";
 import { receiveGoods } from "@/server/services/inventory";
 import { PACKAGES, PRODUCTS } from "./seed/catalog";
+import { seedHistory } from "./seed/history";
 import { GRNS, grnSerials } from "./seed/inventory";
 import { DEMO_PASSWORD, STAFF } from "./seed/users";
 
@@ -70,6 +71,7 @@ async function main() {
 
   await seedCatalog();
   await seedPurchases();
+  console.log(await seedHistory());
 
   const byRole = await User.aggregate<{ _id: string; count: number }>([
     { $group: { _id: "$role", count: { $sum: 1 } } },
@@ -189,7 +191,7 @@ async function seedPurchases() {
         lines: grn.lines.map((l) => {
           const productId = idBySku.get(l.sku);
           if (!productId) throw new Error(`GRN ${grn.invoiceNo} references unknown SKU ${l.sku}`);
-          return { productId, qty: l.qty, unitCostRs: l.unitCostRs, serials: grnSerials(l.serialPrefix, l.qty) };
+          return { productId, qty: l.qty, unitCostRs: l.unitCostRs, serials: l.serialPrefix ? grnSerials(l.serialPrefix, l.qty) : [] };
         }),
       },
       actor,
