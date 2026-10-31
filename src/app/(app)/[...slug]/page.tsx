@@ -17,25 +17,9 @@ import { NAV_SECTIONS, roleHome } from "@/lib/navigation";
 import { requireUser } from "@/server/auth/session";
 
 const UPCOMING: Record<string, { phase: string; summary: string }> = {
-  "/dashboard": {
-    phase: "Phase 3",
-    summary: "Today / week / month KPIs, profit per job, open repairs and unfinished work, with read-only share links.",
-  },
   "/customers": {
     phase: "Phase 3",
     summary: "Customer 360: installed systems, every serial number with its warranty status, tickets and invoices.",
-  },
-  "/invoices": {
-    phase: "Phase 3",
-    summary: "GST tax invoices with the CGST/SGST split and payment tracking.",
-  },
-  "/subsidy": {
-    phase: "Phase 3",
-    summary: "PM Surya Ghar subsidy tracker from application to disbursement.",
-  },
-  "/team": {
-    phase: "Phase 3",
-    summary: "Technician hours, utilisation and monthly payouts.",
   },
 };
 
