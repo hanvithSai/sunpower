@@ -239,7 +239,7 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 | Merge conflicts | Directory ownership + contract-first + small PRs (Section 7) |
 | Scope creep | MoSCoW is enforced; the P0 golden path comes first |
 | Production misconfiguration (env vars) | After every deploy check `/api/v1/health` (`db` and `version`); env-var checklist in Setup.md §8 (no quotes or placeholders, redeploy after edits). See the incident in engineering/Engineering.md |
-| Latency: functions in Washington DC, users and Atlas in Asia | Proposed: pin Vercel functions to Mumbai (`bom1`), Human_Tasks #14 |
+| Latency: functions far from users and Atlas | ✅ Functions pinned to Mumbai (`bom1`) in `vercel.json`; health reports `region` |
 
 ---
 
@@ -250,8 +250,8 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 3. **Analytics:** PostHog Cloud free tier.
 4. **Domain:** Namecheap. The domain name is still to be shared (Human_Tasks #7).
 5. **Window:** coding wraps up well before the 01 Nov 10:00 AM cut-off. Commits land after every logical unit under the owning developer and are pushed in small batches.
-6. **Vercel function region:** proposed Mumbai (`bom1`) to cut India → US → Atlas round trips (health reports about 1.8 s cold database latency). Awaiting approval.
-7. **Health diagnostics:** proposed safe failure reasons (`auth_failed`, `uri_missing`, `dns`, `timeout`) in `/api/v1/health`. Awaiting approval.
+6. **Vercel function region:** ✅ Mumbai (`bom1`), pinned in `vercel.json` (approved 31 Oct).
+7. **Health diagnostics:** ✅ `/api/v1/health` reports a safe failure `reason` plus `version` and `region` (approved 31 Oct).
 
 ---
 
@@ -271,4 +271,5 @@ Times are relative to the kickoff (T+0). Each phase ends with a merge to `main`,
 | 31 Oct, 14:11 | Both | **Phase 1b:** catalog seed, quote builder (package → full BOM, live GST/subsidy/margin), quote detail/print/WhatsApp, accept → order, payments (first payment confirms → pick list + installation job). Flow check 15/15 |
 | 31 Oct, 14:30 | Both | **Incident:** production sign-in failed (“We couldn't sign you in right now”). Root cause: the `MONGODB_URI` set in Vercel had credentials Atlas rejected; consistent ~2 s failures ruled out a missing variable (instant) and an IP block (30 s). Fixed by updating the variable and redeploying; health `db: up` on `681cea0` |
 | 31 Oct, 14:45 | Both | Documentation synced with Phase 1, the live deployment and the incident |
-| Next | Both | Phase 2: inventory (GRN + serials) → dispatch scanning → delivery (warranties + GST invoice) → installation jobs + technician “My work” |
+| 31 Oct, 15:00 | Both | Functions moved to Mumbai (`bom1`); health check now reports failure `reason`, `version` and `region`; first unit tests (Vitest, 6) in CI |
+| Next | Both | **On hold until the go-ahead.** Phase 2: inventory (GRN + serials) → dispatch scanning → delivery (warranties + GST invoice) → installation jobs + technician “My work” |

@@ -155,6 +155,14 @@ Module schemas live in `src/lib/validation/<module>.ts` and compose `src/lib/val
 
 ---
 
+## Continuing on another device
+
+1. `git pull` on `main` (everything is on GitHub; feature branches are merged).
+2. `npm install`.
+3. Create `.env.local` (it's git-ignored, so it is **not** in the repo): copy `.env.example` and set `MONGODB_URI` (the Atlas string, as in Vercel) and `AUTH_SECRET` (any 32+ byte random value locally; production uses its own).
+4. `npm run dev`, sign in with the demo accounts, and run `npm test` / `npm run typecheck` to confirm the setup.
+5. Read this log and `Plan.md` for status. `build-prompt.md` (the original brief) is local-only and not in git, so copy it across manually if you need it.
+
 ## Session Log
 
 | When (IST) | Who | What | Files | Open issues |
@@ -169,4 +177,5 @@ Module schemas live in `src/lib/validation/<module>.ts` and compose `src/lib/val
 | 31 Oct, 14:11 | Both | **Phase 1b (catalog → quotes → orders & payments).** Vamshi: catalog seed, `src/lib/quote-calc.ts`, catalog/quotes/orders/payments services + actions, `scripts/check-sale-flow.ts` (15/15). Hanvith: quote builder, quote detail/print, orders list/detail with record-payment dialog, catalog page. Demo chain: SP-L-0001 → SP-Q-0001 → SP-O-0001 (paid) → SP-J-0001. | `src/server/services/{catalog,quotes,orders,payments}.ts`, `src/app/(app)/{quotes,orders,catalog}/**` | Serialized stock is 0 until GRNs (Phase 2) |
 | 31 Oct, 14:30 | Both | **Production incident fixed.** Vercel now builds `main`. Sign-in failed because the `MONGODB_URI` credentials in Vercel were rejected by Atlas (diagnosed from `/api/v1/health` timing). Variable updated and redeployed; health `db: up` on `681cea0`. | — | — |
 | 31 Oct, 14:45 | Both | All documentation synced: status, incidents and lessons, env checklist, product vocabulary and number formats. | docs | Pending approvals: Vercel region → Mumbai (`bom1`); health failure reasons |
-| Next | Both | **Phase 2:** inventory (GRN + serials) → dispatch scanning → delivery (warranties + GST invoice) → installation jobs + technician "My work". | — | — |
+| 31 Oct, 15:00 | Both | Functions pinned to Mumbai (`bom1`, `vercel.json`). `/api/v1/health` now returns `version`, `region` and, on failure, a safe `reason` (`src/server/lib/db-errors.ts`, verified against real Atlas errors). First unit tests (`tests/unit/db-errors.test.ts`, 6). Vitest config is now `vitest.config.mts` with native tsconfig paths; `vite-tsconfig-paths` removed. | `vercel.json`, `src/app/api/v1/health/route.ts`, `src/server/lib/db-errors.ts`, `tests/`, `vitest.config.mts`, docs | — |
+| Next | Both | **On hold: don't start Phase 2 until the user says so.** Then: inventory (GRN + serials) → dispatch scanning → delivery (warranties + GST invoice) → installation jobs + technician "My work". | — | — |
