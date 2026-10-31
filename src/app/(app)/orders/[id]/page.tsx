@@ -185,7 +185,13 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           {customer ? (
             <Section title="Customer">
               <div className="space-y-3 text-sm">
-                <p className="font-medium">{customer.name}</p>
+                {user.role === "warehouse" ? (
+                  <p className="font-medium">{customer.name}</p>
+                ) : (
+                  <Link href={`/customers/${customer.id}`} className="font-medium text-foreground hover:text-primary">
+                    {customer.name}
+                  </Link>
+                )}
                 <p className="text-muted-foreground">
                   {[order.siteAddress.line1, order.siteAddress.city, order.siteAddress.pincode].filter(Boolean).join(", ")}
                   {customer.discom ? ` · ${customer.discom}` : ""}
