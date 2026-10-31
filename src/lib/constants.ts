@@ -367,6 +367,18 @@ export const SUBSIDY_STATUSES = [
 ] as const;
 export type SubsidyStatus = (typeof SUBSIDY_STATUSES)[number];
 
+/** Paperwork kept on the subsidy file, photographed by sales or the crew. */
+export const SUBSIDY_DOC_KINDS = ["application", "feasibility_letter", "net_meter_photo", "inspection_report", "disbursement_proof", "other"] as const;
+export type SubsidyDocKind = (typeof SUBSIDY_DOC_KINDS)[number];
+export const SUBSIDY_DOC_LABELS: Record<SubsidyDocKind, string> = {
+  application: "Portal application",
+  feasibility_letter: "DISCOM feasibility letter",
+  net_meter_photo: "Net meter photo",
+  inspection_report: "Inspection / commissioning report",
+  disbursement_proof: "Disbursement proof",
+  other: "Other",
+};
+
 /* ------------------------------------------------------------------ */
 /* Status badges                                                       */
 /* ------------------------------------------------------------------ */

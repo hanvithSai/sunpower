@@ -13,6 +13,7 @@ import {
   PAYMENT_STATUSES,
   PAYMENT_TYPES,
   QUOTE_STATUSES,
+  SUBSIDY_DOC_KINDS,
   SUBSIDY_STATUSES,
   SYSTEM_TYPES,
   type OrderStatus,
@@ -20,6 +21,7 @@ import {
   type PaymentStatus,
   type PaymentType,
   type QuoteStatus,
+  type SubsidyDocKind,
   type SubsidyStatus,
   type SystemType,
 } from "@/lib/constants";
@@ -120,6 +122,15 @@ export interface ISubsidyUpdate {
   by?: string;
 }
 
+/** A photographed subsidy paper (GridFS image id). */
+export interface ISubsidyDocument {
+  kind: SubsidyDocKind;
+  fileId: string;
+  note?: string;
+  at: Date;
+  by: string;
+}
+
 export interface ISubsidyInfo {
   applicable: boolean;
   status: SubsidyStatus;
@@ -128,6 +139,7 @@ export interface ISubsidyInfo {
   expectedPaise: number;
   disbursedPaise: number;
   history: ISubsidyUpdate[];
+  documents: ISubsidyDocument[];
 }
 
 export interface IExtraCost {
@@ -235,6 +247,21 @@ const OrderSchema = new Schema<IOrder>(
                   at: { type: Date, required: true },
                   note: String,
                   by: String,
+                },
+                { _id: false },
+              ),
+            ],
+            default: [],
+          },
+          documents: {
+            type: [
+              new Schema<ISubsidyDocument>(
+                {
+                  kind: { type: String, enum: SUBSIDY_DOC_KINDS, required: true },
+                  fileId: { type: String, required: true },
+                  note: String,
+                  at: { type: Date, required: true },
+                  by: { type: String, required: true },
                 },
                 { _id: false },
               ),

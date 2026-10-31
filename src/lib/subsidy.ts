@@ -7,7 +7,7 @@
  * the customer's bank account after DISCOM inspection, so it never reduces our
  * invoice — quotes show it as the customer's "effective cost".
  */
-import type { CustomerType, SystemType } from "./constants";
+import type { CustomerType, SubsidyStatus, SystemType } from "./constants";
 
 export const SUBSIDY_RULES = {
   perKwFirstTwoRs: 30_000,
@@ -36,4 +36,12 @@ export function estimateSubsidyPaise(
   customerType: CustomerType = "residential",
 ): number {
   return estimateSubsidyRs(capacityKw, systemType, customerType) * 100;
+}
+
+/**
+ * Installing before the DISCOM approves feasibility can cost the customer the
+ * subsidy, so the job and order pages warn while the file is still waiting (F16).
+ */
+export function feasibilityPending(subsidy: { applicable: boolean; status: SubsidyStatus }): boolean {
+  return subsidy.applicable && (subsidy.status === "not_applied" || subsidy.status === "applied" || subsidy.status === "rejected");
 }

@@ -9,15 +9,17 @@
  */
 import { loadEnvConfig } from "@next/env";
 import mongoose from "mongoose";
-import { toDateInputValue } from "@/lib/format";
+import { toDateInputValue, toDateTimeInputValue } from "@/lib/format";
 import { formatINR } from "@/lib/money";
 import { connectDB } from "@/server/db";
 import { AppError } from "@/server/errors";
 import { Job, Order, SerialUnit, ShareLink, User } from "@/server/models";
 import { costOrder } from "@/server/services/costing";
 import { getDashboard, maskName } from "@/server/services/dashboard";
-import { advanceSubsidy, certificateLink, createShareLink, getPayroll, listShareLinks, openShareLink, revokeShareLink, shareLinkAllowsFile } from "@/server/services/finance";
-import { makeCommissionedOrder, makeConfirmedOrder, staff } from "./flows/order";
+import { addSubsidyDocuments, advanceSubsidy, certificateLink, createShareLink, exportInvoices, getPayroll, listShareLinks, openShareLink, revokeShareLink, shareLinkAllowsFile } from "@/server/services/finance";
+import { getJobDetail, rescheduleJob } from "@/server/services/jobs";
+import { exportTickets } from "@/server/services/tickets";
+import { makeCommissionedOrder, makeConfirmedOrder, staff, uploadPhoto } from "./flows/order";
 
 loadEnvConfig(process.cwd());
 
@@ -85,6 +87,33 @@ async function main() {
   await advanceSubsidy({ orderId: made.orderId, status: "disbursed", applicationNo: undefined, disbursed: 7_800_000, note: "Credited to customer's SBI account" }, sales);
   const sub = (await Order.findById(made.orderId).lean())!.subsidy;
   check("subsidy reaches Disbursed with the amount and every dated step", sub.status === "disbursed" && sub.disbursedPaise === 7_800_000 && sub.history.length === 5, formatINR(sub.disbursedPaise));
+
+  /* ---- Subsidy papers and the feasibility warning (F16) ---- */
+  const letter = await uploadPhoto(sales.id, "feasibility-letter.png");
+  await addSubsidyDocuments({ orderId: made.orderId, kind: "feasibility_letter", photos: [letter], photos__uploading: undefined, note: "TSSPDCL ref FS/2026/4471" }, sales);
+  const papers = (await Order.findById(made.orderId).lean())!.subsidy.documents;
+  check("a photographed feasibility letter is kept on the subsidy file", papers.length === 1 && papers[0]!.kind === "feasibility_letter" && papers[0]!.fileId === letter && papers[0]!.by === sales.name);
+  await expectError("a document must be an uploaded photo", "VALIDATION", () =>
+    addSubsidyDocuments({ orderId: made.orderId, kind: "other", photos: ["0123456789abcdef01234567"], photos__uploading: undefined, note: undefined }, sales),
+  );
+  const waiting = await makeConfirmedOrder({ kw: 3, systemType: "on_grid", name: "Feasibility Pending" });
+  const waitingJob = (await Job.findOne({ orderId: waiting.orderId }).lean())!;
+  const moved = await rescheduleJob(
+    { jobId: String(waitingJob._id), scheduledFor: toDateTimeInputValue(new Date(waitingJob.scheduledFor.getTime() + 86_400_000)), technicianIds: waitingJob.technicianIds.map(String), leadTechnicianId: undefined },
+    sales,
+  );
+  check("booking an install before feasibility approval warns", moved.warnings.some((w) => w.includes("feasibility")), moved.warnings.join("; "));
+  check("…and the job page knows", (await getJobDetail(String(waitingJob._id)))!.order!.feasibilityPending === true);
+  const offGrid = await makeConfirmedOrder({ kw: 2, systemType: "off_grid", name: "Off Grid Papers" });
+  await expectError("off-grid orders have no subsidy file", "INVALID_STATE", () =>
+    addSubsidyDocuments({ orderId: offGrid.orderId, kind: "other", photos: [letter], photos__uploading: undefined, note: undefined }, sales),
+  );
+
+  /* ---- Accountant exports (F17) ---- */
+  const invoices = await exportInvoices({ status: undefined, type: "sale" }, now);
+  check("invoice export carries the GST split", invoices.length > 0 && invoices.every((i) => i.type === "sale" && i.cgstPaise + i.sgstPaise > 0), `${invoices.length} sale invoices`);
+  const openTickets = await exportTickets({}, now);
+  check("ticket export defaults to everything not closed", openTickets.every((t) => t.status !== "closed"), `${openTickets.length} open`);
 
   /* ---- Share links ---- */
   const link = await createShareLink({ days: 7, label: "Auditor" }, director);

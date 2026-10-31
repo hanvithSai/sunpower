@@ -103,6 +103,11 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          {job.status === "scheduled" && order?.feasibilityPending ? (
+            <p role="status" className="rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning-foreground">
+              PM Surya Ghar: the DISCOM hasn&apos;t approved feasibility for this site yet. Installing first can cost the customer the subsidy, so check with sales before going.
+            </p>
+          ) : null}
           {job.status === "scheduled" && crewCanAct ? (
             <Section title="On site">
               {delivered ? (

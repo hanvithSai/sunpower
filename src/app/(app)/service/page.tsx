@@ -1,13 +1,15 @@
 /**
  * Service tickets: every complaint until the customer confirms it's fixed.
  * Overdue tickets (past their priority SLA) are flagged; technicians see only
- * the tickets assigned to them.
+ * the tickets assigned to them; the desk can filter by technician and export
+ * the list as CSV.
  */
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Headset, Plus } from "lucide-react";
+import { Download, Headset, Plus } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FilterTabs } from "@/components/shared/filter-tabs";
+import { ParamSelect } from "@/components/shared/param-select";
 import { PageHeader } from "@/components/shared/page-header";
 import { Pagination } from "@/components/shared/pagination";
 import { SearchInput } from "@/components/shared/search-input";
@@ -20,6 +22,7 @@ import { formatRelative } from "@/lib/format";
 import { first, type SearchParamsRecord } from "@/lib/query";
 import { requireUser } from "@/server/auth/session";
 import { listTickets } from "@/server/services/tickets";
+import { listStaff } from "@/server/services/users";
 
 export const metadata: Metadata = { title: "Service tickets" };
 
@@ -28,11 +31,15 @@ export default async function ServicePage({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const now = new Date();
   const status = first(sp.status) ?? "open_all";
-  const data = await listTickets(
-    { status, q: first(sp.q), page: Number(first(sp.page)) || 1, assignedTo: user.role === "technician" ? user.id : undefined },
-    now,
-  );
   const canRaise = user.role === "support" || user.role === "admin";
+  // Technicians see their own tickets; the desk can narrow the list to one technician (R-07).
+  const techParam = first(sp.tech);
+  const tech = user.role === "technician" ? user.id : techParam && /^[a-f\d]{24}$/i.test(techParam) ? techParam : undefined;
+  const [data, technicians] = await Promise.all([
+    listTickets({ status, q: first(sp.q), page: Number(first(sp.page)) || 1, assignedTo: tech }, now),
+    canRaise ? listStaff({ roles: ["technician"] }) : Promise.resolve([]),
+  ]);
+  const csvQuery = new URLSearchParams({ status, ...(tech && canRaise ? { tech } : {}) }).toString();
 
   return (
     <>
@@ -41,12 +48,20 @@ export default async function ServicePage({ searchParams }: { searchParams: Prom
         description="Warranty is decided when the ticket is raised. Tickets close only after the customer confirms the fix."
         actions={
           canRaise ? (
-            <Button asChild>
-              <Link href="/service/new">
-                <Plus aria-hidden="true" />
-                New ticket
-              </Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline">
+                <a href={`/api/v1/reports/tickets?${csvQuery}`} download>
+                  <Download aria-hidden="true" />
+                  CSV
+                </a>
+              </Button>
+              <Button asChild>
+                <Link href="/service/new">
+                  <Plus aria-hidden="true" />
+                  New ticket
+                </Link>
+              </Button>
+            </div>
           ) : null
         }
       />
@@ -58,8 +73,11 @@ export default async function ServicePage({ searchParams }: { searchParams: Prom
             ...TICKET_STATUSES.map((s) => ({ value: s, label: statusMeta("ticket", s).label, count: data.counts[s] ?? 0 })),
           ]}
         />
-        <div className="w-full lg:w-80">
-          <SearchInput placeholder="Customer, phone, serial or SP-T-…" />
+        <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+          {canRaise ? <ParamSelect param="tech" label="Technician" allLabel="All technicians" options={technicians.map((t) => ({ value: t.id, label: t.name }))} /> : null}
+          <div className="w-full lg:w-80">
+            <SearchInput placeholder="Customer, phone, serial or SP-T-…" />
+          </div>
         </div>
       </div>
 
