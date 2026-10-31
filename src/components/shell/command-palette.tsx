@@ -246,14 +246,14 @@ export function CommandPalette({ role, open, onOpenChange }: CommandPaletteProps
     <CommandDialog
       open={open}
       onOpenChange={setOpen}
-      title="Search SunPower OS"
+      title="Search SunPower"
       description="Find customers, leads, serial numbers, orders, tickets and invoices, or jump to a page."
       commandProps={{
         shouldFilter: false,
         loop: true,
         // cmdk's Ctrl+K "move up" binding would fight the Ctrl+K open/close shortcut.
         vimBindings: false,
-        label: "Search SunPower OS",
+        label: "Search SunPower",
         value: selected,
         onValueChange: setSelected,
       }}

@@ -15,7 +15,7 @@ import { LoginForm } from "@/components/auth/login-form";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Staff sign-in for SunPower OS.",
+  description: "Staff sign-in for SunPower.",
 };
 
 const VALUE_POINTS: { icon: LucideIcon; title: string; body: string }[] = [
@@ -40,7 +40,7 @@ export default function LoginPage() {
   return (
     <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-card shadow-lg lg:grid-cols-[1.05fr_1fr]">
       <section
-        aria-label="About SunPower OS"
+        aria-label="About SunPower"
         className="relative hidden flex-col justify-between gap-10 overflow-hidden bg-linear-to-br from-[#fff3e0] via-[#fff8ef] to-white p-10 lg:flex"
       >
         <div

@@ -1,22 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 212 48" fill="none" role="img" aria-labelledby="sunpower-logo-title">
-  <title id="sunpower-logo-title">SunPower OS</title>
-  <defs>
-    <linearGradient id="sunpower-logo-tile" x1="24" y1="0" x2="24" y2="48" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFB340"/>
-      <stop offset="1" stop-color="#FF9F0A"/>
-    </linearGradient>
-  </defs>
-  <rect width="48" height="48" rx="11" fill="url(#sunpower-logo-tile)"/>
-  <circle cx="24" cy="24" r="6" fill="#FFFFFF"/>
-  <g stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round">
-    <path d="M24 14.25v-3.75"/>
-    <path d="M24 33.75v3.75"/>
-    <path d="M14.25 24h-3.75"/>
-    <path d="M33.75 24h3.75"/>
-    <path d="m17.11 17.11-2.66-2.66"/>
-    <path d="m30.89 17.11 2.66-2.66"/>
-    <path d="m17.11 30.89-2.66 2.66"/>
-    <path d="m30.89 30.89 2.66 2.66"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 196 48" fill="none" role="img" aria-labelledby="sunpower-logo-title">
+  <title id="sunpower-logo-title">SunPower</title>
+  <rect width="48" height="48" rx="11" fill="#0F2F24"/>
+  <circle cx="29.25" cy="18" r="8.25" fill="#F2B441"/>
+  <path d="M16.5 23.25h24.75l-7.5 12.75H9z" fill="#DCE9DF"/>
+  <g stroke="#0F2F24" stroke-width="1.7" stroke-linecap="round">
+    <path d="M24.75 23.25l-7.5 12.75"/>
+    <path d="M33 23.25l-7.5 12.75"/>
+    <path d="M12.75 29.6h24.75"/>
   </g>
-  <text x="60" y="32" fill="#1D1D1F" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="600" letter-spacing="-0.4">SunPower<tspan dx="6" fill="#6E6E73" font-weight="500">OS</tspan></text>
+  <text x="60" y="32" fill="#0F2F24" font-family="'Bricolage Grotesque', 'IBM Plex Sans', 'Segoe UI', sans-serif" font-size="24" font-weight="600" letter-spacing="-0.5">SunPower</text>
 </svg>

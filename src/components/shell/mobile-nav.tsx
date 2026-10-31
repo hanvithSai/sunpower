@@ -31,7 +31,7 @@ export function MobileNav({ user }: { user: SessionUser }) {
         <SheetHeader className="h-14 shrink-0 justify-center border-b border-border px-5 py-0">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
           <SheetDescription className="sr-only">Pages available to your role.</SheetDescription>
-          <Link href={roleHome(user.role)} onClick={close} className="w-fit rounded-lg" aria-label="SunPower OS home">
+          <Link href={roleHome(user.role)} onClick={close} className="w-fit rounded-lg" aria-label="SunPower home">
             <Logo size="sm" />
           </Link>
         </SheetHeader>

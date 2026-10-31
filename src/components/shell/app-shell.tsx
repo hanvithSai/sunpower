@@ -50,7 +50,7 @@ export function AppShell({ user, children }: AppShellProps) {
         className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-card lg:flex"
       >
         <div className="flex h-14 shrink-0 items-center px-5">
-          <Link href={home} className="rounded-lg" aria-label="SunPower OS home">
+          <Link href={home} className="rounded-lg" aria-label="SunPower home">
             <Logo size="sm" />
           </Link>
         </div>
@@ -66,7 +66,7 @@ export function AppShell({ user, children }: AppShellProps) {
           className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b border-border/70 bg-white/70 px-4 backdrop-blur-xl backdrop-saturate-150 sm:gap-3 sm:px-6"
         >
           <MobileNav user={user} />
-          <Link href={home} className="shrink-0 rounded-lg lg:hidden" aria-label="SunPower OS home">
+          <Link href={home} className="shrink-0 rounded-lg lg:hidden" aria-label="SunPower home">
             <Logo size="sm" showWordmark={false} />
           </Link>
           <SearchTrigger onOpen={() => setPaletteOpen(true)} />

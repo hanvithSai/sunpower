@@ -30,7 +30,7 @@ export default function RootError({ error, retry }: RootErrorProps) {
       <div className="grid size-14 place-items-center rounded-2xl bg-danger/10 text-danger-foreground">
         <TriangleAlert className="size-7" aria-hidden="true" />
       </div>
-      <h1 className="mt-5 text-xl font-semibold tracking-tight text-foreground">We couldn’t load SunPower OS</h1>
+      <h1 className="mt-5 text-xl font-semibold tracking-tight text-foreground">We couldn’t load SunPower</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         This is usually a brief network or database hiccup. Your data is safe — please try again.
       </p>

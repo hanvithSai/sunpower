@@ -80,7 +80,7 @@ export default function PrivacyPage() {
         <p className="text-sm font-medium text-brand-foreground">Last updated {UPDATED}</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Privacy & cookies</h1>
         <p className="mt-3 text-muted-foreground">
-          {COMPANY.name} ({COMPANY.address}) decides how your personal data is used on this website and in SunPower OS, our installation
+          {COMPANY.name} ({COMPANY.address}) decides how your personal data is used on this website and in SunPower, our installation
           management system. This notice explains what we collect, why, and the choices you have.
         </p>
       </header>
