@@ -266,7 +266,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
                 </p>
               ) : null}
               {customer ? (
-                <p className="flex items-start gap-2">
+                <p className="ph-no-capture flex items-start gap-2">
                   <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   <span>
                     {[customer.address.line1, customer.address.city, customer.address.pincode].filter(Boolean).join(", ")}

@@ -268,7 +268,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
             <Section title="Customer">
               <div className="space-y-3 text-sm">
                 <p className="font-medium">{customer.name}</p>
-                <a href={mapsLink(address)} target="_blank" rel="noreferrer" className="flex items-start gap-1.5 text-primary hover:underline">
+                <a href={mapsLink(address)} target="_blank" rel="noreferrer" className="ph-no-capture flex items-start gap-1.5 text-primary hover:underline">
                   <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                   {address}
                 </a>
