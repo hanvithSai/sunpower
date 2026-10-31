@@ -31,7 +31,16 @@ The UI uses the Server Actions `loginAction(prev, formData)` and `logoutAction()
 
 ## Health ✅
 
-`GET /api/v1/health` (public). Returns `200 { status: "ok", db: "up", latencyMs, time, version }`, or `503 { status: "degraded", db: "down" }`. Use it for uptime monitors and post-deploy smoke tests. `version` is the deployed Git commit (e.g. `681cea0`), so it also proves which build is live; `latencyMs` is the database round trip.
+`GET /api/v1/health` (public).
+
+| Result | Body |
+|---|---|
+| 200 | `{ status: "ok", db: "up", latencyMs, time, version, region }` |
+| 503 | `{ status: "degraded", db: "down", reason, hint, time, version, region }` |
+
+- `version` is the deployed Git commit (e.g. `af8b9a5`) and `region` the serverless region (`bom1` = Mumbai), so one request proves which build is live and where.
+- `reason` is a safe category, never the connection string or raw error: `uri_missing`, `uri_invalid` (quotes, spaces, placeholders), `auth_failed` (wrong username or password), `dns` (mistyped cluster host), `timeout` (Atlas Network Access or the cluster is down), `unknown`. Implemented in `src/server/lib/db-errors.ts`, unit-tested in `tests/unit/db-errors.test.ts`, and verified against real Atlas errors.
+- Use it for uptime monitors and post-deploy smoke tests.
 
 ## Media (GridFS) ✅
 
