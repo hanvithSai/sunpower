@@ -123,9 +123,22 @@ This starts an in-memory MongoDB replica set on `127.0.0.1:27017` (transactions 
 ## 6. Seed demo data
 
 ```bash
-npm run seed            # local database
-npm run seed -- --yes   # remote database (Atlas) — explicit confirmation required
+npm run seed            # the database in .env.local (local)
+npm run seed -- --yes   # a remote database (Atlas) — explicit confirmation required
 ```
+
+The seed writes to whatever `MONGODB_URI` points at, and `--yes` only confirms; it does not pick the database. If `.env.local` points at your local DB, seed Atlas by setting the variable for that one command (an environment variable wins over `.env.local`):
+
+```powershell
+# PowerShell — use exactly the URI Vercel has, including the database name (…mongodb.net/sunpower?…)
+$env:MONGODB_URI = "<Vercel's MONGODB_URI>"; npm run seed -- --yes; Remove-Item Env:MONGODB_URI
+```
+```bash
+# macOS / Git Bash
+MONGODB_URI="<Vercel's MONGODB_URI>" npm run seed -- --yes
+```
+
+The first line printed is `Connected to <host> / <database>`. Check that it's the Atlas host and the same database name as production before letting it continue (no name in the URI means MongoDB's `test` database, which production never reads).
 
 Demo logins (password **`SunPower@2026`** for all):
 
@@ -137,7 +150,16 @@ Demo logins (password **`SunPower@2026`** for all):
 | Warehouse | `warehouse@sunpower.demo` | Dispatch |
 | Support | `support@sunpower.demo` | Service tickets |
 
-> The seed currently creates the staff accounts and the catalog (30 products, 10 packages and opening stock). It never deletes data and is safe to re-run. The full demo history (customers, orders, serials, tickets) arrives with the Phase 3 seed (see `Plan.md`).
+What it creates (about 15 s locally, about a minute to Atlas):
+
+| Step | Data |
+|---|---|
+| Staff and catalog | 20 accounts, 30 products, 10 packages, opening stock for bulk items |
+| Goods receipts | 5 receipts: 181 serial-tracked units (panels, inverters, batteries, controllers) plus consumables |
+| History | 121 finished installations over 14 months with surveys, quotes, monthly GRNs, invoices, payments, crew time logs, warranties and subsidy files; three loss-makers with visible causes; two warranty replacements; and the brief's scenes — **Venkata Ramana Rao** (18 months, inverter still covered), **Lakshmi Prasanna** (25 months, workmanship warranty) and **Padmavathi Devi** (28 months, inverter out of warranty) |
+| Today's pipeline | Through the real services: 11 leads at every stage (two past the 2-hour call-back SLA), 8 orders from awaiting payment to installing, 6 service tickets in different states |
+
+It never deletes data and is safe to re-run: accounts, catalog and receipts are upserted, and history and pipeline run once each (marker counters `seed:history` / `seed:pipeline`). An interrupted pipeline run resumes where it stopped. For a clean local demo, restart `npm run db:local` (in-memory) and seed again.
 
 ---
 
@@ -155,7 +177,7 @@ Health check: <http://localhost:3000/api/v1/health> returns `{"status":"ok","db"
 ```bash
 npm run lint        # ESLint (Next.js + TypeScript rules)
 npm run typecheck   # next typegen + tsc --noEmit
-npm test            # Vitest
+npm test            # Vitest (unit tests: GST, warranty, state machines, form schemas)
 npm run build       # production build
 ```
 
@@ -164,9 +186,12 @@ npm run build       # production build
 ```bash
 npx tsx scripts/check-lead-flow.ts SP-L-0123   # enquiry → qualified → survey → approval gate (10 checks)
 npx tsx scripts/check-sale-flow.ts SP-L-0123   # quote → order → payment → pick list + installation job (15 checks)
+npx tsx scripts/check-ops-flow.ts              # GRN → crews → packing guards → dispatch + invoice → warranties → installation proof (46 checks)
+npx tsx scripts/check-service-flow.ts          # search → warranty per serial / workmanship → ₹0 replacement → auto invoice → confirm-before-close (29 checks)
+npx tsx scripts/check-finance-flow.ts          # costing from actuals → dashboard → subsidy stages → share links → payroll (21 checks)
 ```
 
-These move the given lead through the pipeline, so use a fresh enquiry (submit `/enquiry` first) on a development database.
+The first two move the given lead through the pipeline, so use a fresh enquiry (submit `/enquiry` first). The last three build their own orders (and top up stock with a goods receipt when the shelf is short), so they can be re-run any time. All of them write data: run them on a development database, never on production.
 
 ---
 
@@ -222,3 +247,5 @@ git push -u origin feat/<area>-<short-name> # open a PR, the other developer rev
 | Live site shows Vercel `NOT_FOUND` | Vercel has no build of the app: connect the Git repo, set Framework Preset to Next.js, add the env vars and redeploy (Human_Tasks #6) |
 | Sign-in shows "We couldn't sign you in right now" | The app can't reach MongoDB in that environment. Open `/api/v1/health`: its `reason` names the problem (`auth_failed` = wrong credentials in `MONGODB_URI`, `uri_invalid` = quotes or placeholders, `uri_missing`, `dns` = mistyped host, `timeout` = Atlas Network Access). Fix the variable, then redeploy |
 | Pages feel slow from India | Functions are pinned to Mumbai (`bom1`) in `vercel.json`; `/api/v1/health` shows the live `region`. If it isn't `bom1`, check that `vercel.json` is on the deployed commit and that no dashboard override is set (Project → Settings → Functions) |
+| Seeded, but production still looks empty | The seed went to the database in `.env.local` (usually local). Re-run it with `MONGODB_URI` set to Vercel's string for that command (section 6) and check the `Connected to … / sunpower` line |
+| `next dev` shows old behaviour after a pull or a service change | Turbopack occasionally keeps a stale server module. Stop and restart `npm run dev`; `npm run build && npm start` always uses fresh code |
