@@ -14,6 +14,7 @@ export type ErrorCode =
   | "INVALID_STATE"
   | "CONFLICT"
   | "INSUFFICIENT_STOCK"
+  | "DISPATCH_INCOMPLETE"
   | "RATE_LIMITED";
 
 const HTTP_STATUS: Record<ErrorCode, number> = {
@@ -25,6 +26,7 @@ const HTTP_STATUS: Record<ErrorCode, number> = {
   INVALID_STATE: 409,
   CONFLICT: 409,
   INSUFFICIENT_STOCK: 409,
+  DISPATCH_INCOMPLETE: 409,
   RATE_LIMITED: 429,
 };
 

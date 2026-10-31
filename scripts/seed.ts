@@ -6,17 +6,22 @@
  *
  * Idempotent, never deletes: upserts the staff accounts (by email) and the
  * catalog — products (by SKU), the ten 1–5 kW packages (by code) and opening
- * stock for bulk items that have never moved (with matching ledger entries).
- * Later phases add customers, pipeline, orders, inventory, service and
+ * stock for bulk items that have never moved (with matching ledger entries) —
+ * and goods receipts with serial numbers (skipped when the supplier invoice is
+ * already on file). Later phases add customers, pipeline, orders, service and
  * finance data described in Plan.md §6.
  */
 import { loadEnvConfig } from "@next/env";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
+import { addDays } from "@/lib/dates";
+import { toDateInputValue } from "@/lib/format";
 import { connectDB } from "@/server/db";
 import { actorRef } from "@/server/lib/actor";
-import { Package, Product, StockMove, User } from "@/server/models";
+import { Package, Product, Purchase, StockMove, User } from "@/server/models";
+import { receiveGoods } from "@/server/services/inventory";
 import { PACKAGES, PRODUCTS } from "./seed/catalog";
+import { GRNS, grnSerials } from "./seed/inventory";
 import { DEMO_PASSWORD, STAFF } from "./seed/users";
 
 // connectDB() reads MONGODB_URI lazily, so loading .env.local here is in time.
@@ -64,6 +69,7 @@ async function main() {
   console.log(`Staff accounts: ${result.upsertedCount} created, ${result.modifiedCount} updated`);
 
   await seedCatalog();
+  await seedPurchases();
 
   const byRole = await User.aggregate<{ _id: string; count: number }>([
     { $group: { _id: "$role", count: { $sum: 1 } } },
@@ -158,6 +164,41 @@ async function seedCatalog() {
     })),
   );
   console.log(`Catalog: ${PRODUCTS.length} products, ${PACKAGES.length} packages, opening stock for ${opening.length} bulk items`);
+}
+
+/** Goods receipts through the real service, so ledger, serial units and costs match what the app does. */
+async function seedPurchases() {
+  const keeper = await User.findOne({ role: "warehouse" }).select("name").lean();
+  if (!keeper) throw new Error("Seed staff first: no warehouse user found");
+  const actor = { id: String(keeper._id), name: keeper.name };
+  const products = await Product.find({ sku: { $in: GRNS.flatMap((g) => g.lines.map((l) => l.sku)) } }).select("sku").lean();
+  const idBySku = new Map(products.map((p) => [p.sku, String(p._id)]));
+
+  let received = 0;
+  let units = 0;
+  for (const grn of GRNS) {
+    if (await Purchase.exists({ invoiceNo: grn.invoiceNo, "supplier.name": grn.supplierName })) continue;
+    const at = addDays(new Date(), -grn.daysAgo);
+    const result = await receiveGoods(
+      {
+        supplierName: grn.supplierName,
+        supplierGstin: grn.supplierGstin,
+        invoiceNo: grn.invoiceNo,
+        invoiceDate: toDateInputValue(addDays(at, -1)),
+        notes: undefined,
+        lines: grn.lines.map((l) => {
+          const productId = idBySku.get(l.sku);
+          if (!productId) throw new Error(`GRN ${grn.invoiceNo} references unknown SKU ${l.sku}`);
+          return { productId, qty: l.qty, unitCostRs: l.unitCostRs, serials: grnSerials(l.serialPrefix, l.qty) };
+        }),
+      },
+      actor,
+      { at },
+    );
+    received += 1;
+    units += result.serials;
+  }
+  console.log(`Goods receipts: ${received} received (${units} serialized units), ${GRNS.length - received} already on file`);
 }
 
 main().catch(async (error) => {
