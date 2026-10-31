@@ -12,7 +12,7 @@ Status legend: ✅ implemented · 🟨 in progress · 🗓️ planned (phase not
 | Format | JSON in and out (`Content-Type: application/json`), except file uploads/downloads and CSV exports |
 | Auth | Session cookie set by Auth.js (`/api/auth/*`). Staff endpoints return **401** when signed out and **403** for the wrong role. Admins can call everything |
 | Errors | `{ "error": { "code": "VALIDATION", "message": "Please fix the highlighted fields.", "fieldErrors": { "phone": "Enter a valid 10-digit Indian mobile number" } } }` |
-| Status codes | 200 OK · 201 Created · 206 Partial Content (media ranges) · 400 BAD_REQUEST · 401 UNAUTHORIZED · 403 FORBIDDEN · 404 NOT_FOUND · 409 INVALID_STATE / CONFLICT / INSUFFICIENT_STOCK · 422 VALIDATION · 429 RATE_LIMITED · 500 INTERNAL |
+| Status codes | 200 OK · 201 Created · 206 Partial Content (media ranges) · 400 BAD_REQUEST · 401 UNAUTHORIZED · 403 FORBIDDEN · 404 NOT_FOUND · 409 INVALID_STATE / CONFLICT / INSUFFICIENT_STOCK / DISPATCH_INCOMPLETE · 422 VALIDATION · 429 RATE_LIMITED · 500 INTERNAL |
 | Money | integer **paise** in payloads (`amountPaise`). Forms accept rupees and convert |
 | Dates | ISO-8601 UTC strings. UIs display in IST (Asia/Kolkata) |
 | Rate limits | Public endpoints: per-IP fixed window (enquiries 5 / 10 min, warranty lookup 20 / 10 min) |
@@ -67,16 +67,19 @@ Website enquiry form (also usable by any external landing page). New enquiries a
 ```
 `201 { ok: true, reference: "SP-L-0123" }`. Repeat enquiries from the same phone within 30 days attach to the open lead instead of creating duplicates. `website` is a honeypot and must be empty.
 
-### `GET /api/v1/warranty?serial=` (Phase 3)
+### `GET /api/v1/warranty?serial=` 🗓️ (Phase 3b, F20)
 `200 { serial, product, installedOn, warrantyEndsOn, state, customer: { maskedName, city } }`. Never returns phone numbers or addresses.
 
-## Staff endpoints 🗓️
+### Read-only share view and CSV ✅
+`/share/{token}` (page, no login) and `GET /api/v1/reports/profit?range=…&token={token}` accept a share-link token. The token is checked against its stored record on every request, so expiry and revocation take effect at once; customer names are masked (`L. N****`).
+
+## Staff endpoints ✅
 
 | Method | Path | Roles | Purpose |
 |---|---|---|---|
-| GET | `/api/v1/search?q=` | any staff | ⌘K global search → `{ results: [{ type, id, title, subtitle, href, badge }] }` across customers, leads, quotes, orders, serials, tickets and invoices (≤ 5 per type) — Phase 3 |
-| GET | `/api/v1/reports/profit?range=month` | admin | CSV: profit per job (revenue, material, labour, extras, margin) — Phase 3 |
-| GET | `/api/v1/reports/payroll?month=YYYY-MM` | admin | CSV: technician hours and payout — Phase 3 |
+| GET | `/api/v1/search?q=` | any staff (results filtered by role) | ⌘K global search → `{ results: [{ type, id, title, subtitle, href, badge }] }` across customers, leads, quotes, orders, serials, tickets and invoices (≤ 5 per type). Phone with or without `+91`/spaces, full or last 4+ digits; serial full or partial; names; document numbers. Serial results carry the warranty badge ("In warranty · 6 mo left"). Support's links open `/service/new?serial=…` with the warranty already decided. `401` signed out |
+| GET | `/api/v1/reports/profit?range=today\|week\|month\|all` | admin (or a valid share `token`) | CSV: profit per installation — revenue excl. GST, material (GRN cost per serial), labour (hours × rate), site extras, warranty repairs, profit, margin. UTF-8 with BOM for Excel. Bad token `403` |
+| GET | `/api/v1/reports/payroll?month=YYYY-MM` | admin | CSV: per technician — rate, installation hours, service hours, jobs, payout |
 
 ## Server Actions (by module)
 
@@ -86,8 +89,8 @@ Each action has the signature `(prev: ActionState, formData: FormData) => Promis
 |---|---|---|
 | Auth | `loginAction`, `logoutAction` | ✅ 0 |
 | Leads & surveys | create enquiry (+ public `submitEnquiryAction`), mark contacted, qualify, mark lost, reopen, assign, schedule survey, submit survey (photos must exist in GridFS), approve / re-survey / not feasible | ✅ 1 |
-| Quotes & orders | `saveQuoteAction` (JSON; server re-prices from the catalog, survey-approval gate), mark sent, accept → order (+ subsidy tracker, supersedes other quotes; expired quotes blocked), reject, record payment (first payment confirms the order → pick list + installation job with the 3 least-loaded installers; overpayment blocked), cancel (admin; releases serials + job) | ✅ 1 |
+| Quotes & orders | `saveQuoteAction` (JSON; server re-prices from the catalog, survey-approval gate), mark sent, accept → order (+ subsidy tracker, supersedes other quotes; expired quotes blocked), reject, `recordPaymentAction` (first payment confirms the order → pick list + installation job with 3 installers free that day, BR-07; overpayment blocked; with `invoiceId` it pays a service invoice), cancel (admin; releases serials + job) | ✅ 1 |
 | Inventory & dispatch | `receiveGoodsAction` (JSON GRN with serials), `scanSerialAction` / `unscanSerialAction` (allocate / release), `bulkPickAction`, `dispatchOrderAction` (gate: everything packed, `DISPATCH_INCOMPLETE`; issues the sale invoice), `deliverOrderAction` (→ warranties) | ✅ 2 (stock adjustment pending) |
 | Jobs | `rescheduleJobAction` (date + crew; double bookings returned as warnings), `startJobAction` (crew only; gate: delivered), `completeJobAction` (BR-14 proof, extras to stock and order costs, time logs → commissioned) | ✅ 2 |
-| Service | create ticket (warranty snapshot), assign, schedule visit, resolve (parts, labour, replacement, auto invoice if out of warranty), confirm / reopen | 🗓️ 3 |
-| Finance | record invoice payment, update subsidy stage, add site cost, close project, create/revoke share link | 🗓️ 3 |
+| Service | `createTicketAction` (warranty decided from the serial, or the workmanship warranty when there is no serial; redirects to the ticket), `assignTicketAction` (books a service visit on the technician's calendar), `startTicketAction`, `overrideBillingAction` (reason required), `resolveTicketAction` (parts JSON, labour, replacement serial of the same product; out of warranty → GST service invoice, in warranty → cost charged to the order), `confirmTicketAction` (who / channel / when), `closeTicketAction` (only from `customer_confirmed`), `reopenTicketAction` ("Not fixed") | ✅ 3 |
+| Finance | `advanceSubsidyAction` (next stage only; application number for Applied, amount for Disbursed), `createShareLinkAction` (1–30 days, returns the token), `revokeShareLinkAction`. Site extras come from job completion; warranty costs from resolved tickets | ✅ 3 |
