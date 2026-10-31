@@ -249,8 +249,18 @@ export type InstallChecklistKey = (typeof INSTALL_CHECKLIST)[number]["key"];
 /* Service                                                             */
 /* ------------------------------------------------------------------ */
 
-export const TICKET_STATUSES = ["open", "assigned", "in_progress", "resolved", "closed"] as const;
+/** A ticket closes only after the customer confirms the fix (BR-06). */
+export const TICKET_STATUSES = ["open", "assigned", "in_progress", "resolved", "customer_confirmed", "closed"] as const;
 export type TicketStatus = (typeof TICKET_STATUSES)[number];
+
+/** How the customer confirmed the fix. */
+export const CONFIRMATION_CHANNELS = ["call", "whatsapp", "on_site"] as const;
+export type ConfirmationChannel = (typeof CONFIRMATION_CHANNELS)[number];
+export const CONFIRMATION_CHANNEL_LABELS: Record<ConfirmationChannel, string> = {
+  call: "Phone call",
+  whatsapp: "WhatsApp",
+  on_site: "On site",
+};
 
 export const TICKET_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
 export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
@@ -269,6 +279,8 @@ export const TICKET_CATEGORIES = [
   "low_generation",
   "physical_damage",
   "battery",
+  "wiring_earthing",
+  "structure",
   "billing",
   "other",
 ] as const;
@@ -279,6 +291,8 @@ export const TICKET_CATEGORY_LABELS: Record<TicketCategory, string> = {
   low_generation: "Low generation",
   physical_damage: "Physical damage",
   battery: "Battery issue",
+  wiring_earthing: "Wiring / earthing",
+  structure: "Structure / roof leak",
   billing: "Billing / net meter",
   other: "Other",
 };
@@ -302,11 +316,23 @@ export const RESOLUTION_TYPE_LABELS: Record<ResolutionType, string> = {
   advice: "Resolved over phone",
 };
 
+/** `no_serial` = no SunPower installation to cover it (nothing to claim against). */
 export const WARRANTY_STATES = ["in_warranty", "out_of_warranty", "no_serial"] as const;
 export type WarrantyState = (typeof WARRANTY_STATES)[number];
 
+/**
+ * What the warranty decision rests on (BR-04): the serial's own warranty, or —
+ * for faults with no serial (wiring, earthing, structure) — our workmanship
+ * warranty from commissioning.
+ */
+export const WARRANTY_BASES = ["serial", "workmanship", "none"] as const;
+export type WarrantyBasis = (typeof WARRANTY_BASES)[number];
+
 /** Labour rate billed on out-of-warranty service visits (₹ per hour). */
 export const SERVICE_LABOUR_RATE_RS = 600;
+/** SAC for maintenance and repair services, billed at 18% GST. */
+export const SERVICE_SAC = "998719";
+export const SERVICE_GST_RATE = 18;
 
 /* ------------------------------------------------------------------ */
 /* Finance                                                             */
@@ -400,6 +426,7 @@ export const STATUS_META = {
     assigned: { label: "Assigned", tone: "info" },
     in_progress: { label: "In progress", tone: "warning" },
     resolved: { label: "Awaiting confirmation", tone: "brand" },
+    customer_confirmed: { label: "Customer confirmed", tone: "success" },
     closed: { label: "Closed", tone: "success" },
   },
   invoice: {
@@ -421,7 +448,7 @@ export const STATUS_META = {
   warranty: {
     in_warranty: { label: "In warranty", tone: "success" },
     out_of_warranty: { label: "Out of warranty", tone: "danger" },
-    no_serial: { label: "No serial", tone: "neutral" },
+    no_serial: { label: "Not covered", tone: "neutral" },
     not_started: { label: "Not started", tone: "neutral" },
   },
   priority: {
