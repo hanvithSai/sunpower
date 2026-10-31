@@ -58,7 +58,17 @@ const SPECS: Spec[] = [
   { name: "Usha Rani", city: "Manikonda", kw: 3, systemType: "on_grid", stage: "installing", source: "whatsapp" },
 ];
 
-const ORDER_STAGES: Stage[] = ["accepted", "confirmed", "packed", "dispatched", "delivered", "installing"];
+/**
+ * Added after the first production seed: hardware-only Panel Sets (one quoted,
+ * one delivered and so complete). Keyed by phone like the rest, so re-running
+ * the seed on an already seeded database adds only these.
+ */
+const LATER_SPECS: Spec[] = [
+  { name: "Ramesh Chary", city: "Secunderabad", kw: 3, systemType: "panel_set", stage: "quoted", source: "walk_in" },
+  { name: "Venu Gopal Reddy", city: "LB Nagar", kw: 2, systemType: "panel_set", stage: "delivered", source: "phone" },
+];
+
+const ORDER_STAGES: Stage[] =["accepted", "confirmed", "packed", "dispatched", "delivered", "installing"];
 const reached = (stage: Stage, step: Stage, order: Stage[]) => order.indexOf(stage) >= order.indexOf(step);
 const FLOW: Stage[] = ["new", "contacted", "qualified", "survey_scheduled", "survey_completed", "survey_approved", "quoted", "accepted", "confirmed", "packed", "dispatched", "delivered", "installing"];
 
@@ -192,8 +202,27 @@ async function seedTickets(actors: { support: Awaited<ReturnType<typeof staff>>;
   await closeTicket(t6.ticketId, support, { at: addHours(then, 25) });
 }
 
+/** Specs added after the first seed; each is built once, keyed by its phone. */
+async function seedLaterSpecs(actors: Parameters<typeof buildLead>[2]): Promise<number> {
+  let added = 0;
+  for (const [i, s] of LATER_SPECS.entries()) {
+    const k = SPECS.length + i;
+    if (await Customer.exists({ phone: seededPhone(5000 + k) })) continue;
+    await buildLead(s, k, actors);
+    added += 1;
+  }
+  return added;
+}
+
 export async function seedPipeline(): Promise<string> {
-  if (await Counter.exists({ _id: MARKER })) return "Pipeline: already seeded";
+  if (await Counter.exists({ _id: MARKER })) {
+    const added = await seedLaterSpecs({
+      sales: await staff("sales@sunpower.demo"),
+      tech: await staff("tech@sunpower.demo"),
+      warehouse: await staff("warehouse@sunpower.demo"),
+    });
+    return added ? `Pipeline: already seeded; added ${added} Panel Set customers` : "Pipeline: already seeded";
+  }
   const actors = {
     sales: await staff("sales@sunpower.demo"),
     tech: await staff("tech@sunpower.demo"),
@@ -206,7 +235,9 @@ export async function seedPipeline(): Promise<string> {
     await buildLead(s, k, actors);
   }
   await seedTickets(actors);
+  await seedLaterSpecs(actors);
   await Counter.create({ _id: MARKER, seq: SPECS.length });
-  const orders = SPECS.filter((s) => reached(s.stage, "accepted", FLOW) && ORDER_STAGES.includes(s.stage)).length;
-  return `Pipeline: ${SPECS.length - orders} open leads, ${orders} live orders, 6 service tickets`;
+  const all = [...SPECS, ...LATER_SPECS];
+  const orders = all.filter((s) => reached(s.stage, "accepted", FLOW) && ORDER_STAGES.includes(s.stage)).length;
+  return `Pipeline: ${all.length - orders} open leads, ${orders} orders, 6 service tickets`;
 }
