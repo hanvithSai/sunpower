@@ -20,18 +20,18 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
 | Production | ✅ Live at [www.sunpowersolutions.me](https://www.sunpowersolutions.me), served from Mumbai (`bom1`); [health](https://www.sunpowersolutions.me/api/v1/health) shows database, version and region |
 | Phase 0: foundation (auth, data model, design system, CI/CD) | ✅ Done |
 | Phase 1: leads → surveys → quotes → orders & payments | ✅ Done, verified end to end on Atlas |
-| Phase 2: inventory & serials, dispatch scanning, delivery → warranties, installation jobs | ⏸️ Next, on hold until the go-ahead |
-| Phase 3: service desk, invoices, director dashboard, full demo seed | 🗓️ Planned |
-| Phase 4–5: tests, analytics, polish, demo | 🗓️ Planned |
+| Phase 2: goods receipts & serials, dispatch scanning, invoice at dispatch, warranties on delivery, crew booking, technician My work, installation proof & certificate | ✅ Done |
+| Phase 3: ⌘K search, service desk, job costing, director dashboard & share link, invoices, subsidy board, payroll, full demo seed | ✅ Done; production seeded and verified |
+| Next: certificate link for customers, public warranty lookup, Panel Set packages, customer page; analytics, polish, demo video | 🗓️ See [Plan.md](Plan.md) |
 
 ## Highlights
 
 - **Enquiries never vanish:** web, WhatsApp, call and walk-in leads land in one pipeline with a 2-hour response SLA.
-- **Process gates:** no quote before survey approval, no dispatch until every serial is scanned, no ticket closed until the customer confirms.
+- **Process gates:** no quote before survey approval, no dispatch until every serial is scanned and every bulk line ticked, no installation start before delivery, no ticket closed until the customer confirms.
 - **Kit that's always right:** 1–5 kW On-Grid/Off-Grid templates expand into the full bill of materials, with GST (CGST/SGST) and the PM Surya Ghar subsidy calculated automatically.
-- **Automations:** a payment creates the pick list and the crew's job; delivery starts every warranty clock and issues the GST invoice.
-- **Support in seconds:** ⌘K search by phone, name or serial, with live warranty status. Out-of-warranty repairs are billed automatically.
-- **Director's view:** today/week/month KPIs, profit per job, open repairs, unfinished work and a shareable read-only link.
+- **Automations:** a payment creates the pick list and books a crew that's free that day; dispatch issues the GST invoice; delivery starts every serial's warranty clock; completion writes the crew's hours and the certificate.
+- **Support in seconds:** ⌘K by phone, name or the last digits of a serial, with live warranty status. Faults with no serial (wiring, earthing) are covered by a 5-year workmanship warranty. Free repairs cost the customer ₹0 and are charged to that installation's profit; out-of-warranty repairs are invoiced automatically.
+- **Director's view:** today/week/month KPIs, profit per job from actual costs (losers first, with the cause), every customer still waiting on a step, advances held, open repairs, subsidy pipeline, payroll, and an expiring read-only share link with CSV.
 
 ## Tech stack
 
@@ -43,15 +43,26 @@ Next.js 16 (App Router, Cache Components) · TypeScript · MongoDB Atlas + Mongo
 git clone https://github.com/hanvithSai/sunpower.git && cd sunpower
 npm install
 cp .env.example .env.local      # set MONGODB_URI and AUTH_SECRET
-npm run seed -- --yes           # staff accounts + catalog (30 products, 10 packages)
+npm run seed                    # staff, catalog, stock, 14 months of history, today's pipeline (add -- --yes for Atlas)
 npm run dev                     # http://localhost:3000
 ```
 
 The full Windows and macOS guide is in [Setup.md](Setup.md). No Atlas yet? Run `npm run db:local` for an in-memory MongoDB.
 
+### Try the brief's scenes (seeded data)
+
+| Scene | Where to look |
+|---|---|
+| A homeowner's enquiry waiting too long | Sign in as `sales@` → Leads: two enquiries are past the 2-hour call-back SLA |
+| Pack and dispatch with serial scanning | `warehouse@` → Dispatch → any order "To pack" → scan or type serials (wrong products are refused) |
+| The crew on the roof | `tech@` → My work → an installation in progress → completion form with photos and signature |
+| Rainy-season breakdown, 18 months later | `support@` → ⌘K `GRW3K-H2504` → Venkata Ramana Rao's inverter, "In warranty · 6 mo left" → raise a ₹0 ticket |
+| Out of warranty | ⌘K `Padmavathi` → her inverter expired 4 months ago → a repair is invoiced automatically |
+| The director's month-end | `director@` → Dashboard: profit per job (three loss-makers with causes), unfinished steps, subsidy, Share & export |
+
 Demo logins (password `SunPower@2026`): `director@`, `sales@`, `tech@`, `warehouse@`, `support@` with the domain `sunpower.demo`.
 
-Flow smoke checks against a real database: `npx tsx scripts/check-lead-flow.ts <lead-number>` and `npx tsx scripts/check-sale-flow.ts <lead-number>` (see [Setup.md](Setup.md#flow-smoke-checks-real-database)).
+Flow smoke checks against a development database: `check-lead-flow`, `check-sale-flow`, `check-ops-flow` (46 checks), `check-service-flow` (29) and `check-finance-flow` (21) in `scripts/`, plus 33 unit tests (`npm test`). See [Setup.md](Setup.md#flow-smoke-checks-real-database).
 
 ## Documentation
 
@@ -72,7 +83,8 @@ src/
   components/     ui primitives, shared building blocks, app shell, feature modules
   lib/            pure business rules: GST, subsidy, warranty, state machines, validation
   server/         models, auth, services (business logic), server actions
-scripts/          local MongoDB, demo data seeder
+scripts/          local MongoDB, demo data seeder (history + live pipeline), flow smoke checks
+tests/            Vitest unit tests (domain rules, form schemas, packing gate)
 engineering/      technical documentation
 product/          product documentation
 ```
