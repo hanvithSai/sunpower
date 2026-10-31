@@ -7,9 +7,10 @@
  */
 import { useRef } from "react";
 import Link from "next/link";
-import { ChevronDown, Globe, House, LogOut, ShieldCheck } from "lucide-react";
+import { ChevronDown, Cookie, Globe, House, LogOut, ShieldCheck } from "lucide-react";
 
 import { resetAnalytics } from "@/lib/analytics-client";
+import { openConsentSettings } from "@/lib/consent";
 import { ROLE_LABELS } from "@/lib/constants";
 import { roleHome } from "@/lib/navigation";
 import { Avatar } from "@/components/ui/avatar";
@@ -78,6 +79,10 @@ export function UserMenu({ user }: { user: SessionUser }) {
                 <Globe aria-hidden="true" />
                 Public website
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={openConsentSettings}>
+              <Cookie aria-hidden="true" />
+              Cookie settings
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
