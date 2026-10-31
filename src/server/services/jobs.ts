@@ -155,7 +155,8 @@ export async function getMyWork(userId: string, now: Date) {
       return {
         kind: j.type,
         id: String(j._id),
-        href: `/jobs/${j._id}`,
+        // Service visits are worked from their ticket; installations from the job.
+        href: j.type === "service" && j.ticketId ? `/service/${j.ticketId}` : `/jobs/${j._id}`,
         number: j.number,
         title: j.title,
         at: j.scheduledFor,
@@ -219,6 +220,7 @@ export async function getJobDetail(jobId: string) {
       materialsUsed: job.materialsUsed.map((m) => ({ ...m, productId: String(m.productId) })),
       crew: job.technicianIds.map((id) => ({ id: String(id), name: crewById.get(String(id))?.name ?? "—", phone: crewById.get(String(id))?.phone, lead: Boolean(job.leadTechnicianId?.equals(id)) })),
       technicianIds: job.technicianIds.map(String),
+      ticketId: job.ticketId ? String(job.ticketId) : undefined,
     },
     customer: customer
       ? { id: String(customer._id), name: customer.name, phone: customer.phone, email: customer.email, address: customer.address, discom: customer.discom, consumerNumber: customer.consumerNumber }
