@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { ArrowRight, BadgeIndianRupee, ClipboardCheck, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cta } from "@/lib/analytics";
 
 const PROMISES = [
   {
@@ -40,12 +41,14 @@ export default function HomePage() {
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button asChild size="lg">
-            <Link href="/enquiry">
+            <Link href="/enquiry" {...cta("hero_get_quote")}>
               Get a free quote <ArrowRight className="size-4" aria-hidden />
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <Link href="/login">Staff sign in</Link>
+            <Link href="/login" {...cta("hero_staff_sign_in")}>
+              Staff sign in
+            </Link>
           </Button>
         </div>
       </section>

@@ -4,7 +4,7 @@
  * how a serial arrived.
  */
 import { describe, expect, it } from "vitest";
-import { maskContactText, scrubProperties, scrubUrl } from "@/lib/analytics";
+import { CTAS, cta, maskContactText, scrubHeatmapData, scrubProperties, scrubUrl } from "@/lib/analytics";
 import { ScanSerialSchema } from "@/lib/validation/inventory";
 
 describe("scrubUrl", () => {
@@ -65,3 +65,37 @@ describe("ScanSerialSchema", () => {
     expect(ScanSerialSchema.safeParse({ orderId, serial: "waa545-1", method: "telepathy" }).success).toBe(false);
   });
 });
+
+describe("heatmaps and CTAs", () => {
+  it("scrubs heatmap page URLs and merges points that land on the same page", () => {
+    const data = scrubHeatmapData({
+      "https://x.in/leads?q=9848012345&status=new": [{ x: 1 }],
+      "https://x.in/leads?q=Ramesh&status=new": [{ x: 2 }],
+      "https://x.in/share/OzqmLlDOnQrtTiLk_dgrFXme2uY8": [{ x: 3 }],
+    });
+    expect(data).toEqual({
+      "https://x.in/leads?status=new": [{ x: 1 }, { x: 2 }],
+      "https://x.in/share/:token": [{ x: 3 }],
+    });
+  });
+
+  it("labels a CTA only through the one attribute masked autocapture keeps", () => {
+    expect(cta("hero_get_quote")).toEqual({ "data-ph-capture-attribute-cta": "hero_get_quote" });
+    expect(new Set(CTAS).size).toBe(CTAS.length);
+  });
+});
+
+describe("web vitals", () => {
+  it("scrubs page URLs nested inside each metric, but leaves replay frames to their own scrubber", () => {
+    const props = scrubProperties({
+      $current_url: "https://x.in/service/new?serial=GRW3K-H2504-0001",
+      $web_vitals_LCP_value: 1234,
+      $web_vitals_LCP_event: { name: "LCP", value: 1234, $current_url: "https://x.in/share/OzqmLlDOnQrtTiLk_dgrFXme2uY8" },
+      $snapshot_data: [{ data: { href: "https://x.in/leads?q=Ramesh" } }],
+    });
+    expect(props.$current_url).toBe("https://x.in/service/new");
+    expect(props.$web_vitals_LCP_event).toEqual({ name: "LCP", value: 1234, $current_url: "https://x.in/share/:token" });
+    expect(props.$snapshot_data).toEqual([{ data: { href: "https://x.in/leads?q=Ramesh" } }]);
+  });
+});
+

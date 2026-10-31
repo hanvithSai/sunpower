@@ -114,10 +114,65 @@ export function maskContactText(text: string): string {
   return text.replace(PHONE, "•••••").replace(EMAIL, "•••@•••").replace(GSTIN, "•••");
 }
 
-/** Scrub every URL-looking string in an event's properties (current URL, pathname, referrer …). */
+/**
+ * Calls to action we measure (clicks ÷ views of the page = CTR). Autocapture
+ * runs fully masked — no element text, no attributes, so no `tel:` or `wa.me`
+ * link with a phone number — and the only label that survives is the
+ * `data-ph-capture-attribute-cta` this adds. Works on server components.
+ */
+export const CTAS = [
+  "hero_get_quote",
+  "hero_staff_sign_in",
+  "nav_get_quote",
+  "nav_warranty",
+  "nav_staff_login",
+  "footer_call",
+  "footer_get_quote",
+  "footer_warranty",
+  "footer_staff_login",
+  "enquiry_submit",
+  "warranty_submit",
+  "warranty_call",
+  "warranty_whatsapp",
+  "certificate_whatsapp",
+] as const;
+export type Cta = (typeof CTAS)[number];
+
+export function cta(name: Cta): { "data-ph-capture-attribute-cta": Cta } {
+  return { "data-ph-capture-attribute-cta": name };
+}
+
+/** Heatmap batches are keyed by the raw page URL; scrub the keys like every other URL. */
+export function scrubHeatmapData(data: unknown): unknown {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return data;
+  const out: Record<string, unknown[]> = {};
+  for (const [url, points] of Object.entries(data as Record<string, unknown>)) {
+    const key = scrubUrl(url);
+    out[key] = [...(out[key] ?? []), ...(Array.isArray(points) ? points : [])];
+  }
+  return out;
+}
+
+/** Payloads scrubbed separately (replay frames, heatmap pages) or too large to walk. */
+const SCRUB_SEPARATELY = new Set(["$snapshot_data", "$heatmap_data"]);
+
+function scrubValue(value: unknown, depth: number): unknown {
+  if (typeof value === "string") return scrubUrl(value);
+  if (depth >= 4 || !value || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map((v) => scrubValue(v, depth + 1));
+  const out: Record<string, unknown> = {};
+  for (const [key, v] of Object.entries(value)) out[key] = scrubValue(v, depth + 1);
+  return out;
+}
+
+/**
+ * Scrub every URL-looking string in an event's properties (current URL,
+ * pathname, referrer …), including nested ones such as the page URL inside
+ * each web-vitals metric (`$web_vitals_LCP_event.$current_url`).
+ */
 export function scrubProperties<T extends Record<string, unknown> | undefined>(props: T): T {
   if (!props) return props;
   const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(props)) out[key] = typeof value === "string" ? scrubUrl(value) : value;
+  for (const [key, value] of Object.entries(props)) out[key] = SCRUB_SEPARATELY.has(key) ? value : scrubValue(value, 0);
   return out as T;
 }

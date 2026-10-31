@@ -15,6 +15,7 @@ import { SubmitButton } from "@/components/shared/submit-button";
 import { Button } from "@/components/ui/button";
 import type { ActionState } from "@/lib/action-state";
 import { submitEnquiryAction } from "@/server/actions/public";
+import { cta } from "@/lib/analytics";
 
 const NEXT_STEPS = [
   "Our sales team calls you within 2 working hours.",
@@ -70,7 +71,7 @@ export function EnquiryForm() {
       <LeadFields defaults={{ capacityKw: kw, systemType: type }} />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted-foreground">We only use your number to call you about this enquiry. No spam, ever.</p>
-        <SubmitButton size="lg" pendingText="Sending…">
+        <SubmitButton size="lg" pendingText="Sending…" {...cta("enquiry_submit")}>
           <Send aria-hidden="true" />
           Get my free quote
         </SubmitButton>
