@@ -3,15 +3,16 @@
  * Warehouse Server Actions: goods receipts (JSON from the GRN form), packing
  * (serial scans and bulk ticks), dispatch and delivery. Scans return the new
  * packing progress so the bench updates without waiting for a page refresh.
+ * The director can also correct stock after a count and write off a unit.
  */
 import { revalidatePath } from "next/cache";
 import type { ActionState } from "@/lib/action-state";
-import { BulkPickSchema, DeliverOrderSchema, DispatchOrderSchema, ReceiveGoodsSchema, ScanSerialSchema } from "@/lib/validation/inventory";
+import { AdjustStockSchema, BulkPickSchema, DeliverOrderSchema, DispatchOrderSchema, ReceiveGoodsSchema, ScanSerialSchema, WriteOffSerialSchema } from "@/lib/validation/inventory";
 import { trackServer } from "../analytics";
 import { runAction } from "../lib/action";
 import { parseForm, parseInput } from "../lib/validate";
 import { deliverOrder, dispatchOrder, scanSerial, setBulkPicked, unscanSerial } from "../services/dispatch";
-import { receiveGoods } from "../services/inventory";
+import { adjustStock, receiveGoods, writeOffSerial } from "../services/inventory";
 
 function refreshInventory() {
   revalidatePath("/inventory");
@@ -100,5 +101,26 @@ export async function deliverOrderAction(_prev: ActionState, formData: FormData)
     revalidatePath("/my-work");
     trackServer("order_delivered", { warranties: result.warranties }, user.id);
     return { ok: true, message: `${result.orderNumber} delivered — ${result.warranties} warranties started` };
+  });
+}
+
+/** Director only: correct a bulk item after a count, with a reason on the ledger. */
+export async function adjustStockAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return runAction([], async (user) => {
+    const input = parseForm(AdjustStockSchema, formData);
+    const result = await adjustStock(input, user);
+    revalidatePath("/inventory");
+    return { ok: true, message: `${result.name}: ${result.before} → ${result.after}` };
+  });
+}
+
+/** Director only: a damaged or lost unit leaves stock as Faulty. */
+export async function writeOffSerialAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return runAction([], async (user) => {
+    const input = parseForm(WriteOffSerialSchema, formData);
+    const result = await writeOffSerial(input, user);
+    revalidatePath("/inventory");
+    revalidatePath("/inventory/serials");
+    return { ok: true, message: `${result.serial} written off` };
   });
 }

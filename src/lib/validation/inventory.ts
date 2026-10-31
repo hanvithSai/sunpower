@@ -75,3 +75,26 @@ export const DeliverOrderSchema = z.object({
   note: optionalText(300),
 });
 export type DeliverOrderInput = z.output<typeof DeliverOrderSchema>;
+
+/** Admin correction of a bulk item after a count (cable cut short, connectors lost). Serial units are written off one by one instead. */
+export const AdjustStockSchema = z.object({
+  productId: objectId,
+  delta: z.preprocess(
+    (v) => (v === "" || v === null ? undefined : v),
+    z.coerce
+      .number({ error: "Enter how many to add (+) or remove (−)" })
+      .int("Whole units only")
+      .min(-100_000, "Too large")
+      .max(100_000, "Too large")
+      .refine((n) => n !== 0, "Enter a change other than 0"),
+  ),
+  reason: requiredText("Reason", 200),
+});
+export type AdjustStockInput = z.output<typeof AdjustStockSchema>;
+
+/** Take a damaged or lost unit out of stock (it becomes Faulty and leaves the ledger). */
+export const WriteOffSerialSchema = z.object({
+  serial: z.string({ error: "Serial is required" }).trim().min(1, "Serial is required").max(60).transform(normalizeSerial),
+  reason: requiredText("Reason", 200),
+});
+export type WriteOffSerialInput = z.output<typeof WriteOffSerialSchema>;

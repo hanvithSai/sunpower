@@ -15,9 +15,9 @@ import { Types } from "mongoose";
 import { SERIAL_STATUSES, type ProductCategory, type SerialStatus } from "@/lib/constants";
 import { fromISTInput, escapeRegex } from "@/lib/format";
 import { formatINR } from "@/lib/money";
-import type { ReceiveGoodsInput } from "@/lib/validation/inventory";
+import type { AdjustStockInput, ReceiveGoodsInput, WriteOffSerialInput } from "@/lib/validation/inventory";
 import { connectDB, withTransaction } from "../db";
-import { AppError } from "../errors";
+import { AppError, notFoundError } from "../errors";
 import { actorRef, type Actor } from "../lib/actor";
 import { Customer, Order, Product, Purchase, SerialUnit } from "../models";
 import { logActivity } from "./core/activity";
@@ -164,6 +164,8 @@ export async function listSerials(filter: { q?: string; status?: string; page?: 
         warrantyStartAt: u.warrantyStartAt,
         warrantyEndAt: u.warrantyEndAt,
         updatedAt: u.updatedAt,
+        /** Every move this unit made, newest first: received, packed, dispatched, delivered, installed, replaced. */
+        history: [...(u.history ?? [])].reverse().map((h) => ({ status: h.status, at: h.at, note: h.note, by: h.by })),
       };
     }),
     total,
@@ -372,5 +374,51 @@ export async function receiveGoods(input: ReceiveGoodsInput, actor: Actor, opts:
     );
 
     return { purchaseId: String(purchase._id), number, units, serials: allSerials.length, totalPaise };
+  });
+}
+
+/* --------------------------- Stock corrections -------------------------- */
+
+/**
+ * Admin correction after a physical count, for bulk items only (cable cut
+ * short, connectors lost). Goes through the ledger like every other move, so
+ * on-hand still reconciles; never below zero (BR-13).
+ */
+export async function adjustStock(input: AdjustStockInput, actor: Actor) {
+  return withTransaction(async (session) => {
+    const product = await Product.findById(input.productId).session(session).lean();
+    if (!product) throw notFoundError("Product");
+    if (product.isSerialized) throw new AppError("VALIDATION", "Serial-tracked items change only through goods receipts, dispatch or a write-off of one unit.", { delta: "Write off the unit from the serial register instead" });
+    const after = await moveStock({ productId: product._id, qty: input.delta, type: "adjustment", refType: "manual", note: input.reason, actor }, session);
+    await logActivity(
+      {
+        entityType: "product",
+        entityId: product._id,
+        action: "stock_adjusted",
+        message: `Stock of ${product.name} ${input.delta > 0 ? "increased" : "reduced"} by ${Math.abs(input.delta)} ${product.unit} (${product.stockQty} → ${after.stockQty}). Reason: ${input.reason}`,
+        actor,
+      },
+      session,
+    );
+    return { name: product.name, before: product.stockQty, after: after.stockQty };
+  });
+}
+
+/** Take a damaged or lost in-stock unit out of stock: it becomes Faulty and leaves the ledger. */
+export async function writeOffSerial(input: WriteOffSerialInput, actor: Actor) {
+  return withTransaction(async (session) => {
+    const unit = await SerialUnit.findOne({ serial: input.serial }).session(session);
+    if (!unit) throw notFoundError(`Serial ${input.serial}`);
+    if (unit.status !== "in_stock") throw new AppError("INVALID_STATE", `${unit.serial} isn't on the shelf (${unit.status.replace(/_/g, " ")}), so it can't be written off here.`);
+    const now = new Date();
+    unit.status = "faulty";
+    unit.history.push({ status: "faulty", at: now, note: `Written off: ${input.reason}`, by: actor.name });
+    await unit.save({ session });
+    await moveStock({ productId: unit.productId, qty: -1, type: "adjustment", serials: [unit.serial], refType: "manual", note: `Write-off: ${input.reason}`, actor }, session);
+    await logActivity(
+      { entityType: "serial", entityId: unit._id, action: "written_off", message: `${unit.serial} (${unit.productName}) written off at ${formatINR(unit.costPaise)} cost. Reason: ${input.reason}`, actor },
+      session,
+    );
+    return { serial: unit.serial, productName: unit.productName };
   });
 }
