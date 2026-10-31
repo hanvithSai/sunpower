@@ -143,7 +143,8 @@ export function SignaturePad({ name, required = false, label = "Customer signatu
 
       <div
         className={cn(
-          "relative overflow-hidden rounded-lg border bg-white shadow-xs",
+          // ph-no-capture: session replay never records the customer's signature.
+          "ph-no-capture relative overflow-hidden rounded-lg border bg-white shadow-xs",
           invalid ? "border-danger ring-2 ring-danger/25" : "border-input",
         )}
       >

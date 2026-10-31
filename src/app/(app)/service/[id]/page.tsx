@@ -172,7 +172,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                     {customer.name}
                   </Link>
                 )}
-                <p className="text-muted-foreground">{[customer.address.line1, customer.address.city, customer.address.pincode].filter(Boolean).join(", ")}</p>
+                <p className="ph-no-capture text-muted-foreground">{[customer.address.line1, customer.address.city, customer.address.pincode].filter(Boolean).join(", ")}</p>
                 <div className="grid grid-cols-2 gap-2">
                   <Button asChild variant="outline">
                     <a href={telLink(customer.phone)}>

@@ -134,7 +134,7 @@ export default async function SurveyPage({ params }: { params: Promise<{ id: str
         <aside className="space-y-6">
           <Section title="Site">
             <div className="space-y-3 text-sm">
-              <p className="flex items-start gap-2">
+              <p className="ph-no-capture flex items-start gap-2">
                 <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <span>
                   {address || "—"}

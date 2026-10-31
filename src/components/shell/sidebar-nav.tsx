@@ -15,6 +15,7 @@ import { navForRole } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { resetAnalytics } from "@/lib/analytics-client";
 import { logoutAction } from "@/server/actions/auth";
 import type { SessionUser } from "@/server/auth/session";
 
@@ -88,7 +89,7 @@ export function SidebarUserCard({ user }: { user: SessionUser }) {
         <p className="truncate text-sm leading-5 font-medium text-foreground">{user.name || user.email}</p>
         <p className="truncate text-xs leading-4 text-muted-foreground">{ROLE_LABELS[user.role] ?? user.role}</p>
       </div>
-      <form action={logoutAction}>
+      <form action={logoutAction} onSubmit={resetAnalytics}>
         <SubmitButton
           variant="ghost"
           size="icon"

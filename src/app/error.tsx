@@ -11,6 +11,7 @@ import Link from "next/link";
 import { RotateCw, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { captureClientError } from "@/lib/analytics-client";
 
 type RootErrorProps = {
   error: unknown;
@@ -21,6 +22,7 @@ type RootErrorProps = {
 export default function RootError({ error, retry }: RootErrorProps) {
   useEffect(() => {
     console.error(error);
+    captureClientError(error);
   }, [error]);
 
   return (

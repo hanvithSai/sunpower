@@ -208,7 +208,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                     {customer.name}
                   </Link>
                 )}
-                <p className="text-muted-foreground">
+                <p className="ph-no-capture text-muted-foreground">
                   {[order.siteAddress.line1, order.siteAddress.city, order.siteAddress.pincode].filter(Boolean).join(", ")}
                   {customer.discom ? ` · ${customer.discom}` : ""}
                 </p>

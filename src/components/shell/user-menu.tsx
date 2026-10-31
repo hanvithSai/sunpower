@@ -9,6 +9,7 @@ import { useRef } from "react";
 import Link from "next/link";
 import { ChevronDown, Globe, House, LogOut, ShieldCheck } from "lucide-react";
 
+import { resetAnalytics } from "@/lib/analytics-client";
 import { ROLE_LABELS } from "@/lib/constants";
 import { roleHome } from "@/lib/navigation";
 import { Avatar } from "@/components/ui/avatar";
@@ -32,7 +33,7 @@ export function UserMenu({ user }: { user: SessionUser }) {
 
   return (
     <>
-      <form ref={logoutForm} action={logoutAction} hidden />
+      <form ref={logoutForm} action={logoutAction} onSubmit={resetAnalytics} hidden />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button

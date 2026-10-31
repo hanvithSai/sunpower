@@ -37,7 +37,7 @@ export async function createTicketAction(_prev: ActionState, formData: FormData)
     const result = await createTicket(input, user);
     ticketId = result.ticketId;
     refreshTicket();
-    trackServer("ticket_created", { warranty: result.warranty, billable: result.billable, category: input.category }, user.id);
+    trackServer("ticket_created", { warrantyState: result.warranty, billable: result.billable, category: input.category }, user.id);
     return { ok: true, message: `${result.number} raised` };
   });
   if (state?.ok && ticketId) redirect(`/service/${ticketId}`);
@@ -77,7 +77,7 @@ export async function resolveTicketAction(_prev: ActionState, formData: FormData
     const result = await resolveTicket(input, user);
     refreshTicket(input.ticketId);
     revalidatePath("/inventory");
-    trackServer("ticket_resolved", { type: input.type, billed: Boolean(result.invoiceNumber) }, user.id);
+    trackServer("ticket_resolved", { resolutionType: input.type, billable: Boolean(result.invoiceNumber) }, user.id);
     if (result.invoiceNumber) trackServer("invoice_issued", { type: "service" }, user.id);
     return {
       ok: true,

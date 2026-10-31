@@ -297,9 +297,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
               items={[
                 { label: "Mobile", value: formatPhone(customer.phone) },
                 ...(customer.email ? [{ label: "Email", value: customer.email }] : []),
-                { label: "Address", value: [customer.address.line1, customer.address.city, customer.address.pincode].filter(Boolean).join(", ") },
+                { label: "Address", value: <span className="ph-no-capture">{[customer.address.line1, customer.address.city, customer.address.pincode].filter(Boolean).join(", ")}</span> },
                 ...(customer.discom ? [{ label: "DISCOM", value: customer.discom }] : []),
-                ...(customer.consumerNumber ? [{ label: "Service connection", value: customer.consumerNumber }] : []),
+                ...(customer.consumerNumber ? [{ label: "Service connection", value: <span className="ph-no-capture">{customer.consumerNumber}</span> }] : []),
                 ...(customer.gstin ? [{ label: "GSTIN", value: <span className="font-mono">{customer.gstin}</span> }] : []),
               ]}
             />

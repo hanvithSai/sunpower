@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { RotateCw, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { captureClientError } from "@/lib/analytics-client";
 
 type AppErrorProps = {
   error: unknown;
@@ -26,6 +27,7 @@ export default function AppError({ error, retry }: AppErrorProps) {
 
   useEffect(() => {
     console.error(error);
+    captureClientError(error);
   }, [error]);
 
   const digest =

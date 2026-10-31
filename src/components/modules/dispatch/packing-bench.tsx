@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { ScanMethod } from "@/lib/analytics";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { bulkPickAction, scanSerialAction, unscanSerialAction } from "@/server/actions/inventory";
@@ -46,11 +47,11 @@ export function PackingBench({ orderId, lines, canPack }: { orderId: string; lin
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function scan(serial: string) {
+  function scan(serial: string, method: ScanMethod) {
     const value = serial.trim();
     if (!value) return;
     startScan(async () => {
-      const result = await scanSerialAction(null, form({ orderId, serial: value }));
+      const result = await scanSerialAction(null, form({ orderId, serial: value, method }));
       setFeedback({ ok: Boolean(result?.ok), text: result?.message ?? (result?.ok ? "Added" : "Couldn't add that serial") });
       if (!result?.ok) {
         try {
@@ -65,7 +66,7 @@ export function PackingBench({ orderId, lines, canPack }: { orderId: string; lin
   function onManualSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const value = inputRef.current?.value ?? "";
-    scan(value);
+    scan(value, "manual");
     if (inputRef.current) inputRef.current.value = "";
     inputRef.current?.focus();
   }
@@ -99,7 +100,7 @@ export function PackingBench({ orderId, lines, canPack }: { orderId: string; lin
           <h2 id="scan-heading" className="text-base font-semibold text-foreground">
             Scan serials
           </h2>
-          <BarcodeScanner onDetected={scan} paused={scanning} />
+          <BarcodeScanner onDetected={(serial) => scan(serial, "camera")} paused={scanning} />
           <form onSubmit={onManualSubmit} className="space-y-1.5">
             <Label htmlFor="manual-serial">Or type a serial</Label>
             <div className="flex gap-2">

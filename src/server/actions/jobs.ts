@@ -47,7 +47,7 @@ export async function completeJobAction(_prev: ActionState, formData: FormData):
     // The customer's proof goes out as a link (F22-lite); the job page shows the WhatsApp button.
     await certificateLink(input.jobId, user);
     refreshJob(input.jobId);
-    trackServer("job_completed", { hours: result.hours, crew: result.crew, serials: result.serials, hasExtras: result.extrasPaise > 0 }, user.id);
+    trackServer("job_completed", { durationHours: Math.round(result.hours * 10) / 10, crew: result.crew, serials: result.serials, hasExtras: result.extrasPaise > 0 }, user.id);
     return {
       ok: true,
       message: `${result.jobNumber} completed${result.orderNumber ? ` — ${result.orderNumber} commissioned` : ""}. ${result.crew} × ${result.hours} h logged.`,

@@ -102,7 +102,7 @@ export default async function NewTicketPage({ searchParams }: { searchParams: Pr
               <Section title="Customer">
                 <div className="space-y-3 text-sm">
                   <p className="font-medium">{preview.customer.name}</p>
-                  <p className="text-muted-foreground">{[preview.customer.address.line1, preview.customer.address.city].filter(Boolean).join(", ")}</p>
+                  <p className="ph-no-capture text-muted-foreground">{[preview.customer.address.line1, preview.customer.address.city].filter(Boolean).join(", ")}</p>
                   <div className="grid grid-cols-2 gap-2">
                     <Button asChild variant="outline">
                       <a href={telLink(preview.customer.phone)}>

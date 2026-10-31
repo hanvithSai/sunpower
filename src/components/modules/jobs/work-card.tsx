@@ -51,7 +51,7 @@ export function WorkCard({ item, timeOnly = false }: { item: WorkItem; timeOnly?
         <Clock className="size-4 text-muted-foreground" aria-hidden="true" />
         {timeOnly ? formatTime(item.at) : formatDateTime(item.at)}
       </p>
-      <a href={mapsLink(item.address)} target="_blank" rel="noreferrer" className="mt-1 flex items-start gap-1.5 text-sm text-primary hover:underline">
+      <a href={mapsLink(item.address)} target="_blank" rel="noreferrer" className="ph-no-capture mt-1 flex items-start gap-1.5 text-sm text-primary hover:underline">
         <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         {item.address}
       </a>

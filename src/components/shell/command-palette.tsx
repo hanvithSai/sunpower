@@ -9,6 +9,7 @@
  *   STATUS_META where the text matches a known status. Matching pages/actions stay listed.
  * - Network failures and non-200 responses show a calm inline message; navigation still works.
  * Selecting a result calls router.push(href) and closes the palette.
+ * Analytics: search_performed (result count) and search_result_opened (record type); the query text is never sent.
  */
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -29,6 +30,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { track } from "@/lib/analytics-client";
 import { STATUS_META, type Role, type StatusKind, type Tone } from "@/lib/constants";
 import { canAccess, navForRole } from "@/lib/navigation";
 import { SEARCH_TYPE_LABELS, type SearchResponse, type SearchResult, type SearchResultType } from "@/lib/search";
@@ -177,6 +179,7 @@ export function CommandPalette({ role, open, onOpenChange }: CommandPaletteProps
       const found = Array.isArray(data?.results) ? data.results : [];
       setResults(found);
       setStatus("done");
+      track("search_performed", { resultCount: found.length });
       const top = SEARCH_TYPES.map((type) => found.find((result) => result.type === type)).find(Boolean);
       if (top) setSelected(resultValue(top));
     } catch {
@@ -299,7 +302,14 @@ export function CommandPalette({ role, open, onOpenChange }: CommandPaletteProps
               return (
                 <CommandGroup key={group.type} heading={SEARCH_TYPE_LABELS[group.type]}>
                   {group.items.map((result) => (
-                    <CommandItem key={resultValue(result)} value={resultValue(result)} onSelect={() => go(result.href)}>
+                    <CommandItem
+                      key={resultValue(result)}
+                      value={resultValue(result)}
+                      onSelect={() => {
+                        track("search_result_opened", { type: result.type });
+                        go(result.href);
+                      }}
+                    >
                       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground">
                         <TypeIcon aria-hidden="true" />
                       </span>

@@ -8,12 +8,14 @@
  *   below lg it also gets the hamburger that opens the navigation sheet.
  * - Main column: max-w-7xl, 16px padding on phones and 24px from `sm`.
  * - One global command palette (⌘K / Ctrl+K).
+ * - Analytics: identifies the signed-in user by id and role only, which also starts session replay.
  * The data-app-* attributes let print styles hide the chrome for quotes and invoices.
  */
-import { useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 
+import { identifyStaff } from "@/lib/analytics-client";
 import { roleHome } from "@/lib/navigation";
 import { Logo } from "@/components/brand/logo";
 import { CommandPalette } from "@/components/shell/command-palette";
@@ -30,6 +32,8 @@ export type AppShellProps = {
 export function AppShell({ user, children }: AppShellProps) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const home = roleHome(user.role);
+
+  useEffect(() => identifyStaff(user.id, user.role), [user.id, user.role]);
 
   return (
     <div className="min-h-dvh">
