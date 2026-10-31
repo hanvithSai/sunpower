@@ -1,0 +1,20 @@
+# Review routing (the last matching pattern wins).
+# Hanvith Sai Alla — product, architecture, frontend
+# Lagishetty Vamshi — backend, database, integrations, tests
+
+*                               @hanvithSai @LV2402
+
+/product/                       @hanvithSai
+/engineering/Architecture.md    @hanvithSai
+/src/app/                       @hanvithSai
+/src/components/                @hanvithSai
+/src/lib/navigation.ts          @hanvithSai
+
+/src/server/                    @LV2402
+/src/app/api/                   @LV2402
+/src/lib/validation/            @LV2402
+/scripts/                       @LV2402
+/tests/                         @LV2402
+/engineering/DB.md              @LV2402
+/engineering/API.md             @LV2402
+/.github/workflows/             @LV2402
