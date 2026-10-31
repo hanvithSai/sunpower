@@ -31,7 +31,7 @@ The UI uses the Server Actions `loginAction(prev, formData)` and `logoutAction()
 
 ## Health ✅
 
-`GET /api/v1/health` (public). Returns `200 { status: "ok", db: "up", latencyMs, time, version }`, or `503 { status: "degraded", db: "down" }`. Use it for uptime monitors and post-deploy smoke tests.
+`GET /api/v1/health` (public). Returns `200 { status: "ok", db: "up", latencyMs, time, version }`, or `503 { status: "degraded", db: "down" }`. Use it for uptime monitors and post-deploy smoke tests. `version` is the deployed Git commit (e.g. `681cea0`), so it also proves which build is live; `latencyMs` is the database round trip.
 
 ## Media (GridFS) ✅
 
@@ -47,7 +47,7 @@ Verified end to end against Atlas (31 Oct): auth required (401), one-shot upload
 
 All media endpoints require a signed-in user. Allowed types: JPEG, PNG, WebP, MP4, QuickTime, WebM.
 
-## Public endpoints 🗓️
+## Public endpoints
 
 ### `POST /api/v1/enquiries` ✅
 Website enquiry form (also usable by any external landing page). New enquiries are auto-assigned to the salesperson with the fewest open leads.
