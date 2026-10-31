@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AlertTriangle, Boxes, IndianRupee, PackageCheck, PackagePlus, ScanBarcode } from "lucide-react";
 import { InventoryNav } from "@/components/modules/inventory/inventory-nav";
+import { AdjustStockDialog } from "@/components/modules/inventory/stock-correction-dialogs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FilterTabs } from "@/components/shared/filter-tabs";
 import { PageHeader } from "@/components/shared/page-header";
@@ -31,6 +32,8 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
   const view = (VIEWS as string[]).includes(first(sp.view) ?? "") ? (first(sp.view) as StockView) : "all";
   const data = await listStock({ q: first(sp.q), view });
   const canReceive = user.role === "warehouse" || user.role === "admin";
+  // Corrections after a count are the director's call; they land on the ledger with a reason.
+  const canAdjust = user.role === "admin";
 
   return (
     <>
@@ -91,6 +94,11 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
                 <TableHead className="text-right">Available</TableHead>
                 <TableHead className="hidden text-right md:table-cell">Reorder at</TableHead>
                 <TableHead className="hidden text-right lg:table-cell">Value</TableHead>
+                {canAdjust ? (
+                  <TableHead className="w-0">
+                    <span className="sr-only">Correct</span>
+                  </TableHead>
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -116,6 +124,11 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
                   </TableCell>
                   <TableCell className="hidden text-right tabular-nums text-muted-foreground md:table-cell">{formatNumber(p.reorderLevel)}</TableCell>
                   <TableCell className="hidden text-right tabular-nums lg:table-cell">{formatINR(p.valuePaise)}</TableCell>
+                  {canAdjust ? (
+                    <TableCell className="text-right">
+                      {p.isSerialized ? null : <AdjustStockDialog productId={p.id} name={p.name} unit={p.unit} onHand={p.onHand} />}
+                    </TableCell>
+                  ) : null}
                 </TableRow>
               ))}
             </TableBody>
