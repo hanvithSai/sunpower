@@ -503,7 +503,11 @@ Every action follows the same pattern: `runAction(roles)` → `parseForm(schema)
 | CertificateView | One certificate for staff print and the customer link: serials with warranty end dates, workmanship warranty, crew, photos, signature; "Send on WhatsApp" card on the job page |
 | WarrantyCard / ticket forms | The warranty decision shown before a ticket is raised; one form per ticket state (assign, start, override, resolve with parts or replacement, confirm, close, reopen) |
 | LifecyclePipeline | The dashboard's forest strip: seven numbered stages with live counts, a lime dot where work waits, each linking to its module |
-| EnergyFlow | Landing hero: On-Grid / Off-Grid / Hybrid × Sunny afternoon / Evening / Power cut. SVG wires (animated where power flows, with arrows) under HTML buttons for each part; a click explains the part. Labelled as an illustration; no invented figures |
+| EnergyFlow | Landing hero: On-Grid / Off-Grid × Sunny afternoon / Evening / Power cut. SVG wires (animated where power flows, with arrows) under HTML buttons for each part; a click explains the part; no invented figures |
+| PageTransition | Wraps the app and public content in React's `<ViewTransition>` keyed by the pathname, so every navigation crossfades and lifts in |
+| ScrollColumn | A board column that shows five cards and scrolls the rest (leads board, subsidy board, My work) |
+| CountUp | Landing facts count up once when they scroll into view; the subsidy cap comes from `SUBSIDY_RULES` |
+| PackageDialog | A catalog package card that opens its price breakdown and full bill of materials (`expandPackage` + `quoteTotals`) |
 | SubsidyEstimator | Landing: size, home or business, On-Grid or Off-Grid → `estimateSubsidyRs` (the quote builder's rule) with the reason when not eligible; links to `/enquiry?kw=&type=` |
 | DashboardView | KPI cards against the previous period, `RevenueTrendChart` (invoiced vs cash, 12 months), profit table with losers first and their cause, unfinished steps, repairs, subsidy; `SharePanel` creates, copies and revokes links |
 | Subsidy dialogs | `SubsidyAdvanceDialog` moves to the next stage with its required detail; `SubsidyDocumentDialog` photographs papers onto the file |

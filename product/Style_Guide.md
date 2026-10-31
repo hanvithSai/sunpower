@@ -124,7 +124,9 @@ Groups of equal items (the landing platform grid, the facts strip) use 1 px rule
 
 - One orchestrated element per screen. Interface motion is 150–200 ms ease-out on opacity and transform; no bounce or overshoot.
 - **Energy flow:** current moves along the diagram's wires as a dashed stroke (`energy-dash`, 0.9 s linear loop) with arrowheads showing direction, so the meaning survives when motion is off.
-- **Journey line:** on the landing page the line under the eight steps fills as it scrolls into view (CSS scroll-driven animation, progressive enhancement; static where unsupported).
+- **Page transitions:** every navigation fades the old page out (140 ms) and lifts the new one in by 8 px (260 ms) with React's `<ViewTransition>` keyed by the path; reduced motion keeps a plain crossfade. In-page links (`/#how-it-works`, `/#warranty`) scroll smoothly; route changes still jump to the top (`data-scroll-behavior="smooth"`).
+- **Count-up:** the landing facts count from 0 to their value once, when they scroll into view (1.4 s, ease-out); screen readers get the final value.
+- **Solar-panel cards:** the eight journey steps are drawn as panels (aluminium frame, cell grid) that tilt slightly and catch a light sweep on hover.
 - Sidebar collapse animates width (200 ms). Menus and popovers fade with a 4 px slide; dialogs fade and scale from 0.96.
 - `prefers-reduced-motion: reduce` freezes the energy dashes and the journey fill, and turns movement into instant changes.
 
@@ -183,7 +185,15 @@ A forest strip: "Every project, stage by stage", seven numbered stages (Enquiry 
 
 ### Energy-flow diagram (landing)
 
-A forest-raised panel: system type (On-Grid, Off-Grid, Hybrid) as a segmented control with the active option in amber; the parts as 44–56 px circular buttons with labels and status tags ("Exporting", "Charging", "Switched off"); faint wires for every connection and lit, animated wires with arrows for the current moment (Sunny afternoon, Evening, Power cut); a one-sentence story below that changes with the moment, or the clicked part's explanation. Always labelled "An illustration, not live data". Hybrid carries a note that SunPower doesn't install hybrid systems yet.
+A forest-raised panel: system type (On-Grid, Off-Grid — the systems SunPower installs) as a segmented control with the active option in amber; the parts as 44–56 px circular buttons with labels and status tags ("Exporting", "Charging", "Switched off"); faint wires for every connection and lit, animated wires with arrows for the current moment (Sunny afternoon, Evening, Power cut); a one-sentence story below that changes with the moment, or the clicked part's explanation. Every sentence describes how the system behaves; no live figures are shown.
+
+### Board columns
+
+Kanban-style columns (leads board, subsidy board, the technician's Today and Coming up) show **five cards and scroll the rest inside the column** (`ScrollColumn`, which measures where the sixth card starts). Below the column: "Showing 5 of 83. Scroll for 78 more." The scroll area is focusable for keyboard users.
+
+### Detail dialogs
+
+Catalog packages open a dialog with the price breakdown (excl. GST, GST, total, estimated subsidy) and the full bill of materials, from the same quote maths as the builder.
 
 ### Empty, loading and error states
 
