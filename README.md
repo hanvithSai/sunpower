@@ -4,6 +4,8 @@
 
 [![CI](https://github.com/hanvithSai/sunpower/actions/workflows/ci.yml/badge.svg)](https://github.com/hanvithSai/sunpower/actions/workflows/ci.yml)
 
+**Live:** [www.sunpowersolutions.me](https://www.sunpowersolutions.me) · Vercel: [sunpowersolutions.vercel.app](https://sunpowersolutions.vercel.app) · Staff sign-in: [/login](https://www.sunpowersolutions.me/login)
+
 Built for **SunPower Solutions** (Telangana) at the Odoo x GCET Hackathon 2026 (Team 19). The company installs about 40 rooftop systems a month with 15 technicians. Today enquiries get lost on WhatsApp, quotes miss parts, serial numbers live on paper, and nobody knows which jobs made money. SunPower OS replaces that with one connected flow:
 
 ```

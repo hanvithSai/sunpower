@@ -23,6 +23,8 @@ const inter = localFont({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for canonical/Open Graph URLs; override per environment (e.g. previews).
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sunpowersolutions.me"),
   title: {
     default: "SunPower OS",
     template: "%s · SunPower OS",

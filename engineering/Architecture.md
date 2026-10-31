@@ -158,6 +158,8 @@ Vercel caps request bodies at 4.5 MB, so large files are split into 16 × 255 Ki
 
 ## 9. Delivery pipeline
 
+Production runs at **https://www.sunpowersolutions.me** (Namecheap DNS → Vercel; the apex redirects to `www`), with **https://sunpowersolutions.vercel.app** as the Vercel URL.
+
 ```mermaid
 flowchart LR
   Dev[feature branch] --> PR[Pull request]
