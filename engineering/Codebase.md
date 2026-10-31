@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Snapshot** | `main` at `ba6fbab`, 31 Oct 2026 (end of Phase 4: hardening), plus the 1 Nov analytics and privacy work (consent, CTAs, heatmaps, web vitals). Section 5 numbers are at `ba6fbab` |
+| **Snapshot** | `main` at `ba6fbab`, 31 Oct 2026 (end of Phase 4: hardening), plus the 1 Nov work: analytics and privacy (consent, CTAs, heatmaps, web vitals) and the "Energy in motion" redesign (SunPower rebrand, landing page, lifecycle shell, dashboard pipeline, Reports, page transitions, account menu in the sidebar). Section 5 numbers are at `ba6fbab` |
 | **Owner** | Hanvith Sai Alla |
 | **Related** | [Architecture.md](Architecture.md) · [Engineering.md](Engineering.md) · [API.md](API.md) · [DB.md](DB.md) · [Plan.md](../Plan.md) |
 
