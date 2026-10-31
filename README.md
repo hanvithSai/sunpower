@@ -55,7 +55,7 @@ The full Windows and macOS guide is in [Setup.md](Setup.md). No Atlas yet? Run `
 |---|---|
 | A homeowner's enquiry waiting too long | Sign in as `sales@` → Leads: two enquiries are past the 2-hour call-back SLA |
 | Pack and dispatch with serial scanning | `warehouse@` → Dispatch → any order "To pack" → scan or type serials (wrong products are refused) |
-| The crew on the roof | `tech@` → My work → an installation in progress → completion form with photos and signature |
+| The crew on the roof | `tech@` → My work shows Ravi's surveys, installations and service visits. For the completion form, `director@` (who can act for any crew) → Installations → Usha Rani's job, already in progress → photos, signature, Complete |
 | Rainy-season breakdown, 18 months later | `support@` → ⌘K `GRW3K-H2504` → Venkata Ramana Rao's inverter, "In warranty · 6 mo left" → raise a ₹0 ticket |
 | Out of warranty | ⌘K `Padmavathi` → her inverter expired 4 months ago → a repair is invoiced automatically |
 | The director's month-end | `director@` → Dashboard: profit per job (three loss-makers with causes), unfinished steps, subsidy, Share & export |
