@@ -7,11 +7,11 @@
  * only adjust quantities and unit prices. Accepting a quote creates the Order.
  */
 import { Types } from "mongoose";
-import { QUOTE_STATUSES, QUOTE_VALIDITY_DAYS, SYSTEM_TYPE_LABELS, type QuoteStatus } from "@/lib/constants";
+import { PRODUCT_CATEGORY_LABELS, QUOTE_STATUSES, QUOTE_VALIDITY_DAYS, SYSTEM_TYPE_LABELS, type QuoteStatus, type SystemType } from "@/lib/constants";
 import { addDays } from "@/lib/dates";
 import { escapeRegex, formatDate } from "@/lib/format";
 import { formatINR } from "@/lib/money";
-import { lineFromProduct, quoteTotals, type CatalogProduct } from "@/lib/quote-calc";
+import { lineFromProduct, missingComponents, quoteTotals, type CatalogProduct, type QuoteLine } from "@/lib/quote-calc";
 import { isSubsidyEligible } from "@/lib/subsidy";
 import type { SaveQuoteInput } from "@/lib/validation/quotes";
 import { LEAD_FLOW, QUOTE_FLOW } from "@/lib/workflows";
@@ -110,8 +110,25 @@ function toCatalogProduct(p: IProduct): CatalogProduct {
   };
 }
 
+/**
+ * R-24: nobody has to remember the small parts. Sending a quote that lacks a
+ * part its package needs takes an explicit OK; the gap is then written on the
+ * timeline. Returns the missing parts ("earthing kit, lightning arrestor").
+ */
+function checkComplete(systemType: SystemType, lines: Pick<QuoteLine, "category" | "qty">[], acknowledged: boolean): string | undefined {
+  const missing = missingComponents(systemType, lines);
+  if (missing.length === 0) return undefined;
+  const list = missing.map((c) => PRODUCT_CATEGORY_LABELS[c].toLowerCase()).join(", ");
+  if (!acknowledged) {
+    throw new AppError("VALIDATION", `This ${SYSTEM_TYPE_LABELS[systemType]} quote has no ${list}. Add ${missing.length === 1 ? "it" : "them"}, or confirm sending without.`, {
+      sendWithMissing: "Confirm to send without these parts",
+    });
+  }
+  return list;
+}
+
 export async function saveQuote(
-  input: SaveQuoteInput,
+  input: Omit<SaveQuoteInput, "sendWithMissing"> & { sendWithMissing?: boolean },
   actor: Actor,
 ): Promise<{ quoteId: string; number: string; totalPaise: number; packageCode?: string }> {
   await connectDB();
@@ -131,6 +148,7 @@ export async function saveQuote(
   });
   // Keep the catalog's natural order (panels first, services last).
   lines.sort((a, b) => (a.category === "service" ? 1 : 0) - (b.category === "service" ? 1 : 0));
+  const sentWithout = input.send ? checkComplete(input.systemType, lines, Boolean(input.sendWithMissing)) : undefined;
 
   return withTransaction(async (session) => {
     const now = new Date();
@@ -186,7 +204,7 @@ export async function saveQuote(
     lead.lastActivityAt = now;
     await lead.save({ session });
 
-    const message = `Quote ${number} (v${version}) ${input.send ? "sent" : "drafted"}: ${input.capacityKw} kW ${SYSTEM_TYPE_LABELS[input.systemType]} for ${formatINR(totals.totalPaise)}${totals.subsidyPaise ? ` (${formatINR(totals.netCostPaise)} after subsidy)` : ""}`;
+    const message = `Quote ${number} (v${version}) ${input.send ? "sent" : "drafted"}: ${input.capacityKw} kW ${SYSTEM_TYPE_LABELS[input.systemType]} for ${formatINR(totals.totalPaise)}${totals.subsidyPaise ? ` (${formatINR(totals.netCostPaise)} after subsidy)` : ""}${sentWithout ? `; sent without ${sentWithout}` : ""}`;
     await logActivity({ entityType: "quote", entityId: quote._id, customerId: lead.customerId, action: "created", message, actor }, session);
     await logActivity({ entityType: "lead", entityId: lead._id, customerId: lead.customerId, action: "quoted", message, actor }, session);
     return { quoteId: String(quote._id), number, totalPaise: totals.totalPaise, packageCode: packageDoc?.code };
@@ -270,6 +288,7 @@ export async function getQuoteDetail(id: string) {
       subsidyPaise: quote.subsidyPaise,
       netCostPaise: quote.netCostPaise,
       marginPaise: quote.taxablePaise - costPaise,
+      missing: missingComponents(quote.systemType, quote.lines),
       status: quote.status,
       validUntil: quote.validUntil,
       sentAt: quote.sentAt,
@@ -291,16 +310,24 @@ export async function getQuoteDetail(id: string) {
 /* Status changes                                                      */
 /* ------------------------------------------------------------------ */
 
-export async function markQuoteSent(quoteId: string, actor: Actor): Promise<void> {
+export async function markQuoteSent(quoteId: string, actor: Actor, opts: { sendWithMissing?: boolean } = {}): Promise<void> {
   await withTransaction(async (session) => {
     const quote = await Quote.findById(quoteId).session(session);
     if (!quote) throw notFoundError("Quote");
     assertTransition("quote", QUOTE_FLOW, quote.status, "sent");
+    const sentWithout = checkComplete(quote.systemType, quote.lines, Boolean(opts.sendWithMissing));
     quote.status = "sent";
     quote.sentAt = new Date();
     await quote.save({ session });
     await logActivity(
-      { entityType: "quote", entityId: quote._id, customerId: quote.customerId, action: "sent", message: `Quote ${quote.number} sent to the customer`, actor },
+      {
+        entityType: "quote",
+        entityId: quote._id,
+        customerId: quote.customerId,
+        action: "sent",
+        message: `Quote ${quote.number} sent to the customer${sentWithout ? ` without ${sentWithout}` : ""}`,
+        actor,
+      },
       session,
     );
   });
