@@ -29,22 +29,6 @@ const UPCOMING: Record<string, { phase: string; summary: string }> = {
     phase: "Phase 3",
     summary: "Customer 360: installed systems, every serial number with its warranty status, tickets and invoices.",
   },
-  "/leads": {
-    phase: "Phase 1",
-    summary: "Website, WhatsApp, phone and walk-in enquiries in one pipeline with a 2-hour response SLA.",
-  },
-  "/surveys": {
-    phase: "Phase 1",
-    summary: "Mobile site surveys: roof direction, tilt, shading, cable distance and photos, followed by approval.",
-  },
-  "/quotes": {
-    phase: "Phase 1",
-    summary: "Quotes from 1–5 kW templates with an automatic bill of materials, GST and PM Surya Ghar subsidy.",
-  },
-  "/orders": {
-    phase: "Phase 1",
-    summary: "Orders and payments that automatically create the warehouse pick list and the installation job.",
-  },
   "/inventory": {
     phase: "Phase 2",
     summary: "Stock levels, goods receipts with serial numbers, the serial register and low-stock alerts.",
@@ -72,10 +56,6 @@ const UPCOMING: Record<string, { phase: string; summary: string }> = {
   "/team": {
     phase: "Phase 3",
     summary: "Technician hours, utilisation and monthly payouts.",
-  },
-  "/catalog": {
-    phase: "Phase 1",
-    summary: "Products with cost, price, GST, HSN and warranty, plus ready-made 1–5 kW packages.",
   },
 };
 
