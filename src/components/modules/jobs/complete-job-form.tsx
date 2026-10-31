@@ -214,7 +214,8 @@ function CompleteJobFields({ jobId, orderKw, customerName, startedAt, now, extra
 
         <fieldset className="space-y-4">
           <legend className="mb-2 text-sm font-semibold text-foreground">1. Time on site</legend>
-          <div className="grid grid-cols-2 gap-3">
+          {/* Stacked on phones: a date and time don't fit in half of a 360 px screen. */}
+          <div className="grid gap-3 sm:grid-cols-2">
             <FormField label="Started" name="startedAt" required>
               <Input id="startedAt" name="startedAt" type="datetime-local" defaultValue={value("startedAt") ?? startedAt} max={now} required />
             </FormField>

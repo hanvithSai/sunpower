@@ -123,32 +123,34 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           </div>
         </section>
 
-        <table className="mt-5 w-full text-left">
-          <thead>
-            <tr className="border-b border-border text-xs text-muted-foreground">
-              <th className="py-2 font-medium">#</th>
-              <th className="py-2 font-medium">Description</th>
-              <th className="py-2 font-medium">HSN/SAC</th>
-              <th className="py-2 text-right font-medium">Qty</th>
-              <th className="py-2 text-right font-medium">Rate</th>
-              <th className="py-2 text-right font-medium">GST</th>
-              <th className="py-2 text-right font-medium">Taxable</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.lines.map((l, i) => (
-              <tr key={i} className="border-b border-border/60 align-top">
-                <td className="py-2 pr-2 text-muted-foreground">{i + 1}</td>
-                <td className="py-2 pr-2">{l.description}</td>
-                <td className="py-2 pr-2 font-mono text-xs">{l.hsn}</td>
-                <td className="py-2 text-right tabular-nums">{l.qty}</td>
-                <td className="py-2 text-right tabular-nums">{formatINR(l.unitPricePaise, { exact: true })}</td>
-                <td className="py-2 text-right tabular-nums">{l.gstRate}%</td>
-                <td className="py-2 text-right tabular-nums">{formatINR(l.taxablePaise, { exact: true })}</td>
+        <div tabIndex={0} className="mt-5 overflow-x-auto rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring print:overflow-visible">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border text-xs text-muted-foreground">
+                <th className="py-2 font-medium">#</th>
+                <th className="py-2 font-medium">Description</th>
+                <th className="py-2 font-medium">HSN/SAC</th>
+                <th className="py-2 text-right font-medium">Qty</th>
+                <th className="py-2 text-right font-medium">Rate</th>
+                <th className="py-2 text-right font-medium">GST</th>
+                <th className="py-2 text-right font-medium">Taxable</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {invoice.lines.map((l, i) => (
+                <tr key={i} className="border-b border-border/60 align-top">
+                  <td className="py-2 pr-2 text-muted-foreground">{i + 1}</td>
+                  <td className="py-2 pr-2">{l.description}</td>
+                  <td className="py-2 pr-2 font-mono text-xs">{l.hsn}</td>
+                  <td className="py-2 text-right tabular-nums">{l.qty}</td>
+                  <td className="py-2 text-right tabular-nums">{formatINR(l.unitPricePaise, { exact: true })}</td>
+                  <td className="py-2 text-right tabular-nums">{l.gstRate}%</td>
+                  <td className="py-2 text-right tabular-nums">{formatINR(l.taxablePaise, { exact: true })}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         <section className="mt-5 grid gap-6 sm:grid-cols-2">
           <table className="w-full text-xs">

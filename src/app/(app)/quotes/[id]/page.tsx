@@ -152,7 +152,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 [&>*]:min-w-0">
         <div className="space-y-6 lg:col-span-2">
           <Section title="Bill of materials" contentClassName="p-0">
             <QuoteLines lines={quote.lines} totals={quote} />

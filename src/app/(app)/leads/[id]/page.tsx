@@ -96,7 +96,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
         <LeadProgress status={lead.status} lostReason={lead.lostReason} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 [&>*]:min-w-0">
         <div className="space-y-6 lg:col-span-2">
           <Section title="What they asked for">
             <DetailList
