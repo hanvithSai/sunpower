@@ -1,11 +1,15 @@
 /**
  * Public warranty check (F20). Homeowners see each unit's cover and the
- * workmanship warranty without calling support. The heading prerenders; the
- * form is a client component that posts to a rate-limited Server Action.
+ * workmanship warranty without calling support. The heading and the form
+ * prerender; the form posts to a rate-limited Server Action. The example serial
+ * in the hint is a real one from the database, streamed in at request time.
  */
 import type { Metadata } from "next";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import { CalendarClock, ShieldCheck, Wrench } from "lucide-react";
 import { WarrantyLookup } from "@/components/modules/public/warranty-lookup";
+import { warrantyExampleSerial } from "@/server/services/warranty";
 
 export const metadata: Metadata = {
   title: "Check your warranty",
@@ -36,7 +40,24 @@ export default function WarrantyPage() {
           ))}
         </ul>
       </header>
-      <WarrantyLookup />
+      <WarrantyLookup
+        example={
+          <Suspense fallback={null}>
+            <ExampleSerial />
+          </Suspense>
+        }
+      />
     </div>
   );
+}
+
+/** ", e.g. GRW3K-H2504-0001": an installed, in-warranty inverter, so the example really works. */
+async function ExampleSerial() {
+  await connection();
+  const serial = await warrantyExampleSerial(new Date()).catch(() => null);
+  return serial ? (
+    <>
+      , e.g. <span className="font-mono">{serial}</span>
+    </>
+  ) : null;
 }

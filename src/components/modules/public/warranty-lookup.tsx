@@ -7,7 +7,7 @@
  * lands in a URL) and shows each unit's cover with call / WhatsApp buttons
  * for raising a complaint. Names are masked; no phone or address is shown.
  */
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { MessageCircle, Phone, Search, ShieldAlert, ShieldCheck, ShieldQuestion, Wrench } from "lucide-react";
 import { ActionForm, useActionFormState } from "@/components/shared/action-form";
 import { FormField } from "@/components/shared/form-field";
@@ -26,7 +26,8 @@ type Mode = "serial" | "phone";
 
 const COMPANY_TEL = `tel:${COMPANY.phone.replace(/\s+/g, "")}`;
 
-export function WarrantyLookup() {
+/** `example` is a real serial streamed in by the page (", e.g. GRW3K-…"); the form never waits for it. */
+export function WarrantyLookup({ example }: { example?: ReactNode }) {
   const [mode, setMode] = useState<Mode>("serial");
   const [result, setResult] = useState<PublicWarranty | null>(null);
 
@@ -71,7 +72,7 @@ export function WarrantyLookup() {
         </div>
 
         {mode === "serial" ? (
-          <FormField label="Serial number" name="serial" required hint="Printed on the sticker on the inverter, battery or panel, e.g. GRW3K-2504-0001">
+          <FormField label="Serial number" name="serial" required hint={<>Printed on the sticker on the inverter, battery or panel{example}</>}>
             <Input id="serial" name="serial" autoComplete="off" autoCapitalize="characters" spellCheck={false} className="font-mono" />
           </FormField>
         ) : (
