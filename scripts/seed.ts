@@ -10,8 +10,14 @@
  * and goods receipts with serial numbers (skipped when the supplier invoice is
  * already on file). Then, once each (marker counters): 14 months of finished
  * installations with their GRNs, invoices, payments, warranties, time logs,
- * subsidy stages and loss-makers (seed/history.ts), and today's live pipeline
- * and service tickets through the real services (seed/pipeline.ts).
+ * subsidy stages and loss-makers (seed/history.ts), today's live pipeline
+ * and service tickets through the real services (seed/pipeline.ts), and the
+ * demo coverage around them (seed/coverage): a year of lost enquiries and
+ * service work, every in-flight stage, installations booked twelve weeks
+ * ahead, warehouse edge cases, share links and site photos on every record.
+ *
+ * Re-run it on demo morning: the day-by-day activity fills every day since
+ * the last run, so "Today" and "This week" are never empty.
  */
 import { loadEnvConfig } from "@next/env";
 import bcrypt from "bcryptjs";
@@ -23,6 +29,7 @@ import { actorRef } from "@/server/lib/actor";
 import { Package, Product, Purchase, StockMove, User } from "@/server/models";
 import { receiveGoods } from "@/server/services/inventory";
 import { PACKAGES, PRODUCTS } from "./seed/catalog";
+import { seedCoverage } from "./seed/coverage";
 import { seedHistory } from "./seed/history";
 import { seedPipeline } from "./seed/pipeline";
 import { GRNS, grnSerials } from "./seed/inventory";
@@ -76,6 +83,7 @@ async function main() {
   await seedPurchases();
   console.log(await seedHistory());
   console.log(await seedPipeline());
+  for (const line of await seedCoverage()) console.log(line);
 
   const byRole = await User.aggregate<{ _id: string; count: number }>([
     { $group: { _id: "$role", count: { $sum: 1 } } },

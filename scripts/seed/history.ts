@@ -23,13 +23,15 @@ import { Activity, Counter, Customer, Invoice, Job, Lead, Order, Package, Paymen
 import { FACTORIES, FIRST_NAMES, LAST_NAMES, NORTH, PLACES, pick, prng, seededPhone, type Place } from "./people";
 
 const MARKER = "seed:history";
-const SIGNATURE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+/** Shown on the goods receipt page. */
+export const GRN_NOTE = "Monthly replenishment against booked installations";
+export const SIGNATURE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 const DAY = 86_400_000;
 
 type Actor = { id: Types.ObjectId; name: string };
 type Extra = { label: string; kind: "site" | "warranty"; amountPaise: number; daysAfter: number };
 
-type Spec = {
+export type Spec = {
   name: string;
   phone: string;
   commercial?: { gstin: string };
@@ -45,24 +47,26 @@ type Spec = {
   /** Warranty replacement N days after commissioning (category of the unit). */
   repair?: { category: "inverter" | "panel"; daysAfter: number };
   source: "website" | "whatsapp" | "phone" | "walk_in" | "referral";
+  /** Negotiated installation rate per kW (paise), e.g. a premium for an elevated structure. */
+  installRatePaise?: number;
 };
 
 /** Reserve n document numbers in one round trip. */
-async function reserve(prefix: string, n: number): Promise<string[]> {
+export async function reserve(prefix: string, n: number): Promise<string[]> {
   if (n === 0) return [];
   const doc = await Counter.findOneAndUpdate({ _id: prefix }, { $inc: { seq: n } }, { upsert: true, returnDocument: "after" }).lean();
   const last = doc!.seq;
   return Array.from({ length: n }, (_, i) => `${prefix}-${String(last - n + 1 + i).padStart(4, "0")}`);
 }
 
-async function reserveInvoice(at: Date): Promise<string> {
+export async function reserveInvoice(at: Date): Promise<string> {
   const fy = financialYear(at);
   const doc = await Counter.findOneAndUpdate({ _id: `INV/${fy}` }, { $inc: { seq: 1 } }, { upsert: true, returnDocument: "after" }).lean();
   return `INV/${fy}/${String(doc!.seq).padStart(4, "0")}`;
 }
 
 /** 09:30 IST on the day of `d`, plus hours. */
-const at = (d: Date, hours = 9.5) => addHours(startOfDayIST(d), hours);
+export const at = (d: Date, hours = 9.5) => addHours(startOfDayIST(d), hours);
 
 function buildSpecs(now: Date): Spec[] {
   const rand = prng(20261031);
@@ -110,13 +114,24 @@ function buildSpecs(now: Date): Spec[] {
   return specs.sort((a, b) => a.commissionedAt.getTime() - b.commissionedAt.getTime());
 }
 
-function serialPrefix(sku: string): string {
+export function serialPrefix(sku: string): string {
   return sku.replace(/^(PNL|INV|PCU|BAT|CC)-/, "").replace(/-/g, "");
 }
 
 export async function seedHistory(now = new Date()): Promise<string> {
   if (await Counter.exists({ _id: MARKER })) return "History: already seeded";
+  const result = await insertInstallations(buildSpecs(now), { now, tag: "H", seed: 777 });
+  await Counter.create({ _id: MARKER, seq: result.installations });
+  return `History: ${result.summary}`;
+}
 
+/**
+ * Write finished installations for the given specs. `tag` keeps serial
+ * numbers and supplier invoice numbers apart between batches (H = history,
+ * L = legacy installed base, R = recent).
+ */
+export async function insertInstallations(specs: Spec[], run: { now: Date; tag: string; seed: number }): Promise<{ installations: number; summary: string }> {
+  const now = run.now;
   const [products, packages, users] = await Promise.all([Product.find().lean(), Package.find().lean(), User.find({ active: true }).lean()]);
   const productById = new Map(products.map((p) => [String(p._id), p]));
   const bySku = new Map(products.map((p) => [p.sku, p]));
@@ -127,9 +142,8 @@ export async function seedHistory(now = new Date()): Promise<string> {
   const support = users.find((u) => u.role === "support")!;
   const rate = new Map(users.map((u) => [String(u._id), u.hourlyRatePaise]));
   const actor = (u: (typeof users)[number]): Actor => ({ id: u._id, name: u.name });
-  const rand = prng(777);
+  const rand = prng(run.seed);
 
-  const specs = buildSpecs(now);
   const n = specs.length;
   const [leadNos, surveyNos, quoteNos, orderNos, jobNos] = await Promise.all([reserve("SP-L", n), reserve("SP-SV", n), reserve("SP-Q", n), reserve("SP-O", n), reserve("SP-J", n)]);
 
@@ -193,7 +207,7 @@ export async function seedHistory(now = new Date()): Promise<string> {
     const pkg = packages.find((p) => p.capacityKw === s.kw && p.systemType === s.systemType)!;
     const lines: ILineItem[] = pkg.lines.map((l) => {
       const p = productById.get(String(l.productId))! as IProduct;
-      return { productId: p._id, sku: p.sku, name: p.name, category: p.category, unit: p.unit, qty: l.qty, unitPricePaise: p.pricePaise, unitCostPaise: p.costPaise, gstRate: p.gstRate, hsn: p.hsn, isSerialized: p.isSerialized, warrantyMonths: p.warrantyMonths };
+      return { productId: p._id, sku: p.sku, name: p.name, category: p.category, unit: p.unit, qty: l.qty, unitPricePaise: p.category === "service" && s.installRatePaise ? s.installRatePaise : p.pricePaise, unitCostPaise: p.costPaise, gstRate: p.gstRate, hsn: p.hsn, isSerialized: p.isSerialized, warrantyMonths: p.warrantyMonths };
     });
     const totals = summarize(lines);
     const subsidyPaise = estimateSubsidyPaise(s.kw, s.systemType, s.commercial ? "commercial" : "residential");
@@ -276,7 +290,7 @@ export async function seedHistory(now = new Date()): Promise<string> {
       .map((l) => {
         const serials: string[] = [];
         if (l.isSerialized) {
-          const prefix = `${serialPrefix(l.sku)}-H${monthKey.replace("-", "").slice(2)}`;
+          const prefix = `${serialPrefix(l.sku)}-${run.tag}${monthKey.replace("-", "").slice(2)}`;
           for (let k = 0; k < l.qty; k++) {
             const seq = (serialSeq.get(prefix) ?? 0) + 1;
             serialSeq.set(prefix, seq);
@@ -457,7 +471,7 @@ export async function seedHistory(now = new Date()): Promise<string> {
       const repairAt = at(addDays(finishAt, s.repair.daysAfter), 14);
       const old = docs.units.find((u) => u.orderId === ids.order && u.category === s.repair!.category)!;
       const prod = bySku.get(String(old.sku))!;
-      const prefix = `${serialPrefix(prod.sku)}-H${monthKey.replace("-", "").slice(2)}`;
+      const prefix = `${serialPrefix(prod.sku)}-${run.tag}${monthKey.replace("-", "").slice(2)}`;
       const seq = (serialSeq.get(prefix) ?? 0) + 1;
       serialSeq.set(prefix, seq);
       const spare = `${prefix}-${String(seq).padStart(4, "0")}`;
@@ -494,13 +508,13 @@ export async function seedHistory(now = new Date()): Promise<string> {
       _id: id,
       number: grnNos[idx],
       supplier: { name: "Sri Venkateswara Solar Distributors", gstin: "36ABCFS7214K1Z8" },
-      invoiceNo: `SVSD/H/${key}`,
+      invoiceNo: `SVSD/${run.tag}/${key}`,
       invoiceDate: addDays(m.receivedAt, -1),
       lines,
       totalPaise: lines.reduce((s, l) => s + l.qty * l.unitCostPaise, 0),
       receivedAt: m.receivedAt,
       receivedBy: actor(keeper),
-      notes: MARKER,
+      notes: GRN_NOTE,
       createdAt: m.receivedAt,
       updatedAt: m.receivedAt,
     };
@@ -561,8 +575,6 @@ export async function seedHistory(now = new Date()): Promise<string> {
     Ticket.insertMany(tickets, opts),
     Activity.insertMany(docs.activities, opts),
   ]);
-  await Counter.create({ _id: MARKER, seq: n });
-
   const losers = docs.orders.filter((o) => (o as { extraCosts: unknown[] }).extraCosts.length).length;
-  return `History: ${n} installations (${docs.units.length} serials, ${purchases.length} monthly GRNs, ${payments.length} payments, ${tickets.length} warranty repairs, ${losers} jobs with extra costs)`;
+  return { installations: n, summary: `${n} installations (${docs.units.length} serials, ${purchases.length} monthly GRNs, ${payments.length} payments, ${tickets.length} warranty repairs, ${losers} jobs with extra costs)` };
 }
