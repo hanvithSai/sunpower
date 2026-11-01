@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "db:local": "tsx scripts/db-local.ts",
     "seed": "tsx scripts/seed.ts",
+    "check:demo-data": "tsx scripts/check-demo-data.ts",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
