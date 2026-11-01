@@ -57,6 +57,20 @@ function toPublicUnit(u: UnitRow, now: Date): PublicWarrantyUnit {
   return { ...base, state: info.state === "in_warranty" ? "in_warranty" : "out_of_warranty", label: info.label };
 }
 
+/**
+ * A real serial for the form's hint: an inverter on a roof and still covered,
+ * so typing it shows a working result. Installed over a month ago, so it is a
+ * settled record rather than this week's work.
+ */
+export async function warrantyExampleSerial(now: Date): Promise<string | null> {
+  await connectDB();
+  const unit = await SerialUnit.findOne({ category: "inverter", status: "installed", customerId: { $exists: true }, warrantyEndAt: { $gt: now }, deliveredAt: { $lt: new Date(now.getTime() - 30 * 86_400_000) } })
+    .sort({ deliveredAt: -1 })
+    .select("serial")
+    .lean();
+  return unit?.serial ?? null;
+}
+
 export async function lookupWarranty(input: WarrantyLookupInput, now: Date): Promise<PublicWarranty | null> {
   await connectDB();
   const select = "serial productName category status orderId customerId deliveredAt warrantyStartAt warrantyEndAt replacedBySerial";
