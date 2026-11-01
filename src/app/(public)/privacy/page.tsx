@@ -21,7 +21,7 @@ const UPDATED = "1 November 2026";
 const COLLECTED = [
   {
     what: "Enquiries",
-    data: "Name, mobile number, optional email, address, city and PIN code, roof and electricity details, optional business GSTIN",
+    data: "Name, mobile number, email (required on the website form), address, city and PIN code, roof and electricity details, optional business GSTIN",
     why: "To call you back, survey your roof and quote. Used only for your enquiry; never sold or used for advertising.",
   },
   {
@@ -31,8 +31,8 @@ const COLLECTED = [
   },
   {
     what: "Warranty check",
-    data: "The serial number, or your mobile number and the last 4 characters of a serial, as you type them",
-    why: "To answer the check. They aren't stored; the answer hides your name, phone and address.",
+    data: "The serial number, or your mobile number and the last 4 characters of a serial, as you type them, and your email",
+    why: "To answer the check. None of it is stored; the answer hides your name, phone and address. If you raise a complaint on WhatsApp, your email is added to that message so we can reply.",
   },
   {
     what: "Staff",

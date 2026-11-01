@@ -100,7 +100,7 @@ Home after sign-in: admin `/dashboard`, sales `/leads`, technician `/my-work`, w
 
 - **Purpose:** every web enquiry lands in the pipeline without anyone re-typing it.
 - **Screens:** `/` (hero, 1–5 kW packages, subsidy explainer, "Get a free quote"), `/enquiry` (form and confirmation).
-- **Key fields:** name, mobile, email (optional), address, area or city, pincode, customer type (`home`, `business`), system type (`on_grid`, `off_grid`, `not_sure`), capacity (1–5 kW or not sure), monthly bill (₹), subsidy interest, preferred call time, consent.
+- **Key fields:** name, mobile (digits only, letters refused), email (required on the website form; optional on manual entry except for website leads), address, area or city, pincode, customer type (`home`, `business`), system type (`on_grid`, `off_grid`, `not_sure`), capacity (1–5 kW or not sure), monthly bill (₹), subsidy interest, preferred call time, consent.
 - **Actions:** submit; or WhatsApp the company through a `wa.me` link.
 - **Validations:** name 2–80 characters; mobile `^[6-9]\d{9}$` after removing +91, a leading 0 and spaces; pincode `^[1-9]\d{5}$`; bill ₹0–₹10,00,000; consent required; hidden honeypot field; 5 submissions per IP per hour.
 - **Automations:** creates or reuses the customer and creates a lead with source `website` (or a `?source=` campaign value such as `whatsapp` or `qr`); an open lead with the same mobile gets an activity instead of a duplicate (BR-10); the first-response clock starts; events `enquiry_submitted`, `lead_created`.

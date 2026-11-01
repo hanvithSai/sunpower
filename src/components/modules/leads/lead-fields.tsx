@@ -17,6 +17,7 @@ import {
   REQUESTED_SYSTEM_TYPE_LABELS,
   options,
 } from "@/lib/constants";
+import { keepPhoneChars } from "@/lib/utils";
 
 const CAPACITY_OPTIONS = [1, 2, 3, 4, 5, 6, 8, 10];
 
@@ -42,10 +43,12 @@ export function LeadFields({ withSource = false, defaults = {} }: { withSource?:
           required
           placeholder="98480 12345"
           pattern="[+0-9 \-]{10,16}"
+          title="10-digit mobile number, digits only"
+          onInput={keepPhoneChars}
         />
       </FormField>
-      <FormField label="Email" name="email">
-        <Input id="email" name="email" type="email" autoComplete="email" />
+      <FormField label="Email" name="email" required={!withSource} hint={withSource ? "Required for website enquiries" : undefined}>
+        <Input id="email" name="email" type="email" autoComplete="email" required={!withSource} maxLength={120} placeholder="name@example.com" />
       </FormField>
       <FormField label="Property" name="customerType">
         <Select id="customerType" name="customerType" defaultValue="residential" onChange={(e) => setBusiness(e.target.value === "commercial")}>

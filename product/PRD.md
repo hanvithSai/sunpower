@@ -254,7 +254,7 @@ Each acceptance criterion is testable on seeded data. Screens, fields and valida
 
 *As a homeowner, I want to ask for a quote online in under two minutes, so that someone calls me back.*
 
-1. `/enquiry` captures name, mobile, optional email, address, pincode, customer type (home or business), system type (On-Grid, Off-Grid, not sure), capacity (1–5 kW or not sure), monthly bill and subsidy interest, with consent.
+1. `/enquiry` captures name, mobile (digits only), email (required), address, pincode, customer type (home or business), system type (On-Grid, Off-Grid, not sure), capacity (1–5 kW or not sure), monthly bill and subsidy interest, with consent.
 2. The same Zod schema validates in the browser and on the server; errors appear inline next to each field.
 3. On success the visitor sees a reference number (for example SP-L-0231) and when to expect a call.
 4. The lead appears in the New column of `/leads` with source `web`; nobody re-types it.

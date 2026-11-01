@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import type { ActionState } from "@/lib/action-state";
 import { COMPANY } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { cn, keepPhoneChars } from "@/lib/utils";
 import { lookupWarrantyAction } from "@/server/actions/public";
 import type { PublicWarranty, PublicWarrantyUnit } from "@/server/services/warranty";
 import { cta } from "@/lib/analytics";
@@ -30,6 +30,7 @@ const COMPANY_TEL = `tel:${COMPANY.phone.replace(/\s+/g, "")}`;
 export function WarrantyLookup({ example }: { example?: ReactNode }) {
   const [mode, setMode] = useState<Mode>("serial");
   const [result, setResult] = useState<PublicWarranty | null>(null);
+  const [email, setEmail] = useState("");
 
   function handleSuccess(state: ActionState) {
     setResult((state?.data?.result as PublicWarranty | undefined) ?? null);
@@ -78,13 +79,17 @@ export function WarrantyLookup({ example }: { example?: ReactNode }) {
         ) : (
           <div className="grid gap-4 sm:grid-cols-[1.4fr_1fr]">
             <FormField label="Mobile number" name="phone" required hint="The number you gave us">
-              <Input id="phone" name="phone" inputMode="tel" autoComplete="tel" />
+              <Input id="phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={16} pattern="[+0-9 ().\-]{10,16}" title="10-digit mobile number, digits only" placeholder="98480 12345" onInput={keepPhoneChars} />
             </FormField>
             <FormField label="Last 4 of any serial" name="last4" required hint="From any unit on your roof">
               <Input id="last4" name="last4" maxLength={4} autoComplete="off" autoCapitalize="characters" spellCheck={false} className="font-mono uppercase" />
             </FormField>
           </div>
         )}
+
+        <FormField label="Email" name="email" required hint="Added to your complaint message so we can reply. Not stored by this check">
+          <Input id="email" name="email" type="email" autoComplete="email" required maxLength={120} placeholder="name@example.com" onChange={(e) => setEmail(e.target.value.trim())} />
+        </FormField>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">We never show your phone number or address here.</p>
@@ -96,7 +101,7 @@ export function WarrantyLookup({ example }: { example?: ReactNode }) {
         <NoMatch />
       </ActionForm>
 
-      {result ? <WarrantyResult result={result} /> : null}
+      {result ? <WarrantyResult result={result} email={email} /> : null}
     </div>
   );
 }
@@ -112,9 +117,9 @@ function NoMatch() {
   );
 }
 
-function WarrantyResult({ result }: { result: PublicWarranty }) {
+function WarrantyResult({ result, email }: { result: PublicWarranty; email: string }) {
   const anyExpired = result.units.some((u) => u.state === "out_of_warranty") || result.workmanship?.state === "out_of_warranty";
-  const complaint = `Hello SunPower, I'd like to raise a service complaint (${result.customer}).`;
+  const complaint = `Hello SunPower, I'd like to raise a service complaint (${result.customer}).${email ? ` My email: ${email}` : ""}`;
   return (
     <section aria-live="polite" aria-label="Warranty result" className="space-y-4 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
       <div>
