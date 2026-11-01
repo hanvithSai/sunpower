@@ -6,6 +6,7 @@
  */
 import { z } from "zod";
 import { normalizePhone } from "../format";
+import { PHONE_CHARS, requiredEmail } from "./common";
 import { normalizeSerial } from "./inventory";
 
 const emptyToUndefined = (v: unknown) => (v === "" || v === null ? undefined : v);
@@ -15,9 +16,16 @@ export const WarrantyLookupSchema = z
     by: z.preprocess((v) => v || "serial", z.enum(["serial", "phone"], { error: "Choose how to look up" })),
     serial: z.preprocess((v) => (typeof v === "string" ? normalizeSerial(v).replace(/\s+/g, "") || undefined : v), z.string().max(40, "Too long").optional()),
     phone: z.preprocess(
-      (v) => (typeof v === "string" ? normalizePhone(v) || undefined : emptyToUndefined(v)),
-      z.string().regex(/^[6-9]\d{9}$/, "Enter the 10-digit mobile number we have on file").optional(),
+      (v) => (typeof v === "string" ? v.trim() || undefined : emptyToUndefined(v)),
+      z
+        .string()
+        .regex(PHONE_CHARS, "Use digits only, no letters")
+        .transform(normalizePhone)
+        .pipe(z.string().regex(/^[6-9]\d{9}$/, "Enter the 10-digit mobile number we have on file"))
+        .optional(),
     ),
+    /** Required from everyone who checks; not used to find the record (many customers on file have no email). */
+    email: requiredEmail,
     last4: z.preprocess(
       (v) => (typeof v === "string" ? v.trim().toUpperCase() || undefined : v),
       z.string().regex(/^[A-Z0-9]{4}$/, "Enter the last 4 characters of any serial number").optional(),

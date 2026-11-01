@@ -11,15 +11,24 @@ const emptyToUndefined = (v: unknown) => (v === "" || v === null ? undefined : v
 
 export const objectId = z.string().regex(/^[a-f\d]{24}$/i, "Invalid reference");
 
+/** Digits plus the separators people type ("+91 98480-12345"); letters are refused, never stripped. */
+export const PHONE_CHARS = /^[+\d\s().-]*$/;
+
 export const phone = z
   .string({ error: "Phone number is required" })
   .trim()
+  .regex(PHONE_CHARS, "Use digits only, no letters")
   .transform(normalizePhone)
   .pipe(z.string().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number"));
 
 export const optionalEmail = z.preprocess(
   emptyToUndefined,
   z.email("Enter a valid email address").max(120).optional(),
+);
+
+export const requiredEmail = z.preprocess(
+  (v) => (typeof v === "string" ? v.trim() || undefined : emptyToUndefined(v)),
+  z.email({ error: (iss) => (iss.input === undefined ? "Enter your email address" : "Enter a valid email address") }).max(120, "Too long"),
 );
 
 export const pincode = z

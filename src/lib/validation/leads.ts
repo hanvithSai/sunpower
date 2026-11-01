@@ -15,6 +15,7 @@ import {
   optionalNumber,
   optionalText,
   phone,
+  requiredEmail,
   pincode,
   requiredNumber,
   requiredText,
@@ -43,16 +44,21 @@ const enquiryShape = {
 /** Public website form / JSON API. `website` is a honeypot real visitors never see. */
 export const PublicEnquirySchema = z.object({
   ...enquiryShape,
+  email: requiredEmail,
   website: z.string().max(200).optional(),
 });
 
 /** Sales entering an enquiry that arrived by WhatsApp, phone, walk-in or referral. */
-export const ManualLeadSchema = z.object({
-  ...enquiryShape,
-  source: enumOf(LEAD_SOURCES, "source"),
-});
+export const ManualLeadSchema = z
+  .object({
+    ...enquiryShape,
+    source: enumOf(LEAD_SOURCES, "source"),
+  })
+  /** Website enquiries always carry an email; WhatsApp, calls and walk-ins often don't. */
+  .refine((v) => v.source !== "website" || Boolean(v.email), { path: ["email"], message: "Website enquiries need an email address" });
 
-export type EnquiryInput = z.output<typeof PublicEnquirySchema>;
+/** What the lead service accepts from either form: email is optional (WhatsApp, calls and walk-ins often have none). */
+export type EnquiryInput = z.output<z.ZodObject<typeof enquiryShape>>;
 export type ManualLeadInput = z.output<typeof ManualLeadSchema>;
 
 export const QualifyLeadSchema = z

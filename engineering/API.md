@@ -61,21 +61,21 @@ All media endpoints require a signed-in user. The one exception: `GET /api/v1/fi
 ### `POST /api/v1/enquiries` ✅
 Website enquiry form (also usable by any external landing page). New enquiries are auto-assigned to the salesperson with the fewest open leads.
 ```json
-{ "name": "Lakshmi Narayana", "phone": "9848012345", "email": "", "city": "Hyderabad", "pincode": "500072",
+{ "name": "Lakshmi Narayana", "phone": "9848012345", "email": "lakshmi.n@example.com", "city": "Hyderabad", "pincode": "500072",
   "addressLine": "Plot 12, KPHB Colony", "capacityKw": 3, "systemType": "on_grid", "wantsSubsidy": true,
   "monthlyBillRs": 2800, "message": "Need subsidy help", "website": "" }
 ```
-`201 { ok: true, reference: "SP-L-0123" }`. Repeat enquiries from the same phone within 30 days attach to the open lead instead of creating duplicates. `website` is a honeypot and must be empty.
+`201 { ok: true, reference: "SP-L-0123" }`. Repeat enquiries from the same phone within 30 days attach to the open lead instead of creating duplicates. `website` is a honeypot and must be empty. `email` is required. `phone` takes digits with optional `+`, spaces, `-`, `(`, `)` or `.`; any letter is a `400` ("Use digits only, no letters"), never silently stripped.
 
 `systemType` is `on_grid`, `off_grid`, `panel_set` (panels only) or `unsure`. Businesses (`customerType: "commercial"`) may add `gstin` (15-character format, upper-cased); it is stored on the customer and printed on their tax invoice.
 
 ### `POST /api/v1/warranty` ✅ (F20)
 Public warranty check behind `/warranty` (the page posts the same input to `lookupWarrantyAction`). POST only, so no phone number or serial lands in a URL. **10 lookups per IP per hour.**
 ```json
-{ "by": "serial", "serial": "GRW3K-H2504-0001" }
-{ "by": "phone", "phone": "+91 98480 12345", "last4": "0001" }
+{ "by": "serial", "serial": "GRW3K-H2504-0001", "email": "ramana.rao@example.com" }
+{ "by": "phone", "phone": "+91 98480 12345", "last4": "0001", "email": "ramana.rao@example.com" }
 ```
-`200 { ok: true, customer: "V. R****, Kukatpally", units: [{ serial, productName, category, deliveredAt, endsAt, state, label }], workmanship?: { endsAt, state, label } }`. By phone, the last 4 characters of any serial at that customer are a second factor, and every unit there is returned. Only units that reached a customer are found. **Every miss** (unknown serial, in-stock unit, wrong last 4, unknown phone) is the same `404 { error: { code: "NOT_FOUND", message: "No match found." } }`. Never returns a phone, an address or a full name. `website` is a honeypot.
+`200 { ok: true, customer: "V. R****, Kukatpally", units: [{ serial, productName, category, deliveredAt, endsAt, state, label }], workmanship?: { endsAt, state, label } }`. By phone, the last 4 characters of any serial at that customer are a second factor, and every unit there is returned. Only units that reached a customer are found. **Every miss** (unknown serial, in-stock unit, wrong last 4, unknown phone) is the same `404 { error: { code: "NOT_FOUND", message: "No match found." } }`. Never returns a phone, an address or a full name. `website` is a honeypot. `email` is required (validated, not stored and not used for matching); letters in `phone` are a `400`.
 
 ### Read-only share links ✅
 `/share/{token}` (page, no login) opens one of two scopes. The token is checked against its stored record on every request, so expiry and revocation take effect at once.

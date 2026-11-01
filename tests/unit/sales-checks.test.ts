@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { maskName } from "@/lib/format";
 import { missingComponents, REQUIRED_COMPONENTS } from "@/lib/quote-calc";
 import { estimateSubsidyPaise } from "@/lib/subsidy";
-import { PublicEnquirySchema } from "@/lib/validation/leads";
+import { ManualLeadSchema, PublicEnquirySchema } from "@/lib/validation/leads";
 import { MarkQuoteSentSchema } from "@/lib/validation/quotes";
 import { WarrantyLookupSchema } from "@/lib/validation/warranty";
 import { canTransition, ORDER_FLOW } from "@/lib/workflows";
@@ -66,7 +66,7 @@ describe("Panel Sets", () => {
 });
 
 describe("PublicEnquirySchema GSTIN (R-03)", () => {
-  const base = { name: "Sri Sai Polymers", phone: "9848012345", city: "Kompally", pincode: "500014", customerType: "commercial", capacityKw: "5", systemType: "on_grid" };
+  const base = { name: "Sri Sai Polymers", phone: "9848012345", email: "accounts@srisaipolymers.in", city: "Kompally", pincode: "500014", customerType: "commercial", capacityKw: "5", systemType: "on_grid" };
 
   it("upper-cases a valid GSTIN", () => {
     expect(PublicEnquirySchema.parse(formToObject(form({ ...base, gstin: "36aakfs4421m1z3" }))).gstin).toBe("36AAKFS4421M1Z3");
@@ -78,16 +78,45 @@ describe("PublicEnquirySchema GSTIN (R-03)", () => {
   });
 });
 
+describe("Enquiry contact details", () => {
+  const base = { name: "Swathi Reddy", phone: "+91 98480-12345", email: "swathi@example.com", city: "Kukatpally", pincode: "500072", capacityKw: "3", systemType: "on_grid" };
+  const errors = (r: { success: boolean; error?: { issues: { path: PropertyKey[]; message: string }[] } }, field: string) =>
+    r.error?.issues.filter((i) => i.path[0] === field).map((i) => i.message) ?? [];
+
+  it("refuses letters in the mobile number instead of stripping them", () => {
+    const r = PublicEnquirySchema.safeParse(formToObject(form({ ...base, phone: "98480abc12345" })));
+    expect(r.success).toBe(false);
+    expect(errors(r, "phone")).toContain("Use digits only, no letters");
+    expect(PublicEnquirySchema.parse(formToObject(form(base))).phone).toBe("9848012345");
+  });
+
+  it("requires a valid email on the website form", () => {
+    expect(errors(PublicEnquirySchema.safeParse(formToObject(form({ ...base, email: "" }))), "email")).toEqual(["Enter your email address"]);
+    expect(errors(PublicEnquirySchema.safeParse(formToObject(form({ ...base, email: "swathi@" }))), "email")).toEqual(["Enter a valid email address"]);
+  });
+
+  it("requires email on manual entry only for website enquiries", () => {
+    expect(ManualLeadSchema.safeParse(formToObject(form({ ...base, email: "", source: "whatsapp" }))).success).toBe(true);
+    expect(ManualLeadSchema.safeParse(formToObject(form({ ...base, email: "", source: "website" }))).success).toBe(false);
+  });
+});
+
 describe("WarrantyLookupSchema (F20)", () => {
   it("normalises a typed serial", () => {
-    expect(WarrantyLookupSchema.parse(formToObject(form({ by: "serial", serial: " grw3k-h2504-0001 " }))).serial).toBe("GRW3K-H2504-0001");
+    expect(WarrantyLookupSchema.parse(formToObject(form({ by: "serial", serial: " grw3k-h2504-0001 ", email: "ramana@example.com" }))).serial).toBe("GRW3K-H2504-0001");
   });
 
   it("needs both the phone and the last 4 characters", () => {
-    const missing = WarrantyLookupSchema.safeParse(formToObject(form({ by: "phone", phone: "+91 98480 12345" })));
+    const missing = WarrantyLookupSchema.safeParse(formToObject(form({ by: "phone", phone: "+91 98480 12345", email: "ramana@example.com" })));
     expect(missing.success).toBe(false);
-    const ok = WarrantyLookupSchema.parse(formToObject(form({ by: "phone", phone: "+91 98480 12345", last4: "0001" })));
+    const ok = WarrantyLookupSchema.parse(formToObject(form({ by: "phone", phone: "+91 98480 12345", last4: "0001", email: "ramana@example.com" })));
     expect(ok).toMatchObject({ phone: "9848012345", last4: "0001" });
+  });
+
+  it("refuses letters in the mobile number and needs an email", () => {
+    expect(WarrantyLookupSchema.safeParse(formToObject(form({ by: "phone", phone: "98480O12345", last4: "0001", email: "ramana@example.com" }))).success).toBe(false);
+    expect(WarrantyLookupSchema.safeParse(formToObject(form({ by: "serial", serial: "GRW3K-H2504-0001" }))).success).toBe(false);
+    expect(WarrantyLookupSchema.safeParse(formToObject(form({ by: "serial", serial: "GRW3K-H2504-0001", email: "not-an-email" }))).success).toBe(false);
   });
 
   it("masks names to an initial and a surname letter", () => {
