@@ -12,6 +12,7 @@
 | **Team** | Hanvith Sai Alla (`hanvithSai`): Product, Architecture, Frontend · Lagishetty Vamshi (`LV2402`): Backend, DB, Integration, Tests |
 | **Stack** | Next.js 16.4.3 (App Router, TS) · MongoDB Atlas + Mongoose · Tailwind v4 + shadcn/ui · Vercel · GitHub Actions |
 | **Live URLs** | Production: https://www.sunpowersolutions.me (apex `sunpowersolutions.me` redirects to www) · Vercel: https://sunpowersolutions.vercel.app · ✅ live and verified 31 Oct (health `db: up`) |
+| **Status (1 Nov, 08:15)** | ✅ **Implementation complete.** Phases 0–4 and 3b done and pushed; Atlas holds the full demo dataset. Final check against the brief (section 1c): every scene is covered, with one soft gap (invoices go out by print/PDF, not a WhatsApp button). Left: Phase 5 (bug bash, freeze, demo video) |
 
 ---
 
@@ -57,6 +58,37 @@ Every sentence of the brief was checked against this plan, `product/Requirements
 | Technicians to pay | P1 | ✅ | Explicit in the brief but could be cut → **P0-lite** (F18) |
 | Share these numbers | P1 | ✅ | Explicit in the brief and in demo step 7 but could be cut → **P0-lite** (F17) |
 | Today / this week / this month; profit per job; open repairs | ✅ | ✅ | None |
+
+### 1c. Final brief check (1 Nov, 08:15)
+
+Every sentence of `Solar_Installation_Management_System.md` (and the PDF, which has the same text) was checked once more against the code on `main` (`ba14426`), the server-side gates and the demo data on Atlas.
+
+| Brief | Where it lives | Enforced by | Verdict |
+|---|---|---|---|
+| One platform, first quote request → 20-year warranty | One customer record across Leads → Surveys → Quotes → Orders → Dispatch → Installations → Service; Customer 360 shows all of it | Shared models + activity timeline | ✅ |
+| Packages: Panel Set, On-Grid 1–5 kW, Off-Grid 1–5 kW, Installation | Catalog: 15 packages (5 Panel Sets, 10 systems with charge controller, earthing, stands; Off-Grid adds the battery); installation is a service line | Seed + quote builder | ✅ |
+| 15 technicians, homes and small factories | 15 technician logins; residential and commercial (GSTIN) customers | Seed | ✅ |
+| Enquiries from WhatsApp, calls and a web form never vanish, reach sales at once | Public `/enquiry` + manual entry with source (website, WhatsApp, phone, walk-in, referral, other); auto-assigned; SLA badge; leads can't be deleted, only lost with a reason | Lead service (dedupe, auto-assign) | ✅ |
+| Call: shadow-free roof, monthly bill, grid suitability | Qualification checklist on the lead | Zod schema | ✅ |
+| Technician measures direction, tilt, cable distance | Mobile survey form with photos (GridFS) | Survey service | ✅ |
+| Quote only after the survey is approved | Approve / reject on the lead page (Sales, Director) and on the survey; "Create quote" locked until then | `QUOTABLE_LEAD_STATUSES` in the quote service | ✅ |
+| Quote from a template, parts follow on their own | Package → full BOM, subsidy + GST, versions, print, WhatsApp | Missing-parts gate before sending | ✅ |
+| Advance or full payment → warehouse knows what to pack, crew sees the job | First payment confirms the order → pick list + installation job with a crew free that day | Payment service automation; `src/lib/crew.ts` | ✅ |
+| Every inverter, battery, charge controller scanned before leaving; which unit went to which customer | Packing bench with camera scan or typed serial; serial register and history | Dispatch blocked until every serial is scanned and matches the SKU | ✅ |
+| Warranty clock starts by itself at delivery (2 y inverter/battery, 20 y panels) | Delivery stamps `warrantyStartAt` / `warrantyEndAt` per serial from the product's months; 5-year workmanship from commissioning | `dispatch.ts` delivery step | ✅ |
+| Phone/tablet form: start/finish, system size, photos, on-screen signature, clear proof | Job completion form (360 px), local draft, signature pad, certificate with every serial and warranty end, sent as a WhatsApp link | Completion requires photos + signature (BR-14) | ✅ |
+| Find customer + inverter serial in seconds, see warranty | ⌘K by phone, name, serial or last 4; warranty card per serial; public `/warranty` (example serial taken from the database) | Search service | ✅ |
+| In warranty costs nothing; otherwise billed automatically | ₹0 ticket with cost charged to the installation's profit; out of warranty → service invoice on resolve; override with reason | Ticket service | ✅ |
+| Ticket tracked until the customer confirms it works | `resolved → customer_confirmed → closed`; "Not fixed" reopens | Ticket state machine | ✅ |
+| Which installations made / lost money; what is unfinished | Profit per job from actual costs (GRN cost per serial, hours × rate, site extras, warranty repairs); unfinished-steps board | `src/lib/costing.ts`, finance service | ✅ |
+| Advances, stock purchases, technician hours | Dashboard KPIs for advances held, purchases, hours logged | Finance service | ✅ |
+| Invoices to send | GST invoices issued automatically at dispatch and on service; list with unpaid / overdue filters, CSV, print / save as PDF | Invoice service | 🟨 No WhatsApp "send" button on the invoice (quotes and certificates have one); staff share the PDF |
+| Subsidy paperwork to track | `/subsidy` board, stage stepper with dates and application number, photographed papers | Subsidy stage action | ✅ |
+| Technicians to pay | `/team` monthly hours × rate per technician, payout total, CSV | Payroll service | ✅ |
+| Today / this week / this month; profit per job; repairs open | Dashboard range switch, profit table, open repairs; Reports for 12 months | Dashboard service | ✅ |
+| Share these numbers | Expiring, revocable read-only dashboard link (contacts masked) + CSVs | Share-link service | ✅ |
+
+**Data:** every filter, stage and category on every screen has records (`npm run check:demo-data`, 672 checks, all pass on Atlas). Volume is lower than the brief's "about 40 projects a month" (about 10 installations a month in the history), which is enough for every screen but not the brief's real scale.
 
 **Doc drift (code is the source of truth) — ✅ cleaned up 31 Oct, 19:30 in Features.md, DB.md and this file:** ticket priorities (`low/medium/high/urgent` in code vs `low/normal/high` in Features.md), lead source `website` (not `web`), order statuses `ready_to_dispatch` and `closed` missing from Features.md F09, job status `to_schedule` in Features.md (code auto-schedules instead), and the collections list in section 5 (fixed below).
 
@@ -159,7 +191,7 @@ MongoDB Atlas (free M0) ── images: compressed client-side, stored in GridFS
 
 ## 6. Seed data (real DB, India-specific, every feature demo-able)
 
-Run with `npm run seed` (idempotent; wipes and reseeds). It covers **about 14 months of history**, plus backdated legacy projects so both warranty outcomes exist.
+Run with `npm run seed` (idempotent and additive: each section runs once behind a marker, and later runs only add what is new, including the day-by-day activity since the last run). It covers **about 14 months of history**, plus backdated legacy projects so both warranty outcomes exist, and since 1 Nov the demo coverage in `scripts/seed/coverage` (Setup.md §6).
 
 **Must-haves for the demo (added 31 Oct 15:10):**
 - **GRNs with serials** for every serialized product. Serialized stock enters only through a GRN, so without these nothing can be dispatched. Each GRN carries a unit cost that differs slightly between batches, so costing visibly uses actual cost. Print barcodes for about 10 of these serials (Requirements Q20).
@@ -283,7 +315,7 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 | 3–4 | Dispatch shows the confirmed orders to pack (Divya Prasad, Krishna Rao, Manjula Devi); in-stock serials to scan or type include `WAA545-2610-0001`…, `GRW3K-2610-0001`, `LUMCC40-2609-0005` (Human_Tasks #16 for printed labels) |
 | 5 | `tech@` (Ravi) has his visits in My work. For the completion form use `director@` → Installations → Usha Rani's job (in progress); director can act for any crew |
 | 6 | ⌘K `GRW3K-H2504` → **Venkata Ramana Rao**, inverter `GRW3K-H2504-0001`, "In warranty · 6 mo left" (no ticket yet; raise it live). Out of warranty: **Padmavathi Devi**, `GRW3K-H2406-0001`, "Expired 4 mo ago" (a past lightning repair was billed automatically). Workmanship: **Lakshmi Prasanna**'s open wiring ticket at ₹0 |
-| Extras | Public `/warranty`: serial `GRW3K-H2504-0001`. Customer 360: ⌘K "Venkata Ramana Rao" → customer. Panel Sets: Catalog, or Venu Gopal Reddy's order (closed at delivery, after Human_Tasks #18). Certificate link: any completed installation → "Send on WhatsApp" |
+| Extras | Public `/warranty`: serial `GRW3K-H2504-0001`, or the example in the hint (a real covered inverter; the masked name "M. A****" is first initial and surname initial). Customer 360: ⌘K "Venkata Ramana Rao" → customer. Panel Sets: Catalog, or Venu Gopal Reddy's order (closed at delivery). Certificate link: any completed installation → "Send on WhatsApp" |
 | 7 | Loss-makers: SP-O-0092 (re-wiring after a failed DISCOM inspection), SP-O-0063 (wrong inverter sent back), SP-O-0038 (roof-leak rework). Note: "Haritha Chowdary" is both a past job and a live order (two customers with the same name) |
 
 ---
@@ -352,4 +384,6 @@ Phases 0–1 used times relative to kickoff (T+0 = 31 Oct 10:00). **From Phase 2
 | 1 Nov, 02:30 | Hanvith | **Redesign "Energy in motion" (branch `feat/energy-redesign`, not merged).** Reviewers found the UI generic, so: rebrand to SunPower (new logo, forest/field green/sunlight amber/current lime palette measured to AA, IBM Plex Sans + Bricolage Grotesque self-hosted); landing page rebuilt (interactive energy-flow diagram with three system types and three moments, subsidy estimator on the real rule, journey, systems, serial warranty, platform, FAQ); app shell regrouped by lifecycle with hints, collapsed mode, location and New menu; dashboard lifecycle pipeline from live counts; sign-in on forest; Style_Guide v2; "SunPower OS" removed everywhere. No business logic changed; 128 unit tests pass; screens checked at 1440 px and 375 px |
 | 1 Nov, 03:45 | Hanvith | **Redesign follow-ups, merged to `main`.** Hybrid removed from the energy diagram; landing facts count up; journey steps drawn as solar panels; subsidy figures from `SUBSIDY_RULES`; hover panel grid in the hero; smooth page transitions (React `<ViewTransition>`, skipped in background tabs, which also fixed the "Document hidden" console error) and smooth in-page scrolling; pipeline labels fixed; Subsidy board restyled; board columns show five cards and scroll; catalog packages open a detail dialog; tracked-caps labels removed; themed scrollbars; the profile shows once, as the account menu at the foot of the sidebar; **Reports** (`/reports`) with twelve months of charts and CSVs, replacing the link back to the dashboard. 128 unit tests; navigation checked in Chrome with no console errors |
 | 1 Nov, 07:00 | Vamshi | **Full demo dataset on Atlas.** Every filter, stage and category has data (`npm run check:demo-data`, about 670 checks): a year of lost enquiries and service work for every technician, a legacy installed base with expired inverter warranties, Panel Set sales, every in-flight stage, installations booked weekly for three months, warehouse edge cases, share links, rendered site photos on every survey and installation, subsidy papers, customer signatures, and day-by-day activity that re-fills on every seed run |
+| 1 Nov, 07:45 | Both | Survey approve / reject on the lead page for Sales (was only on the survey page). Public warranty hint shows a real covered serial from the database (the old example didn't exist). Seed no longer touches the brief's scene customers; Venkata Ramana Rao's record repaired on Atlas (inverter in warranty, no tickets) and a duplicate of his name renamed. Pushed |
+| 1 Nov, 08:15 | Hanvith | **Implementation complete.** Final check against the brief and PDF (section 1c): every scene covered; one soft gap (no WhatsApp "send" on invoices) |
 | Next | Both | Re-run the seed on demo morning (#22), real WhatsApp number (#19); then Phase 5: bug bash on production, final docs pass and code freeze, demo video |
