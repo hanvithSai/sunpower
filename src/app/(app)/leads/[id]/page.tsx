@@ -1,7 +1,8 @@
 /**
  * One lead, end to end: contact actions, the qualification call checklist,
- * the site survey, the quote gate (locked until the survey is approved), and
- * the full activity timeline.
+ * the site survey (reviewed right here once the technician submits it), the
+ * quote gate (locked until the survey is approved), and the full activity
+ * timeline.
  */
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import { ExternalLink, FileText, Lock, Mail, MapPin, MessageCircle, Phone, Phone
 import { AssignOwnerForm, MarkLostDialog, QualifyForm, ScheduleSurveyForm } from "@/components/modules/leads/lead-forms";
 import { LeadProgress } from "@/components/modules/leads/lead-progress";
 import { SlaBadge, SourceLabel } from "@/components/modules/leads/lead-badges";
+import { SurveyReview } from "@/components/modules/surveys/survey-review";
 import { ActionButton } from "@/components/shared/action-button";
 import { DetailList } from "@/components/shared/detail-list";
 import { MediaGallery } from "@/components/shared/media-gallery";
@@ -196,6 +198,12 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
                     </div>
                   ) : null}
                   {survey.reviewNote ? <p className="mt-3 text-sm text-muted-foreground">Review note: {survey.reviewNote}</p> : null}
+                  {survey.status === "completed" && canEdit ? (
+                    <div className="mt-5 border-t border-border pt-4">
+                      <p className="mb-3 text-sm font-medium text-foreground">Review this survey</p>
+                      <SurveyReview surveyId={survey.id} />
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
