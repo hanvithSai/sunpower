@@ -103,8 +103,14 @@ export const BUSINESSES = [
   { name: "Godavari Ice Factory", city: "Khammam" },
 ] as const;
 
+/** The brief's scene customers: generated names never repeat them, so a search finds just one. */
+const SCENE_NAMES = new Set(["Venkata Ramana Rao", "Lakshmi Prasanna", "Padmavathi Devi"]);
+
 export function personName(rand: () => number): string {
-  return `${pick(rand, FIRST_NAMES)} ${pick(rand, LAST_NAMES)}`;
+  for (;;) {
+    const name = `${pick(rand, FIRST_NAMES)} ${pick(rand, LAST_NAMES)}`;
+    if (!SCENE_NAMES.has(name)) return name;
+  }
 }
 
 export function gstinFor(rand: () => number): string {

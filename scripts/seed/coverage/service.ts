@@ -32,7 +32,11 @@ import { computeLine, summarize } from "@/lib/gst";
 import { addMonths, workmanshipEnd } from "@/lib/warranty";
 import { Activity, Customer, Invoice, Job, Order, Payment, Purchase, SerialUnit, StockMove, Ticket, type IOrder } from "@/server/models";
 import { reserve, reserveInvoice, serialPrefix } from "../history";
+import { seededPhone } from "../people";
 import { Timeline, addDays, addHours, insertOpts, ist, pick, prng, reference, weighted, who, type Ctx, type Staff } from "./common";
+
+/** The brief's live-demo customer (history.ts legacy spec 901). */
+const SCENE_PHONE = seededPhone(901);
 
 type Stage = "open" | "assigned" | "in_progress" | "resolved" | "customer_confirmed" | "closed";
 
@@ -157,7 +161,10 @@ export class Builder {
 
   pickOrder(s: TicketSpec) {
     const wantUnit = { fault_code: "inverter", no_power: "inverter", battery: "battery", low_generation: "panel", physical_damage: "panel" }[s.category as string] as string | undefined;
-    const pool = this.base.orders.filter((o) => o.commissionedAt!.getTime() < s.at.getTime() - 12 * 86_400_000 && (s.category !== "battery" || o.systemType === "off_grid"));
+    // The brief's scene (Venkata Ramana Rao's 18-month inverter) stays without a ticket for the live demo.
+    const pool = this.base.orders.filter(
+      (o) => o.commissionedAt!.getTime() < s.at.getTime() - 12 * 86_400_000 && (s.category !== "battery" || o.systemType === "off_grid") && this.base.customers.get(String(o.customerId))?.phone !== SCENE_PHONE,
+    );
     // Inverter faults on the oldest installations come out of warranty (billable) about a third of the time.
     const legacy = pool.filter((o) => o.legacy);
     const choose = wantUnit === "inverter" && legacy.length && this.rand() < 0.35 ? legacy : pool;
