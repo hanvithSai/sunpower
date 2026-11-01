@@ -110,7 +110,7 @@ SunPower is one Next.js 16 application. The screens and the backend live in one 
 
 | File | Purpose | By |
 |---|---|---|
-| [package.json](../package.json) | Dependencies; scripts `dev`, `build`, `lint`, `typecheck`, `seed`, `db:local`, `test` | Hanvith |
+| [package.json](../package.json) | Dependencies; scripts `dev`, `build`, `lint`, `typecheck`, `seed`, `check:demo-data`, `db:local`, `test` | Hanvith |
 | [next.config.ts](../next.config.ts) | Cache Components, partial prefetching, Tailwind loader, PostHog proxy at `/ingest` | Hanvith |
 | [tsconfig.json](../tsconfig.json), [eslint.config.mjs](../eslint.config.mjs), [.gitignore](../.gitignore), [.env.example](../.env.example) | TypeScript settings, lint rules, ignored files, environment template | Hanvith |
 | [vercel.json](../vercel.json) | Pins the functions to Mumbai | Vamshi |
@@ -240,6 +240,9 @@ SunPower is one Next.js 16 application. The screens and the backend live in one 
 | [seed/history.ts](../scripts/seed/history.ts) | 121 finished installations with real dates, written straight into the collections; loss-making jobs have a visible cause |
 | [seed/pipeline.ts](../scripts/seed/pipeline.ts) | Today's open leads, orders and tickets, created through the real services |
 | [seed/people.ts](../scripts/seed/people.ts) | Telangana customers and places from a seeded random generator, so every run is identical |
+| [seed/coverage/](../scripts/seed/coverage/index.ts) | Demo coverage around the history: installed base, lost and open funnel (`funnel.ts`), Panel Sets, cancellations and in-flight orders with the forward schedule (`orders.ts`), service history and live tickets (`service.ts`), warehouse edge cases, share links and the media backfill (`warehouse.ts`), day-by-day activity (`daily.ts`) |
+| [seed/photos.ts](../scripts/seed/photos.ts) | Procedural site photos and subsidy papers (SVG through a small perspective camera, rasterised by `sharp` with grain and JPEG), stored once in GridFS; customer signatures. `npx tsx scripts/seed/photos.ts <dir>` writes the library to a folder |
+| [check-demo-data.ts](../scripts/check-demo-data.ts) | `npm run check:demo-data`: asks the list services for every filter, stage, category, week and month and fails on anything empty |
 | [db-local.ts](../scripts/db-local.ts) | In-memory MongoDB for working offline |
 | [check-lead-flow.ts](../scripts/check-lead-flow.ts), [check-sale-flow.ts](../scripts/check-sale-flow.ts), [check-ops-flow.ts](../scripts/check-ops-flow.ts), [check-service-flow.ts](../scripts/check-service-flow.ts), [check-finance-flow.ts](../scripts/check-finance-flow.ts) | Whole-flow checks against a real database: 10, 18, 55, 29 and 36 checks (148) |
 | [flows/order.ts](../scripts/flows/order.ts) | Builds a fresh confirmed order through the real services for the checks |
@@ -538,6 +541,8 @@ Every action follows the same pattern: `runAction(roles)` → `parseForm(schema)
   - `seedCatalog` bulk-upserts products, packages and opening stock.
   - `seedPurchases` receives the goods receipts through the real `receiveGoods` service, skipping any supplier invoice already on file.
   - `seedHistory` and `seedPipeline` run once each (marker records `seed:history`, `seed:pipeline`); a later run only adds what is new, such as the Panel Set customers.
+  - `seedCoverage` runs each coverage section once (`seed:cov:*`), then the day-by-day activity (`seed:daily`, saved per day) and the media backfill, which only fills empty or placeholder photos, papers and signatures.
+  - `insertInstallations(specs, { now, tag, seed })` in `history.ts` is the reusable builder for finished installations; the tag keeps serials and supplier invoice numbers apart between batches.
 - **Seed data helpers:**
   - `bom(kw, type)` is the package parts formula. Panels = ⌈kW × 1000 ÷ 545⌉, and on-grid systems add a net meter.
   - `grnSerials` makes repeatable serials like `WAA545-2609-0001`.

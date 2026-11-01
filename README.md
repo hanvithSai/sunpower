@@ -22,7 +22,7 @@ Enquiry → Qualification → Site survey → Quote (auto BOM) → Order & payme
 | Phase 1: leads → surveys → quotes → orders & payments | ✅ Done, verified end to end on Atlas |
 | Phase 2: goods receipts & serials, dispatch scanning, invoice at dispatch, warranties on delivery, crew booking, technician My work, installation proof & certificate | ✅ Done |
 | Phase 3: ⌘K search, service desk, job costing, director dashboard & share link, invoices, subsidy board, payroll, full demo seed | ✅ Done; production seeded and verified |
-| Phase 3b + verification (31 Oct, 20:30): public warranty check, customer certificate link on WhatsApp, subsidy papers, invoice/ticket CSVs, Customer 360, Panel Sets, missing-parts gate on quotes, business GSTIN, stock corrections | ✅ Done and live; Atlas re-seed for Panel Sets pending ([Human_Tasks](Human_Tasks.md) #18) |
+| Phase 3b + verification (31 Oct, 20:30): public warranty check, customer certificate link on WhatsApp, subsidy papers, invoice/ticket CSVs, Customer 360, Panel Sets, missing-parts gate on quotes, business GSTIN, stock corrections | ✅ Done and live; Atlas re-seeded with Panel Sets and the full demo dataset (1 Nov) |
 | Phase 4: hardening (121 unit tests, privacy-first PostHog analytics, WCAG AA contrast, 360 px fixes, job-form draft) | ✅ Done and live, analytics on |
 | Analytics and privacy (1 Nov): opt-in cookie banner, `/privacy` notice, masked click capture with named CTAs, heatmaps, rage/dead clicks, Core Web Vitals | ✅ Done locally; push pending |
 | Redesign "Energy in motion" (1 Nov): SunPower rebrand, interactive energy-flow landing page, lifecycle sidebar, dashboard pipeline, Reports analytics, smooth page transitions ([Style_Guide](product/Style_Guide.md) v2) | ✅ Done, merged to `main` |
@@ -48,7 +48,8 @@ Next.js 16 (App Router, Cache Components) · TypeScript · MongoDB Atlas + Mongo
 git clone https://github.com/hanvithSai/sunpower.git && cd sunpower
 npm install
 cp .env.example .env.local      # set MONGODB_URI and AUTH_SECRET
-npm run seed                    # staff, catalog, stock, 14 months of history, today's pipeline (add -- --yes for Atlas)
+npm run seed                    # staff, catalog, stock, a year of history and service, today's pipeline, site photos (add -- --yes for Atlas)
+npm run check:demo-data         # every filter, stage and category has data
 npm run dev                     # http://localhost:3000
 ```
 
